@@ -14,33 +14,44 @@ export function AuthProvider({ children }) {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        if (user) {
-          // 🔑 Get Firebase ID token
-          const token = await user.getIdToken();
-
-          // 🔐 ASK BACKEND (PostgreSQL)
-          const res = await api.post("/api/auth/login", { token });
-
-          setCurrentUser(user);
-          setUserRole(res.data.user.role);
-        } else {
-          setCurrentUser(null);
-          setUserRole(null);
-        }
-      } catch (error) {
-        console.error("AuthContext backend sync failed:", error);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    try {
+      if (!user) {
         setCurrentUser(null);
         setUserRole(null);
-      } finally {
         setLoading(false);
+        return;
       }
-    });
 
-    return unsubscribe;
-  }, []);
+      // 🔴 ALWAYS get token directly from user
+      const token = await user.getIdToken(true);
+
+      // 🔴 SEND TOKEN IN HEADER (NOT BODY)
+      const res = await api.post(
+        "/api/auth/login",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setCurrentUser(user);
+      setUserRole(res.data.user.role);
+    } catch (error) {
+      console.error("AuthContext backend sync failed:", error);
+      setCurrentUser(null);
+      setUserRole(null);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
+
 
   const logout = async () => {
     await signOut(auth);
