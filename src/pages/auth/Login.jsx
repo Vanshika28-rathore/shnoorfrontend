@@ -5,9 +5,8 @@ import api from "../../api/axios";
 import { auth, googleProvider } from "../../auth/firebase";
 import { FaEye, FaEyeSlash, FaSignInAlt, FaGoogle } from "react-icons/fa";
 import "../../styles/Auth.css";
-import brandLogo from '../../assets/SHnoor_logo_1.jpg';
-import markLogo from '../../assets/just_logo.jpeg';
-
+import brandLogo from "../../assets/SHnoor_logo_1.jpg";
+import markLogo from "../../assets/just_logo.jpeg";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -47,10 +46,17 @@ const Login = () => {
 
       const user = userCredential.user;
 
-      const token = await user.getIdToken();
+      const token = await user.getIdToken(true);
 
-      const res = await api.post("/api/auth/login");
-
+      const res = await api.post(
+        "/api/auth/login",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (rememberMe) {
         localStorage.setItem("rememberedEmail", email);
       } else {
@@ -74,58 +80,78 @@ const Login = () => {
       setLoading(false);
     }
   };
-const handleGoogleSignIn = async () => {
-  try {
-    setLoading(true);
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
 
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
 
-    const token = await user.getIdToken();
+      const token = await user.getIdToken(true);
 
-    const res = await api.post("/api/auth/login");
+      const res = await api.post(
+        "/api/auth/login",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      redirectByRole(res.data.user.role);
+    } catch (err) {
+      console.error(err);
 
-    redirectByRole(res.data.user.role);
-  } catch (err) {
-    console.error(err);
-
-    if (err.response?.status === 403) {
-      setError(err.response.data.message);
-    } else if (err.response?.status === 404) {
-      setError("Account not found. Please register first.");
-    } else {
-      setError("Google Sign-In failed.");
+      if (err.response?.status === 403) {
+        setError(err.response.data.message);
+      } else if (err.response?.status === 404) {
+        setError("Account not found. Please register first.");
+      } else {
+        setError("Google Sign-In failed.");
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
-   <div className="login-container flex bg-background-muted">
+    <div className="login-container flex bg-background-muted">
       <div className="auth-brand-section hidden md:flex">
         <div className="brand-content">
-          <img src={brandLogo} alt="Shnoor Logo" style={{ maxWidth: '150px', marginBottom: '20px', borderRadius: '10px', display: 'block', margin: '0 auto 20px auto' }} />
+          <img
+            src={brandLogo}
+            alt="Shnoor Logo"
+            style={{
+              maxWidth: "150px",
+              marginBottom: "20px",
+              borderRadius: "10px",
+              display: "block",
+              margin: "0 auto 20px auto",
+            }}
+          />
           <p className="brand-description">
-            Empower your institution with a world-class Learning Management System.
-            Streamline administration, enhance learning, and drive results.
+            Empower your institution with a world-class Learning Management
+            System. Streamline administration, enhance learning, and drive
+            results.
           </p>
           <div className="brand-testimonial">
-            <span className="quote-text">"Shnoor has completely transformed how we manage our curriculum and student progress. A true game changer!"</span>
+            <span className="quote-text">
+              "Shnoor has completely transformed how we manage our curriculum
+              and student progress. A true game changer!"
+            </span>
             <span className="quote-author">- Dr. Sarah Miller, Principal</span>
           </div>
         </div>
       </div>
 
       <div className="auth-form-section flex-1 flex items-center justify-center">
-      <div className="login-card w-full max-w-md">
-        <div className="login-header">
+        <div className="login-card w-full max-w-md">
+          <div className="login-header">
             <div className="flex items-center gap-3 mb-5">
               <img
                 src={markLogo}
                 alt="Shnoor International"
-                style={{ width: '70px', height: '60px', borderRadius: '1px' }}
+                style={{ width: "70px", height: "60px", borderRadius: "1px" }}
               />
               <div>
                 <h1 className="brand-logo text-primary text-xl md:text-2xl font-semibold mb-1 tracking-tight leading-tight">
@@ -156,37 +182,90 @@ const handleGoogleSignIn = async () => {
             </div>
 
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "0.5rem",
+                }}
+              >
                 <label style={{ marginBottom: 0 }}>Password</label>
-                <Link to="/forgot-password" style={{ fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: 600 }}>Forgot Password?</Link>
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--color-primary)",
+                    fontWeight: 600,
+                  }}
+                >
+                  Forgot Password?
+                </Link>
               </div>
               <div className="password-wrapper">
-                <input type={showPassword ? "text" : "password"} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                <button type="button" className="password-toggle-icon" onClick={() => setShowPassword(!showPassword)}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle-icon"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
             </div>
 
             <div className="checkbox-group">
-              <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
               <label htmlFor="rememberMe">Remember me on this device</label>
             </div>
 
             <button type="submit" className="login-btn" disabled={loading}>
-              {loading ? "Signing In..." : <><FaSignInAlt /> Sign In</>}
+              {loading ? (
+                "Signing In..."
+              ) : (
+                <>
+                  <FaSignInAlt /> Sign In
+                </>
+              )}
             </button>
 
-            <div className="divider"><span>OR CONTINUE WITH</span></div>
+            <div className="divider">
+              <span>OR CONTINUE WITH</span>
+            </div>
 
-            <button type="button" className="login-btn google-btn" onClick={handleGoogleSignIn} disabled={loading}>
-              <FaGoogle style={{ color: '#EA4335' }} /> Google
+            <button
+              type="button"
+              className="login-btn google-btn"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+            >
+              <FaGoogle style={{ color: "#EA4335" }} /> Google
             </button>
           </form>
 
           <div className="login-footer">
-            <p>Don't have an account? <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign up</Link></p>
-            <p style={{ marginTop: '10px', fontSize: '0.8rem' }}>Welcome to Shnoor LMS</p>
+            <p>
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                style={{ color: "var(--color-primary)", fontWeight: 600 }}
+              >
+                Sign up
+              </Link>
+            </p>
+            <p style={{ marginTop: "10px", fontSize: "0.8rem" }}>
+              Welcome to Shnoor LMS
+            </p>
           </div>
         </div>
       </div>
