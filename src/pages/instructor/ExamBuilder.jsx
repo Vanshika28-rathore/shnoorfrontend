@@ -81,6 +81,8 @@ const ExamBuilder = () => {
   const removeQuestion = (qId) => {
     setFormData((prev) => ({
       ...prev,
+
+
       questions: prev.questions.filter((q) => q.id !== qId),
     }));
   };
@@ -140,7 +142,7 @@ const ExamBuilder = () => {
       for (let i = 0; i < formData.questions.length; i++) {
         const q = formData.questions[i];
 
-        if (q.type === "mcq" || q.type === "descriptive") {
+        if (q.type === "mcq") {
           await api.post(
             `/api/exams/${examId}/questions/mcq`,
             {
@@ -148,6 +150,20 @@ const ExamBuilder = () => {
               options: q.options,
               correctOption: q.correctAnswer,
               marks: q.marks || 1,
+              order: i + 1,
+            },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+        }
+
+        if (q.type === "descriptive") {
+          await api.post(
+            `/api/exams/${examId}/questions/descriptive`,
+            {
+              questionText: q.text,
+              marks: q.marks || 10,
               order: i + 1,
             },
             {
@@ -474,8 +490,8 @@ const ExamBuilder = () => {
                             onClick={() => {
                               const newTestCase = {
                                 input: "",
-                                output: "",
-                                isPublic: true,
+                                expected_output: "", 
+                                is_hidden: false, 
                               };
                               updateQuestion(q.id, "testCases", [
                                 ...(q.testCases || []),
@@ -506,21 +522,21 @@ const ExamBuilder = () => {
                             <input
                               placeholder="Expected Output (e.g. 3)"
                               className="input-sm"
-                              value={tc.output}
+                              value={tc.expected_output}
                               onChange={(e) => {
                                 const newTCs = [...q.testCases];
-                                newTCs[tcIdx].output = e.target.value;
+                                newTCs[tcIdx].expected_output = e.target.value;
                                 updateQuestion(q.id, "testCases", newTCs);
                               }}
                             />
                             <div className="flex-center-gap">
                               <select
                                 className="select-sm"
-                                value={tc.isPublic}
+                                value={tc.is_hidden}
                                 onChange={(e) => {
                                   const newTCs = [...q.testCases];
-                                  newTCs[tcIdx].isPublic =
-                                    e.target.value === "true";
+                                  newTCs[tcIdx].is_hidden =
+                                    e.target.value === "false";
                                   updateQuestion(q.id, "testCases", newTCs);
                                 }}
                               >
