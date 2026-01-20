@@ -82,7 +82,6 @@ const ExamBuilder = () => {
     setFormData((prev) => ({
       ...prev,
 
-
       questions: prev.questions.filter((q) => q.id !== qId),
     }));
   };
@@ -200,7 +199,10 @@ const ExamBuilder = () => {
       navigate("/instructor/dashboard");
     } catch (err) {
       console.error("Create exam error:", err);
-      alert("Failed to create exam");
+      alert(
+        "Exam was created, but one or more questions failed to save. " +
+          "Please check coding/descriptive questions.",
+      );
     } finally {
       setLoading(false);
     }
@@ -490,8 +492,8 @@ const ExamBuilder = () => {
                             onClick={() => {
                               const newTestCase = {
                                 input: "",
-                                expected_output: "", 
-                                is_hidden: false, 
+                                expected_output: "",
+                                is_hidden: false,
                               };
                               updateQuestion(q.id, "testCases", [
                                 ...(q.testCases || []),
