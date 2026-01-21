@@ -18,13 +18,18 @@ const StudentPerformance = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const filteredStudents = students.filter(
-    (student) =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.course.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredStudents = students.filter((student) => {
+    const studentName = student.student_name || "";
+    const courseTitle = student.course_title || "";
 
-  {/*const getStatusColor = (status) => {
+    return (
+      studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      courseTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  {
+    /*const getStatusColor = (status) => {
     switch (status) {
       case "Excellent":
         return "bg-green-100 text-green-800 border-green-200";
@@ -35,8 +40,8 @@ const StudentPerformance = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
-  };*/}
-  
+  };*/
+  }
 
   useEffect(() => {
     const fetchStudents = async () => {
