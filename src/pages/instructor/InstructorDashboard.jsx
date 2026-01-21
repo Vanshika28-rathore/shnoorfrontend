@@ -1,182 +1,299 @@
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaBook, FaPlus, FaChalkboardTeacher, FaEdit, FaTrash, FaClipboardList, FaCheckCircle, FaTimesCircle, FaChartLine, FaTasks, FaCalendarAlt } from 'react-icons/fa';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../../auth/firebase';
-import '../../styles/Dashboard.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  FaBookOpen,
+  FaUserGraduate,
+  FaStar,
+  FaPlus,
+  FaFolderOpen,
+  FaEnvelope,
+  FaArrowRight,
+} from "react-icons/fa";
+import api from "../../api/axios";
+import "../../styles/Dashboard.css";
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    totalCourses: 0,
-    pendingApproval: 0,
-    liveCourses: 0,
-    rejectedCourses: 0,
-    totalStudents: 0
+    myCourses: 0,
+    totalStudents: 0,
+    avgRating: 4.8,
   });
+  const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("Instructor");
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        fetchCourses(user.uid);
-      } else {
-        setLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const fetchCourses = async (uid) => {
-    try {
-      setTimeout(() => {
-        const fetchedCourses = [
-          { id: '1', title: 'Introduction to React', createdAt: new Date().toISOString(), status: 'published', instructorId: uid },
-          { id: '2', title: 'Advanced NodeJS', createdAt: new Date().toISOString(), status: 'pending_approval', instructorId: uid },
-          { id: '3', title: 'Python for Beginners', createdAt: new Date().toISOString(), status: 'draft', instructorId: uid }
-        ];
-        setCourses(fetchedCourses);
-        setStats({
-          totalCourses: 3,
-          pendingApproval: 1,
-          liveCourses: 1,
-          rejectedCourses: 0,
-          totalStudents: 150
-        });
-        setLoading(false);
-      }, 800);
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (courseId) => {
-    if (window.confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
+    const fetchDashboardStats = async () => {
       try {
-        setCourses(prev => prev.filter(c => c.id !== courseId));
-        setStats(prev => ({ ...prev, totalCourses: prev.totalCourses - 1 }));
-      } catch (error) {
-        console.error("Error deleting course:", error);
-        alert("Failed to delete course.");
+        setLoading(true);
+        const token = await auth.currentUser.getIdToken(true);
+
+        const [courseRes, studentRes] = await Promise.all([
+          api.get("/api/courses/instructor/stats", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          api.get("/api/assignments/instructor/students/count", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        setStats({
+          myCourses: Number(courseRes.data.total_courses),
+          totalStudents: Number(studentRes.data.total_students),
+          avgRating: 4.8, // keep static
+        });
+      } catch (err) {
+        console.error("Dashboard stats error:", err);
+      } finally {
+        setLoading(false);
       }
-    }
-  };
+    };
+
+    if (auth.currentUser) fetchDashboardStats();
+  }, []);
 
   if (loading) return <div className="p-8">Loading dashboard...</div>;
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-800';
-      case 'pending_approval': return 'bg-yellow-100 text-yellow-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
-    <div>
-      <div className="stats-grid">
-        <div className="stat-card blue">
+    <div className="p-6">
+      <div className="flex-between-center mb-xl">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">
+            Hello, {userName}! 👋
+          </h2>
+          <p className="text-gray-500">
+            Here's what's happening with your courses today.
+          </p>
+        </div>
+        <div
+          className="text-sm px-3 py-1 rounded-full border font-medium"
+          style={{
+            background: "#DBEAFE",
+            color: "#003B5C",
+            borderColor: "#BFDBFE",
+          }}
+        >
+          Instructor Portal
+        </div>
+      </div>
+
+      <div className="grid-3">
+        <div className="stat-card" style={{ borderLeft: "4px solid #E8AA25" }}>
           <div className="flex-between-center">
             <div>
-              <span className="stat-label">Total Courses</span>
-              <div className="stat-number">{stats.totalCourses}</div>
+              <span className="stat-label">My Courses</span>
+              <div className="stat-number">{stats.myCourses}</div>
             </div>
-            <div className="icon-circle blue"><FaBook size={20} /></div>
+            <div
+              className="stat-icon"
+              style={{ background: "#FEF3C7", color: "#C58A12" }}
+            >
+              <FaBookOpen size={24} />
+            </div>
           </div>
         </div>
-        <div className="stat-card yellow">
+
+        <div className="stat-card" style={{ borderLeft: "4px solid #003B5C" }}>
           <div className="flex-between-center">
             <div>
-              <span className="stat-label">Pending Approval</span>
-              <div className="stat-number">{stats.pendingApproval}</div>
+              <span className="stat-label">Students Enrolled</span>
+              <div className="stat-number">{stats.totalStudents}</div>
             </div>
-            <div className="icon-circle yellow"><FaTasks size={20} /></div>
+            <div
+              className="stat-icon"
+              style={{ background: "#DBEAFE", color: "#003B5C" }}
+            >
+              <FaUserGraduate size={24} />
+            </div>
           </div>
         </div>
-        <div className="stat-card green">
+
+        <div className="stat-card" style={{ borderLeft: "4px solid #E8AA25" }}>
           <div className="flex-between-center">
             <div>
-              <span className="stat-label">Live Courses</span>
-              <div className="stat-number">{stats.liveCourses}</div>
+              <span className="stat-label">Avg. Rating</span>
+              <div className="stat-number">
+                {stats.avgRating}{" "}
+                <span className="text-sm font-normal text-gray-400">/ 5</span>
+              </div>
             </div>
-            <div className="icon-circle green"><FaChartLine size={20} /></div>
-          </div>
-        </div>
-        <div className="stat-card red">
-          <div className="flex-between-center">
-            <div>
-              <span className="stat-label">Rejected</span>
-              <div className="stat-number">{stats.rejectedCourses}</div>
+            <div
+              className="stat-icon"
+              style={{ background: "#FEF3C7", color: "#C58A12" }}
+            >
+              <FaStar size={24} />
             </div>
-            <div className="icon-circle red"><FaCalendarAlt size={20} /></div>
           </div>
         </div>
       </div>
 
-      <div className="actions-grid">
-        <button onClick={() => navigate('/instructor/add-course')} className="btn-action"><FaPlus /> Create New Course</button>
+      <div className="grid-2" style={{ marginBottom: "2rem" }}>
+        <div className="form-box full-width">
+          <div className="flex-between-center mb-md">
+            <h3 className="section-title mb-0">
+              Student Performance Analytics
+            </h3>
+            <button
+              className="btn-secondary"
+              style={{ fontSize: "0.85rem", padding: "5px 12px" }}
+              onClick={() => navigate("/instructor/performance")}
+            >
+              View Report <FaArrowRight size={12} />
+            </button>
+          </div>
+          <div className="analytics-chart">
+            {[
+              { label: "React Basics", value: 85 },
+              { label: "Adv. Node.js", value: 65 },
+              { label: "UI/UX Design", value: 92 },
+              { label: "Python Intro", value: 78 },
+            ].map((item, index) => (
+              <div key={index} className="chart-bar-container">
+                <div className="chart-value">{item.value}%</div>
+                <div
+                  className="chart-bar"
+                  style={{
+                    height: `${item.value}%`,
+                    background: item.value > 80 ? "#E8AA25" : "#003B5C",
+                  }}
+                ></div>
+                <div className="chart-label">{item.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <h3 className="section-title">My Courses</h3>
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Course Title</th>
-              <th>Date Created</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {courses.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="empty-table-cell">No courses found. Start creating!</td>
-              </tr>
-            ) : (
-              courses.map(course => (
-                <tr key={course.id}>
-                  <td style={{ fontWeight: '500' }}>{course.title}</td>
-                  <td>{course.createdAt ? new Date(course.createdAt).toLocaleDateString() : 'N/A'}</td>
-                  <td>
-                    <span className={`status-badge ${course.status === 'published' ? 'active' : course.status === 'pending_approval' ? 'pending' : 'neutral'}`}>
-                      {course.status ? course.status.replace('_', ' ').toUpperCase() : 'DRAFT'}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="flex-center-gap">
-                      <button
-                        className="btn-icon"
-                        onClick={() => navigate(`/instructor/add-course?edit=${course.id}`)}
-                        title="Edit Course"
-                      >
-                        <FaEdit color="#003366" />
-                      </button>
-                      <button
-                        className="btn-icon"
-                        onClick={() => navigate(`/instructor/add-exam/${course.id}`)}
-                        title="Manage Exam"
-                      >
-                        <FaTasks color="#d97706" />
-                      </button>
-                      <button
-                        className="btn-icon delete"
-                        onClick={() => handleDelete(course.id)}
-                        title="Delete Course"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <h3 className="section-title mb-md">Quick Actions</h3>
+      <div className="grid-3">
+        <button
+          className="quick-action-card"
+          onClick={() => navigate("/instructor/add-course")}
+          style={{
+            padding: "20px",
+            background: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+            textAlign: "left",
+            cursor: "pointer",
+            transition: "transform 0.2s",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+          }}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.transform = "translateY(-2px)")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.transform = "translateY(0)")
+          }
+        >
+          <div
+            style={{
+              background: "#eff6ff",
+              padding: "12px",
+              borderRadius: "50%",
+              color: "#3b82f6",
+            }}
+          >
+            <FaPlus />
+          </div>
+          <div>
+            <div style={{ fontWeight: "600", color: "#1f2937" }}>
+              Create New Course
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>
+              Start building content
+            </div>
+          </div>
+        </button>
+
+        <button
+          className="quick-action-card"
+          onClick={() => navigate("/instructor/courses")}
+          style={{
+            padding: "20px",
+            background: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+            textAlign: "left",
+            cursor: "pointer",
+            transition: "transform 0.2s",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+          }}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.transform = "translateY(-2px)")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.transform = "translateY(0)")
+          }
+        >
+          <div
+            style={{
+              background: "#fef3c7",
+              padding: "12px",
+              borderRadius: "50%",
+              color: "#d97706",
+            }}
+          >
+            <FaFolderOpen />
+          </div>
+          <div>
+            <div style={{ fontWeight: "600", color: "#1f2937" }}>
+              Manage Courses
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>
+              View/Edit your library
+            </div>
+          </div>
+        </button>
+
+        <button
+          className="quick-action-card"
+          onClick={() => navigate("/instructor/chat")}
+          style={{
+            padding: "20px",
+            background: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+            textAlign: "left",
+            cursor: "pointer",
+            transition: "transform 0.2s",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+          }}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.transform = "translateY(-2px)")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.transform = "translateY(0)")
+          }
+        >
+          <div
+            style={{
+              background: "#d1fae5",
+              padding: "12px",
+              borderRadius: "50%",
+              color: "#059669",
+            }}
+          >
+            <FaEnvelope />
+          </div>
+          <div>
+            <div style={{ fontWeight: "600", color: "#1f2937" }}>
+              Message Students
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>
+              Broadcast announcements
+            </div>
+          </div>
+        </button>
       </div>
     </div>
   );
