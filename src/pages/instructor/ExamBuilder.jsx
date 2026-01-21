@@ -299,7 +299,7 @@ const ExamBuilder = () => {
                 <option value="">
                   -- No Linked Course (Standalone Exam) --
                 </option>
-                {instructorCourses.map((course) => (
+                {courses.map((course) => (
                   <option key={course.courses_id} value={course.courses_id}>
                     {course.title}
                   </option>
