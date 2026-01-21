@@ -34,6 +34,7 @@ const ExamBuilder = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        console.log("APPROVED COURSES RESPONSE:", res.data);
         setCourses(res.data);
       } catch (err) {
         console.error("Failed to fetch approved courses", err);
