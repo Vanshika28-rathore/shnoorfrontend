@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaArrowLeft,
@@ -8,6 +8,8 @@ import {
   FaChartLine,
   FaEnvelope,
 } from "react-icons/fa";
+import { auth } from "../../auth/firebase";
+import api from "../../api/axios";
 import "../../styles/Dashboard.css";
 
 const StudentPerformance = () => {
@@ -22,7 +24,7 @@ const StudentPerformance = () => {
       student.course.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const getStatusColor = (status) => {
+  {/*const getStatusColor = (status) => {
     switch (status) {
       case "Excellent":
         return "bg-green-100 text-green-800 border-green-200";
@@ -33,7 +35,7 @@ const StudentPerformance = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
-  };
+  };*/}
 
   useEffect(() => {
     const fetchStudents = async () => {
