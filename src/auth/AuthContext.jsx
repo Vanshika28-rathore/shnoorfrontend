@@ -41,8 +41,8 @@ export function AuthProvider({ children }) {
         );
 
         setCurrentUser(user);
-        setUserRole(res.data.user.role);
-        setUserStatus(res.data.user.status);
+        setUserRole(res.data.user.role.toLowerCase());
+        setUserStatus(res.data.user.status.toLowerCase());
       } catch (error) {
         console.error("AuthContext backend sync failed:", error);
         setCurrentUser(null);
