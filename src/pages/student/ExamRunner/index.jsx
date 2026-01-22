@@ -26,7 +26,7 @@ const ExamRunner = () => {
 
         const token = await auth.currentUser.getIdToken(true);
 
-        const res = await api.get(`/api/exam/${examId}`, {
+        const res = await api.get(`/api/exam`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
