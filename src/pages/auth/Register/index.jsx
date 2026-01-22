@@ -6,12 +6,13 @@ import { auth } from "../../../auth/firebase";
 import RegisterView from "./view.jsx";
 
 const Register = () => {
+  const [step, setStep] = useState(1); // ✅ REQUIRED
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: "student",
+    role: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -22,9 +23,35 @@ const Register = () => {
 
   const navigate = useNavigate();
 
-  const handleChange = (e) =>
+  // ✅ Handle input changes
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
+  // ✅ STEP 1 → STEP 2 (THIS WAS MISSING)
+  const handleRoleSelect = (role) => {
+    setFormData((prev) => ({ ...prev, role }));
+    setError("");
+    setSuccessMessage("");
+    setStep(2);
+  };
+
+  // ✅ Back button logic
+  const handleBack = () => {
+    setError("");
+    setStep(1);
+  };
+
+  // ✅ Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword((prev) => !prev);
+  };
+
+  // ✅ Final registration
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
@@ -70,16 +97,19 @@ const Register = () => {
 
   return (
     <RegisterView
+      step={step} // ✅ REQUIRED
       formData={formData}
-      handleChange={handleChange}
-      showPassword={showPassword}
-      setShowPassword={setShowPassword}
-      showConfirmPassword={showConfirmPassword}
-      setShowConfirmPassword={setShowConfirmPassword}
       error={error}
       loading={loading}
       successMessage={successMessage}
+      showPassword={showPassword}
+      showConfirmPassword={showConfirmPassword}
+      handleChange={handleChange}
+      handleRoleSelect={handleRoleSelect} // ✅ REQUIRED
+      handleBack={handleBack}             // ✅ REQUIRED
       handleRegister={handleRegister}
+      togglePasswordVisibility={togglePasswordVisibility}
+      toggleConfirmPasswordVisibility={toggleConfirmPasswordVisibility}
     />
   );
 };
