@@ -56,7 +56,7 @@ const StudentLayout = () => {
 
                     <li
                         className={`nav-item ${location.pathname.includes('exams') ? 'active' : ''}`}
-                        onClick={() => navigate('/student/exams')}
+                        onClick={() => navigate('/student/exam/:examId')}
                     >
                         <FaClipboardList className="nav-icon" /> Exams
                     </li>
