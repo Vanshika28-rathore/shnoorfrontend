@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
 import api from "../../../api/axios.js";
 import { auth, googleProvider } from "../../../auth/firebase.js";
-import LoginView from "./view.jsx";
+import LoginView from "./view.jsx";   
 
 const Login = () => {
   const navigate = useNavigate();

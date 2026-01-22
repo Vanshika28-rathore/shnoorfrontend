@@ -52,7 +52,7 @@ const LoginView = ({
             { }
             <div className="flex-1 flex items-center justify-center p-6 md:p-12 relative bg-white">
                 <div className="w-full max-w-[400px]">
-
+      
                     { }
                     <div className="mb-10">
                         <div className="flex items-center mb-5">
