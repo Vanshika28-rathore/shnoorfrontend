@@ -42,6 +42,7 @@ import StudentPerformance from "./pages/instructor/StudentPerformance";
 import CourseDetail from "./pages/student/CourseDetail";
 import ManageUsers from "./pages/admin/ManageUsers";
 import Suspended from "./pages/auth/Suspended";
+import PracticeSession from "./pages/student/PracticeSession";
 // import Leaderboard from './pages/student/Leaderboard';
 
 function App() {
@@ -106,7 +107,8 @@ function App() {
             <Route path="courses" element={<StudentCourses />} />
             <Route path="course/:courseId" element={<CourseDetail />} />
             <Route path="course/:courseId/learn" element={<CoursePlayer />} />
-              <Route path="exam/:examId" element={<ExamRunner />} />
+            <Route path="practice/session/:challengeId" element={<PracticeSession />} />
+            <Route path="exam/:examId" element={<ExamRunner />} />
             <Route path="certificate" element={<MyCertificates />} />
             {/* <Route path="leaderboard" element={<Leaderboard />} /> */}
           </Route>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaClock, FaAngleLeft, FaAngleRight, FaTrophy, FaTimesCircle, FaCheckCircle, FaCode } from 'react-icons/fa';
-import PracticeSession from '../PracticeSession';
+import PracticeSession from '../PracticeSession.jsx';
 
 const ExamRunnerView = ({
     loading, exam,
