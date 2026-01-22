@@ -39,7 +39,7 @@ const CourseDetail = () => {
           }),
 
           // ✅ enrollment status
-          api.get(`/api/student-courses/${courseId}/status`, {
+          api.get(`/api/student/${courseId}/status`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -62,7 +62,7 @@ const CourseDetail = () => {
 
       // ✅ backend enrollment
       await api.post(
-        `/api/student-courses/${courseId}/enroll`,
+        `/api/student/${courseId}/enroll`,
         {},
         { headers: { Authorization: `Bearer ${token}` } },
       );
