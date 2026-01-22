@@ -70,7 +70,7 @@ const StudentCourses = () => {
 
       // ✅ Backend enrollment
       await api.post(
-        `/api/student-courses/${courseId}/enroll`,
+        `/api/student/${courseId}/enroll`,
         {},
         { headers: { Authorization: `Bearer ${token}` } },
       );
