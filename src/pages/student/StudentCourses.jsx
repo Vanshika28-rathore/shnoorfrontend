@@ -77,7 +77,7 @@ const StudentCourses = () => {
 
       // ✅ Refresh both lists
       const [myRes, exploreRes] = await Promise.all([
-        api.get("/api/student-courses/my-courses", {
+        api.get("/api/student/my-courses", {
           headers: { Authorization: `Bearer ${token}` },
         }),
         api.get("/api/courses/explore", {
