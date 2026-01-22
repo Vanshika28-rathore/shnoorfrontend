@@ -10,10 +10,7 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-
-//import StudentRegister from './pages/auth/StudentRegister';
 import ForgotPassword from "./pages/auth/ForgotPassword";
-
 import AdminLayout from "./components/layout/AdminLayout";
 import InstructorLayout from "./components/layout/InstructorLayout";
 import StudentLayout from "./components/layout/StudentLayout";
