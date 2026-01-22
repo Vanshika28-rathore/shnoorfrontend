@@ -18,7 +18,6 @@ const StudentCourses = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All");
 
-
   useEffect(() => {
     const fetchCourses = async () => {
       if (!auth.currentUser) return;
@@ -51,9 +50,19 @@ const StudentCourses = () => {
 
   const displayCourses = activeTab === "my-learning" ? myCourses : allCourses;
 
-  const filteredCourses = displayCourses.filter((course) =>
-    course.title.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredCourses = displayCourses.filter((course) => {
+    const matchesSearch = course.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === "All" || course.category === selectedCategory;
+
+    const matchesLevel =
+      selectedLevel === "All" || course.level === selectedLevel;
+
+    return matchesSearch && matchesCategory && matchesLevel;
+  });
 
   const handleEnroll = async (courseId) => {
     try {
@@ -192,7 +201,7 @@ const StudentCourses = () => {
         </button>
       </div>
 
-      {displayCourses.length === 0 ? (
+      {filteredCourses.length === 0 ? (
         <div className="empty-state-card">
           {activeTab === "my-learning" ? (
             <>
@@ -238,10 +247,10 @@ const StudentCourses = () => {
         </div>
       ) : (
         <div className="student-course-grid">
-          {displayCourses.map((courses, index) => {
+          {filteredCourses.map((courses, index) => {
             const isEnrolled = activeTab === "my-learning";
             return (
-              <div key={courses.id} className="student-course-card">
+              <div key={courses.courses_id} className="student-course-card">
                 <div
                   className={`course-thumbnail course-thumbnail-gradient-${index % 4}`}
                   style={{
