@@ -12,28 +12,25 @@ const StudentCourses = () => {
 
   const [activeTab, setActiveTab] = useState("my-learning");
   const [myCourses, setMyCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [allCourses, setAllCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedLevel, setSelectedLevel] = useState("All");
 
-  /* =========================
-     FETCH ASSIGNED COURSES
-  ========================= */
   useEffect(() => {
     const fetchCourses = async () => {
       if (!auth.currentUser) return;
+
       try {
         setLoading(true);
         const token = await auth.currentUser.getIdToken(true);
-        // 1️⃣ My Learning
-        const myRes = await api.get("/api/assignments/my-courses", {
+
+        // ✅ My Learning (enrolled courses)
+        const myRes = await api.get("/api/student-courses/my-courses", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // 2️⃣ Explore (all published courses)
-        const exploreRes = await api.get("/api/assignments/approved", {
+        // ✅ Explore (NOT enrolled courses)
+        const exploreRes = await api.get("/api/courses/explore", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -49,43 +46,36 @@ const StudentCourses = () => {
     fetchCourses();
   }, []);
 
-  /* =========================
-     FILTER COURSES
-  ========================= */
-  const getDisplayCourses = () => {
-    const source = activeTab === "my-learning" ? myCourses : allCourses;
+  const displayCourses = activeTab === "my-learning" ? myCourses : allCourses;
 
-    return source.filter((course) =>
-      course.title.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  };
+  const filteredCourses = displayCourses.filter((course) =>
+    course.title.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
-  const displayCourses = getDisplayCourses();
   const handleEnroll = async (courseId) => {
     try {
-      if (!auth.currentUser) return;
-
       const token = await auth.currentUser.getIdToken(true);
 
-      // 1️⃣ Enroll
+      // ✅ Backend enrollment
       await api.post(
-        "/api/assignments/enroll",
-        { courseId },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        `/api/student-courses/${courseId}/enroll`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      alert("Enrolled successfully!");
-
-      // 2️⃣ REFRESH My Learning
-      const myRes = await api.get("/api/assignments/my-courses", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ Refresh both lists
+      const [myRes, exploreRes] = await Promise.all([
+        api.get("/api/student-courses/my-courses", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        api.get("/api/courses/explore", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
       setMyCourses(myRes.data || []);
+      setAllCourses(exploreRes.data || []);
 
-      // 3️⃣ Switch tab AFTER data is ready
       setActiveTab("my-learning");
     } catch (err) {
       console.error("Enroll failed:", err);

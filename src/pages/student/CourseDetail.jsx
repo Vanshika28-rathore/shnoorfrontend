@@ -20,19 +20,32 @@ import "../../styles/Student.css";
 const CourseDetail = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
+
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
-    const fetchCourse = async () => {
+    const fetchCourseAndStatus = async () => {
       try {
-        const token = await auth.currentUser.getIdToken();
-        const res = await api.get(`/api/courses/${courseId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        if (!auth.currentUser) return;
 
-        setCourse(res.data);
+        const token = await auth.currentUser.getIdToken(true);
+
+        const [courseRes, statusRes] = await Promise.all([
+          // ✅ course details
+          api.get(`/api/courses/${courseId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+
+          // ✅ enrollment status
+          api.get(`/api/student-courses/${courseId}/status`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        setCourse(courseRes.data);
+        setIsEnrolled(statusRes.data.enrolled);
       } catch (err) {
         console.error("Error loading course:", err);
       } finally {
@@ -40,17 +53,25 @@ const CourseDetail = () => {
       }
     };
 
-    fetchCourse();
+    fetchCourseAndStatus();
   }, [courseId]);
 
-  const handleEnroll = () => {
-    const enrolledCourses =
-      JSON.parse(localStorage.getItem("enrolledCourses")) || [];
-    if (!enrolledCourses.includes(courseId)) {
-      const newEnrolled = [...enrolledCourses, courseId];
-      localStorage.setItem("enrolledCourses", JSON.stringify(newEnrolled));
+  const handleEnroll = async () => {
+    try {
+      const token = await auth.currentUser.getIdToken(true);
+
+      // ✅ backend enrollment
+      await api.post(
+        `/api/student-courses/${courseId}/enroll`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
       setIsEnrolled(true);
-      alert("Successfully enrolled! Welcome aboard. 🚀");
+      alert("Successfully enrolled! 🚀");
+    } catch (err) {
+      console.error("Enroll failed:", err);
+      alert("Failed to enroll");
     }
   };
 
