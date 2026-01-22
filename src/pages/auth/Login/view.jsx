@@ -20,12 +20,12 @@ const LoginView = ({
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       {/* LEFT BRAND SECTION */}
-      <div className="hidden md:flex flex-col justify-between w-5/12 bg-[var(--color-primary-900)] p-12 text-white relative overflow-hidden">
+      <div className="hidden md:flex flex-col justify-between w-5/12 bg-(--color-primary-900) p-12 text-white relative overflow-hidden">
         <div className="relative z-10">
           <img
             src={brandLogo}
             alt="Shnoor Logo"
-            className="max-w-[150px] mb-6 rounded-lg"
+            className="max-w-37.5 mb-6 rounded-lg"
           />
 
           <h2 className="text-4xl font-bold mb-6 leading-tight">
