@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff, ShieldCheck, Lock, Mail } from "lucide-react";
-import brandLogo from "../../assets/SHnoor_logo_1.jpg";
-import markLogo from "../../assets/just_logo.jpeg";
+import brandLogo from "../../../assets/SHnoor_logo_1.jpg";
+import markLogo from "../../../assets/just_logo.jpeg";
 
 const LoginView = ({
   formData,
