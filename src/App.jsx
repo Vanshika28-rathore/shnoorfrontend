@@ -36,7 +36,7 @@ import ExamRunner from "./pages/student/ExamRunner";
 import MyCertificates from "./pages/student/MyCertificates";
 import StudentCourses from "./pages/student/StudentCourses";
 import StudentPerformance from "./pages/instructor/StudentPerformance";
-import CourseDetail from "./pages/student/CourseDetail";
+import CourseDetail from "./pages/student/CourseDetail/index";
 import ManageUsers from "./pages/admin/ManageUsers";
 import Suspended from "./pages/auth/Suspended";
 import PracticeSession from "./pages/student/PracticeSession";
