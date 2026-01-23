@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../auth/firebase";
-import api from "../../api/axios";
-import AdminDashboardView from "./AdminDashboardView";
+import { auth } from "../../../auth/firebase";
+import api from "../../../api/axios";
+import AdminDashboardView from "./view";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
