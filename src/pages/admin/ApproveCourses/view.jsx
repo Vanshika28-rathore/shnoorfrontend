@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, XCircle, Play, FileText, AlertCircle, BookOpen, Clock, ShieldCheck } from 'lucide-react';
 
-const ApproveCoursesView = ({ loading, pendingCourses, selectedCourse, setSelectedCourse, handleAction }) => {
+const ApproveCoursesView = ({ loading, pendingCourses, selectedCourse, setSelectedCourse, handleAction, modules }) => {
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-[400px]">
