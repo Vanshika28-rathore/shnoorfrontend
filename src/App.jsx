@@ -69,7 +69,7 @@ function App() {
             <Route path="approve-courses" element={<ApproveCourses />} />
             <Route path="assign-course" element={<AssignCourse />} />
             <Route path="certificates" element={<CertificateConfig />} />
-    <Route path="manage-users" element={<ManageUsers />} />
+            <Route path="manage-users" element={<ManageUsers />} />
             <Route path="profile-management" element={<ProfileManagement />} />
           </Route>
 
