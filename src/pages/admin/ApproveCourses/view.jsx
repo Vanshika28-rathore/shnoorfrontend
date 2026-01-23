@@ -139,7 +139,7 @@ const ApproveCoursesView = ({ loading, pendingCourses, selectedCourse, setSelect
                                             <div className="flex-1 min-w-0">
                                                 <div className="font-bold text-slate-800 text-sm truncate">{m.title}</div>
                                                 <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-                                                    {m.type} • <Clock size={10} /> {m.duration} mins
+                                                    {m.type} • <Clock size={10} /> {m.duration_mins} mins
                                                 </div>
                                             </div>
                                             {m.content_url && (

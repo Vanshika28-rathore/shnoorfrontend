@@ -25,7 +25,7 @@ const ApproveCourses = () => {
 
   const fetchModules = async (courses_id) => {
     try {
-      const res = await api.get(`/api/courses/${courses_id}/modules`);
+      const res = await api.get(`/api/courses/${course.courses_id}/modules`);
       setModules(res.data);
     } catch (err) {
       console.error("Failed to load modules", err);
