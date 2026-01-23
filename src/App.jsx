@@ -40,6 +40,7 @@ import CourseDetail from "./pages/student/CourseDetail";
 import ManageUsers from "./pages/admin/ManageUsers";
 import Suspended from "./pages/auth/Suspended";
 import PracticeSession from "./pages/student/PracticeSession";
+import Landing from "./pages/Landing";
 // import Leaderboard from './pages/student/Leaderboard';
 
 function App() {
@@ -47,11 +48,9 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
-          {/* <Route path="/student/signup" element={<StudentRegister />} /> */}
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route
