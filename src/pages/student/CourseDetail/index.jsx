@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { auth } from "../../auth/firebase";
+import { auth } from "../../../auth/firebase";
 import api from "../../../api/axios";
 import CourseDetailView from "./view";
 
