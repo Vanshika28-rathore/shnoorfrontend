@@ -28,8 +28,8 @@ const StudentExamsView = ({ loading, exams, isPassed, accessStatus, courseNames,
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {exams.map((exam) => {
-                        const passed = isPassed(exam.id);
-                        const unlocked = accessStatus[exam.id] !== false;
+                        const passed = isPassed(exam.exam_id);
+                        const unlocked = accessStatus[exam.exam_id] !== false;
                         const neededCourseName = courseNames[exam.linkedCourseId] || 'Prerequisite Course';
 
                         return (
@@ -53,8 +53,6 @@ const StudentExamsView = ({ loading, exams, isPassed, accessStatus, courseNames,
                                     <h4 className="text-base font-bold text-primary-900 mb-2 line-clamp-2 min-h-[3rem]">{exam.title}</h4>
 
                                     <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 mb-6 uppercase tracking-wider border-b border-slate-100 pb-4">
-                                        <span>{exam.questions.length ?? 0} Qs</span>
-                                        <span className="flex items-center gap-1"><Clock size={12} /> {exam.duration}m</span>
                                     </div>
 
                                     <div className="mt-auto">
@@ -88,11 +86,11 @@ const StudentExamsView = ({ loading, exams, isPassed, accessStatus, courseNames,
                                         ) : (
                                             <>
                                                 <div className="flex justify-between items-center text-xs font-semibold text-slate-400 mb-3">
-                                                    <span>Pass Score: {exam.passScore}%</span>
+                                                    <span>Pass Score: {exam.pass_percentage}%</span>
                                                 </div>
                                                 <button
                                                     className="w-full bg-primary-900 hover:bg-slate-800 text-white font-bold py-2 rounded text-sm shadow-sm transition-all flex items-center justify-center gap-2"
-                                                    onClick={() => navigate(`/student/exam/${exam.id}`)}
+                                                    onClick={() => navigate(`/student/exam/${exam.exam_id}`)}
                                                 >
                                                     <Play size={12} fill="currentColor" /> Start Exam
                                                 </button>
