@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { auth } from "../../../auth/firebase";
 import ExamRunnerView from "./view.jsx";
 import api from "../../../api/axios";
+import { onAuthStateChanged } from "firebase/auth";
+
 
 const ExamRunner = () => {
   const { examId } = useParams();
@@ -19,33 +21,51 @@ const ExamRunner = () => {
   /* =========================
      LOAD EXAM FROM BACKEND
   ========================= */
-  useEffect(() => {
-    const fetchExam = async () => {
-      try {
-        if (!auth.currentUser) return;
 
-        const token = await auth.currentUser.getIdToken(true);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
-        const res = await api.get(`/api/student/exams/${examId}`, {
+    try {
+      const token = await user.getIdToken();
+
+      const res = await api.get(
+        `/api/student/exams/${examId}`,
+        {
           headers: { Authorization: `Bearer ${token}` }
-        });
-
-        setExam(res.data);
-
-        if (res.data.duration > 0) {
-          setTimeLeft(res.data.duration * 60);
         }
-      } catch (err) {
-        console.error("Failed to load exam:", err);
-        alert("Unable to load exam");
-        navigate(-1);
-      } finally {
-        setLoading(false);
-      }
-    };
+      );
 
-    fetchExam();
-  }, [examId, navigate]);
+      setExam(res.data);
+
+      if (res.data.duration > 0) {
+        setTimeLeft(res.data.duration * 60);
+      }
+    } catch (err) {
+      console.error("Failed to load exam:", err);
+
+      const status = err.response?.status;
+
+      if (status === 403) {
+        alert("You are not enrolled in this exam.");
+        navigate("/student/exams");
+      } else if (status === 404) {
+        alert("Exam not found.");
+        navigate("/student/exams");
+      } else {
+        alert("Unable to load exam.");
+        navigate(-1);
+      }
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  return () => unsubscribe();
+}, [examId, navigate]);
 
   /* =========================
      TIMER
