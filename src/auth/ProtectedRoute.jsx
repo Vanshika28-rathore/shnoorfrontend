@@ -51,8 +51,8 @@ import { useAuth } from "./AuthContext";
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const { currentUser, userRole, userStatus, loading } = useAuth();
 
-  // ⛔ DO NOT redirect until auth + role is fully loaded
-  if (loading || !currentUser || !userRole) {
+  // 1️⃣ Still checking auth
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         Loading...
@@ -60,28 +60,37 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
     );
   }
 
-  // ⛔ Inactive / suspended user
+  // 2️⃣ Not logged in → go to login
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // 3️⃣ Suspended / inactive account
   if (userStatus !== "active") {
     return <Navigate to="/suspended" replace />;
   }
 
-  // 🔐 Role check
-  const roles = Array.isArray(allowedRoles)
-    ? allowedRoles
-    : [allowedRoles];
+  // 4️⃣ Role-based access
+  if (allowedRoles) {
+    const roles = Array.isArray(allowedRoles)
+      ? allowedRoles
+      : [allowedRoles];
 
-  if (allowedRoles && !roles.includes(userRole)) {
-    if (userRole === "admin")
-      return <Navigate to="/admin/dashboard" replace />;
-    if (userRole === "instructor")
-      return <Navigate to="/instructor/dashboard" replace />;
-    if (userRole === "student")
-      return <Navigate to="/student/dashboard" replace />;
+    if (!roles.includes(userRole)) {
+      if (userRole === "admin")
+        return <Navigate to="/admin/dashboard" replace />;
+      if (userRole === "instructor")
+        return <Navigate to="/instructor/dashboard" replace />;
+      if (userRole === "student")
+        return <Navigate to="/student/dashboard" replace />;
 
-    return <Navigate to="/" replace />;
+      return <Navigate to="/" replace />;
+    }
   }
 
+  // 5️⃣ Access granted
   return children ? children : <Outlet />;
 };
 
 export default ProtectedRoute;
+
