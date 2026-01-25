@@ -149,7 +149,7 @@ const AdminLayoutView = ({
                 </div>
               </div>
               <div
-                onClick={() => navigate("/settings")}
+                onClick={() => navigate("settings")}
                 className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center 
              text-slate-400 border border-slate-200 overflow-hidden 
              cursor-pointer hover:ring-2 hover:ring-indigo-500 transition"
