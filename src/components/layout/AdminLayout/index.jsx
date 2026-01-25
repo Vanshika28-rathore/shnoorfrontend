@@ -22,7 +22,7 @@ const AdminLayout = () => {
     const fetchProfile = async () => {
       try {
         const res = await api.get("/api/users/me");
-        setAdminName(res.data.name);
+        setAdminName(res.data.displayName);
       } catch (err) {
         console.error("Failed to fetch admin profile");
       }
