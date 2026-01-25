@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { auth } from "../../../auth/firebase";
 import ExamRunnerView from "./view.jsx";
+import api from "../../../api/axios";
 
 const ExamRunner = () => {
   const { examId } = useParams();
