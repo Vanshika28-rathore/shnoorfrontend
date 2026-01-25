@@ -110,6 +110,7 @@ function App() {
               element={<PracticeSession />}
             />
             <Route path="exam/:examId" element={<ExamRunner />} />
+            <Route path="settings" element={<ProfileSettings />} />
             <Route path="certificate" element={<MyCertificates />} />
             {/* <Route path="leaderboard" element={<Leaderboard />} /> */}
           </Route>
