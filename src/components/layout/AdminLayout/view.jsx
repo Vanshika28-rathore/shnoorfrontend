@@ -89,7 +89,7 @@ const AdminLayoutView = ({ isSidebarOpen, setIsSidebarOpen, handleLogout, adminN
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
                             <div className="text-right hidden md:block">
-                                <div className="text-sm font-semibold text-primary-900">{adminName}</div>
+                                <div className="text-sm font-semibold text-primary-900">{adminName.displayName}</div>
                                 <div className="text-xs text-slate-500 font-medium">Super Admin</div>
                             </div>
                             <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 overflow-hidden">
