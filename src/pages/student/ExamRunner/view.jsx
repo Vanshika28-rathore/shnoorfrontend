@@ -109,7 +109,7 @@ const ExamRunnerView = ({
                   {result.percentage}%
                 </div>
                 <div className="text-xs font-bold text-slate-400 mt-2">
-                  Required: {exam.passScore}%
+                  Required: {exam.pass_score}%
                 </div>
               </div>
 
@@ -207,7 +207,7 @@ const ExamRunnerView = ({
 
               return (
                 <button
-                  key={q.id}
+                  key={q.id || q.question_id}
                   onClick={() => setCurrentQIndex(idx)}
                   className={`aspect-square rounded-lg flex items-center justify-center font-bold text-sm transition-all ${statusClass}`}
                   title={`Question ${idx + 1}`}
@@ -342,19 +342,19 @@ const ExamRunnerView = ({
                   <label
                     key={i}
                     className={`group flex items-center gap-4 p-4 md:p-5 rounded-lg border-2 cursor-pointer transition-all ${
-                      answers[currentQIndex] === opt
+                      answers[questionId] === opt
                         ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500"
                         : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50"
                     }`}
                   >
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                        answers[currentQIndex] === opt
+                        answers[questionId] === opt
                           ? "border-indigo-500 bg-indigo-500"
                           : "border-slate-300 group-hover:border-indigo-400"
                       }`}
                     >
-                      {answers[currentQIndex] === opt && (
+                      {answers[questionId] === opt && (
                         <div className="w-2.5 h-2.5 bg-white rounded-full" />
                       )}
                     </div>
