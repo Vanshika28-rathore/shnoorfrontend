@@ -42,6 +42,7 @@ import Suspended from "./pages/auth/Suspended";
 import PracticeSession from "./pages/student/PracticeSession";
 import Landing from "./pages/Landing";
 import ProfileSettings from "./pages/shared/ProfileSettings";
+import StudentExams from "./pages/student/StudentExams";
 // import Leaderboard from './pages/student/Leaderboard';
 
 function App() {
@@ -109,6 +110,7 @@ function App() {
               path="practice/session/:challengeId"
               element={<PracticeSession />}
             />
+            <Route path="exams" element={<StudentExams />} />
             <Route path="exam/:examId" element={<ExamRunner />} />
             <Route path="settings" element={<ProfileSettings />} />
             <Route path="certificate" element={<MyCertificates />} />
