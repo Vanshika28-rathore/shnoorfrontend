@@ -53,7 +53,7 @@ const StudentExamsView = ({ loading, exams, isPassed, accessStatus, courseNames,
                                     <h4 className="text-base font-bold text-primary-900 mb-2 line-clamp-2 min-h-[3rem]">{exam.title}</h4>
 
                                     <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 mb-6 uppercase tracking-wider border-b border-slate-100 pb-4">
-                                        <span>{exam.questions.length} Qs</span>
+                                        <span>{exam.questions.length ?? 0} Qs</span>
                                         <span className="flex items-center gap-1"><Clock size={12} /> {exam.duration}m</span>
                                     </div>
 
