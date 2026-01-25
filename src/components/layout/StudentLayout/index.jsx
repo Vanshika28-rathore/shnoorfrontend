@@ -20,7 +20,7 @@ const StudentLayout = () => {
       try {
         const res = await api.get("/api/users/me");
 
-        setStudentName(res.data.name);
+        setStudentName(res.data.displayName);
         setXp(res.data.xp || 0);
 
         // Rank calculation (same logic as dashboard)
