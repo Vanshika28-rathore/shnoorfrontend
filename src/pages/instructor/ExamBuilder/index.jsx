@@ -20,8 +20,8 @@ const ExamBuilder = () => {
     passPercentage: 70,
     courseId: null,
     questions: [],
-    validityPeriod: "",
-    validityUnit: "Days",
+    validity_value: "",
+    validity_unit: "Days",
   });
 
   /* =============================
