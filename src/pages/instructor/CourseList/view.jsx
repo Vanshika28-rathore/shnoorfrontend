@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus, Trash2, Edit, BookOpen, Search } from "lucide-react";
+import { FaFileAlt, FaVideo } from "react-icons/fa";
 
 const CourseListView = ({
   loading,
