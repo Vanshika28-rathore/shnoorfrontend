@@ -156,9 +156,9 @@ const AddCourseView = ({
                                                     onChange={handleCourseChange}
                                                     className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:border-indigo-500 outline-none text-sm"
                                                 >
-                                                    <option value="Days">Days</option>
-                                                    <option value="Months">Months</option>
-                                                    <option value="Years">Years</option>
+                                                    <option value="days">Days</option>
+                                                    <option value="months">Months</option>
+                                                    <option value="years">Years</option>
                                                 </select>
                                             </div>
                                         </div>
