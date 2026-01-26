@@ -68,17 +68,17 @@ const ExamBuilder = () => {
             marks: 5,
           }
         : type === "descriptive"
-        ? { id: Date.now(), type: "descriptive", text: "", marks: 10 }
-        : {
-            id: Date.now(),
-            type: "coding",
-            title: "",
-            text: "",
-            language: "javascript",
-            starterCode: "// Write your code here",
-            testCases: [],
-            marks: 20,
-          };
+          ? { id: Date.now(), type: "descriptive", text: "", marks: 10 }
+          : {
+              id: Date.now(),
+              type: "coding",
+              title: "",
+              text: "",
+              language: "javascript",
+              starterCode: "// Write your code here",
+              testCases: [],
+              marks: 20,
+            };
 
     setFormData((prev) => ({
       ...prev,
@@ -90,7 +90,7 @@ const ExamBuilder = () => {
     setFormData((prev) => ({
       ...prev,
       questions: prev.questions.map((q) =>
-        q.id === qId ? { ...q, [field]: value } : q
+        q.id === qId ? { ...q, [field]: value } : q,
       ),
     }));
   };
@@ -109,8 +109,10 @@ const ExamBuilder = () => {
       const q = formData.questions[i];
       if (!q.text) return `Question ${i + 1} is missing text.`;
       if (q.type === "mcq") {
-        if (q.options.some((o) => !o)) return `Question ${i + 1} has empty options.`;
-        if (!q.correctAnswer) return `Question ${i + 1} needs a correct answer.`;
+        if (q.options.some((o) => !o))
+          return `Question ${i + 1} has empty options.`;
+        if (!q.correctAnswer)
+          return `Question ${i + 1} needs a correct answer.`;
       }
       if (q.type === "coding" && (!q.testCases || q.testCases.length === 0)) {
         return `Coding question ${i + 1} must have at least one test case.`;
@@ -142,12 +144,13 @@ const ExamBuilder = () => {
           duration: formData.duration,
           passPercentage: formData.passPercentage,
           courseId: formData.courseId || null,
-        validity_value: formData.courseId ? null : formData.validityPeriod,
-        validity_unit: formData.courseId ? null : formData.validityUnit,
+          validity_value: formData.courseId ? null : formData.validityPeriod,
+          validity_unit: formData.courseId ? null : formData.validityUnit,
+          questions: formData.questions,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       const examId = examRes.data.exam_id;
@@ -176,6 +179,12 @@ const ExamBuilder = () => {
         }
 
         if (q.type === "coding") {
+          const normalizedTestcases = q.testCases.map((tc) => ({
+            input: String(tc.input ?? ""),
+            expected_output: String(tc.expected_output ?? tc.output ?? ""),
+            is_hidden: tc.is_hidden === true || tc.isHidden === true,
+          }));
+
           await api.post(`/api/exams/${examId}/questions/coding`, {
             title: q.title,
             description: q.text,
@@ -183,7 +192,7 @@ const ExamBuilder = () => {
             starter_code: q.starterCode,
             marks: q.marks,
             order,
-            testcases: q.testCases,
+            testcases: normalizedTestcases,
           });
         }
       }
