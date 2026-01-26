@@ -54,7 +54,24 @@ const CourseListView = ({
                 <span>
                   {idx + 1}. {m.title}
                 </span>
-                <span className="text-xs text-slate-500">{m.type}</span>
+                <span className="text-xs text-slate-500">
+                  {m.type === "video" ? (
+                    <video
+                      controls
+                      className="w-full max-w-3xl rounded-md border"
+                      src={m.content_url}
+                    />
+                  ) : (
+                    <a
+                      href={m.content_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-indigo-600 underline"
+                    >
+                      Open PDF
+                    </a>
+                  )}
+                </span>
               </div>
             ))}
           </div>
@@ -173,12 +190,12 @@ const CourseListView = ({
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-500 text-right tabular-nums">
-                        {course.updated_at
-                          ? new Date(course.updated_at).toLocaleDateString()
+                        {course.created_at
+                          ? new Date(course.created_at).toLocaleDateString()
                           : "N/A"}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex justify-end gap-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
