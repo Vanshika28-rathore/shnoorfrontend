@@ -380,8 +380,7 @@ const ExamBuilderView = ({
                                                     <div className="border border-slate-300 rounded-lg overflow-hidden h-64 shadow-inner">
                                                         <Editor
                                                             height="100%"
-                                                            defaultLanguage="javascript"
-                                                            language={q.language || 'javascript'}
+                                                            defaultLanguage={q.language || 'javascript'}
                                                             value={q.starterCode}
                                                             onChange={(value) => updateQuestion(q.id, 'starterCode', value)}
                                                             theme="light"
@@ -404,7 +403,7 @@ const ExamBuilderView = ({
                                                                 <button
                                                                     className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-1.5 rounded-md border border-emerald-100 hover:border-emerald-200 transition-all"
                                                                     onClick={() => {
-                                                                        const newTestCase = { id: Date.now(), input: '', output: '', isHidden: false };
+                                                                        const newTestCase = { id: Date.now(), input: '', expected_output: '', is_hidden: false };
                                                                         updateQuestion(q.id, 'testCases', [...(q.testCases || []), newTestCase]);
                                                                     }}
                                                                 >
@@ -413,7 +412,7 @@ const ExamBuilderView = ({
                                                                 <button
                                                                     className="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 bg-amber-50 px-2.5 py-1.5 rounded-md border border-amber-100 hover:border-amber-200 transition-all"
                                                                     onClick={() => {
-                                                                        const newTestCase = { id: Date.now(), input: '', output: '', isHidden: true };
+                                                                        const newTestCase = { id: Date.now(), input: '', expected_output: '', is_hidden: true };
                                                                         updateQuestion(q.id, 'testCases', [...(q.testCases || []), newTestCase]);
                                                                     }}
                                                                 >
@@ -440,24 +439,24 @@ const ExamBuilderView = ({
                                                                         <input
                                                                             placeholder="Expected Output"
                                                                             className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded focus:border-indigo-500 outline-none font-mono"
-                                                                            value={tc.output}
+                                                                            value={tc.expected_output}
                                                                             onChange={(e) => {
                                                                                 const newTCs = [...q.testCases];
-                                                                                newTCs[tcIdx].output = e.target.value;
+                                                                                newTCs[tcIdx].expected_output = e.target.value;
                                                                                 updateQuestion(q.id, 'testCases', newTCs);
                                                                             }}
                                                                         />
                                                                     </div>
                                                                     <button
-                                                                        className={`p-1.5 rounded transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${tc.isHidden ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}
+                                                                        className={`p-1.5 rounded transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${tc.is_hidden ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}
                                                                         onClick={() => {
                                                                             const newTCs = [...q.testCases];
-                                                                            newTCs[tcIdx].isHidden = !newTCs[tcIdx].isHidden;
+                                                                            newTCs[tcIdx].is_hidden = !newTCs[tcIdx].is_hidden;
                                                                             updateQuestion(q.id, 'testCases', newTCs);
                                                                         }}
-                                                                        title={tc.isHidden ? "Click to make Public" : "Click to make Hidden"}
+                                                                        title={tc.is_hidden ? "Click to make Public" : "Click to make Hidden"}
                                                                     >
-                                                                        {tc.isHidden ? <><Code size={10} /> Hidden</> : <><CheckCircle size={10} /> Public</>}
+                                                                        {tc.is_hidden ? <><Code size={10} /> Hidden</> : <><CheckCircle size={10} /> Public</>}
                                                                     </button>
                                                                     <button
                                                                         className="text-slate-400 hover:text-rose-500 p-1"
