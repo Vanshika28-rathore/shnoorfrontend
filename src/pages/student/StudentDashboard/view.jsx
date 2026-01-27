@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookOpen, Flame, Trophy, Play, Clock, ArrowRight, Zap } from 'lucide-react';
 
-const StudentDashboardView = ({ studentName, enrolled_count, lastCourse, gamification, recentActivity = [], deadlines = [], navigate }) => {
+const StudentDashboardView = ({ studentName, enrolledCount, lastCourse, gamification, recentActivity = [], deadlines = [], navigate }) => {
     return (
         <div className="space-y-8 font-sans text-slate-900">
             <div className="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
@@ -41,7 +41,7 @@ const StudentDashboardView = ({ studentName, enrolled_count, lastCourse, gamific
                 />
                 <StatCard
                     label="Enrolled Courses"
-                    value={enrolled_count}
+                    value={enrolledCount}
                     icon={<BookOpen size={20} />}
                     subtext="Active learning paths"
                     colorClass="text-emerald-600 bg-emerald-50"
