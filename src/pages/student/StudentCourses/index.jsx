@@ -51,25 +51,35 @@ const StudentCourses = () => {
     fetchCourses();
   }, []);
 
-    const getDisplayCourses = () => {
+  const getDisplayCourses = () => {
     switch (activeTab) {
       case "my-learning":
         return myCourses;
+
       case "explore":
         return allCourses;
+
       case "free-courses":
-        return allCourses.filter(c => c.price_type === false || c.price_type === 'false' || !c.price_type);
+        return allCourses.filter((c) => c.price_type === "free");
+
       case "paid-courses":
-        return allCourses.filter(c => c.price_type === paid || c.price_type === 'paid');
+        return allCourses.filter((c) => c.price_type === "paid");
+
       case "recommended":
-        return allCourses.filter(c => c.category === "Recommended");
+        return allCourses.filter(
+          (c) => c.category?.toLowerCase() === "recommended",
+        );
+
       case "upcoming":
-        return allCourses.filter(c => new Date(c.schedule_start_at) > new Date());
+        return allCourses.filter(
+          (c) =>
+            c.schedule_start_at && new Date(c.schedule_start_at) > new Date(),
+        );
+
       default:
         return allCourses;
     }
   };
-
 
   // Pick active list
   const displayCourses = getDisplayCourses();
@@ -86,11 +96,8 @@ const StudentCourses = () => {
     const matchesLevel =
       selectedLevel === "All" || course.difficulty === selectedLevel;
 
-    const matchesPrice = isFreeOnly
-      ? course.price_type === false ||
-        course.price_type === "false" ||
-        !course.price_type
-      : true;
+    const matchesPrice = isFreeOnly ? course.price_type === "free" : true;
+
     return matchesSearch && matchesCategory && matchesLevel && matchesPrice;
   });
 
