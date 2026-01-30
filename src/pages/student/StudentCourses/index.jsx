@@ -64,7 +64,7 @@ const StudentCourses = () => {
       case "recommended":
         return allCourses.filter(c => c.category === "Recommended");
       case "upcoming":
-        return allCourses.filter(c => new Date(c.start_date) > new Date());
+        return allCourses.filter(c => new Date(c.schedule_start_at) > new Date());
       default:
         return allCourses;
     }
