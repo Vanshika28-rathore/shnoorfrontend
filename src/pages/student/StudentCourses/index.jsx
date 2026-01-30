@@ -62,9 +62,9 @@ const StudentCourses = () => {
       case "paid-courses":
         return allCourses.filter(c => c.price_type === true || c.price_type === 'true');
       case "recommended":
-        return recommendedCourses;
+        return allCourses.filter(c => c.category === "Recommended");
       case "upcoming":
-        return upcomingCourses;
+        return allCourses.filter(c => new Date(c.start_date) > new Date());
       default:
         return allCourses;
     }
