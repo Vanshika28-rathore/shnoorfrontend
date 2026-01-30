@@ -16,6 +16,11 @@ const LoginView = ({
 }) => {
     const { email, password, rememberMe } = formData;
     const { setEmail, setPassword, setRememberMe } = setFormData;
+        const onFormSubmit = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleLogin(e);
+    };
 
     return (
         <div className="flex min-h-screen bg-slate-50 font-sans">
@@ -82,7 +87,7 @@ const LoginView = ({
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} className="space-y-6">
+                    <form onSubmit={onFormSubmit} className="space-y-6">
                         <div className="space-y-2">
                             <label className="block text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">Email Address</label>
                             <div className="relative">
