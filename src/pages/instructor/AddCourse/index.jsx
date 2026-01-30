@@ -24,6 +24,9 @@ export const AddCourse = () => {
     modules: [],
     validity_value: "",
     validity_unit: "days",
+    scheduleDate: "",
+    isPaid: false,
+    price: "",
   });
 
   const [moduleForm, setModuleForm] = useState({
@@ -56,6 +59,11 @@ export const AddCourse = () => {
         status: data.status || "draft",
         modules: data.modules || [],
         customCategory: "",
+        validity_value: data.validity_value || "",
+        validity_unit: data.validity_unit || "days",
+        scheduledDate: data.scheduled_start_at || "",
+        isPaid: data.is_paid || false,
+        price: data.price || "",
       });
     }
   }, [editCourseId, location.state]);
@@ -128,29 +136,28 @@ export const AddCourse = () => {
   };
 
   const handleFileUpload = async (file, fieldName) => {
-  if (!file) return;
+    if (!file) return;
 
-  // OPTIONAL: size check
-  if (file.size > 100 * 1024 * 1024) {
-    alert("File too large (max 100MB)");
-    return;
-  }
+    // OPTIONAL: size check
+    if (file.size > 100 * 1024 * 1024) {
+      alert("File too large (max 100MB)");
+      return;
+    }
 
-  // TEMP: if you're not uploading yet, just simulate
-  // (prevents crash and keeps flow working)
-  setUploading(true);
+    // TEMP: if you're not uploading yet, just simulate
+    // (prevents crash and keeps flow working)
+    setUploading(true);
 
-  setTimeout(() => {
-    const fakeUrl = URL.createObjectURL(file);
-    setModuleForm((prev) => ({
-      ...prev,
-      [fieldName]: fakeUrl,
-    }));
-    setUploading(false);
-    setUploadProgress(100);
-  }, 800);
-};
-
+    setTimeout(() => {
+      const fakeUrl = URL.createObjectURL(file);
+      setModuleForm((prev) => ({
+        ...prev,
+        [fieldName]: fakeUrl,
+      }));
+      setUploading(false);
+      setUploadProgress(100);
+    }, 800);
+  };
 
   /* =========================
      SUBMIT COURSE
@@ -180,6 +187,17 @@ export const AddCourse = () => {
           validity_unit: courseData.validity_value
             ? courseData.validity_unit
             : null,
+          schedule_start_at: courseData.scheduleDate || null,
+
+          price_type:
+            courseData.isPaid === true || courseData.isPaid === "true"
+              ? "paid"
+              : "free",
+
+          price_amount:
+            courseData.isPaid === true || courseData.isPaid === "true"
+              ? Number(courseData.price || 0)
+              : null,
         },
         {
           headers: { Authorization: `Bearer ${token}` },

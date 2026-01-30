@@ -13,29 +13,40 @@ const CoursePlayer = () => {
   const [currentModule, setCurrentModule] = useState(null);
   const [completedModuleIds, setCompletedModuleIds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recommendedCourses, setRecommendedCourses] = useState([]);
 
   // Fetch course + progress
-  useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        if (!auth.currentUser) return;
+useEffect(() => {
+  const fetchCourseAndRecommendations = async () => {
+    try {
+      if (!auth.currentUser) return;
 
-        setLoading(true);
+      setLoading(true);
 
-        const res = await api.get(`/api/student/courses/${courseId}`);
+      const token = await auth.currentUser.getIdToken(true);
 
-        setCourse(res.data);
-        setCurrentModule(res.data.modules?.[0] || null);
-        setCompletedModuleIds(res.data.completedModules || []);
-      } catch (err) {
-        console.error("Error loading course:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const [courseRes, recRes] = await Promise.all([
+        api.get(`/api/student/courses/${courseId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        api.get("/api/student/recommendations", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-    fetchCourse();
-  }, [courseId]);
+      setCourse(courseRes.data);
+      setCurrentModule(courseRes.data.modules?.[0] || null);
+      setCompletedModuleIds(courseRes.data.completedModules || []);
+      setRecommendedCourses(recRes.data || []);
+    } catch (err) {
+      console.error("Error loading course or recommendations:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchCourseAndRecommendations();
+}, [courseId]);
 
   // Mark module complete
   const handleMarkComplete = async () => {
@@ -79,6 +90,7 @@ const CoursePlayer = () => {
       progressPercentage={progressPercentage}
       isModuleCompleted={isModuleCompleted}
       handleMarkComplete={handleMarkComplete}
+      recommendedCourses={recommendedCourses}
       navigate={navigate}
       courseId={courseId}
     />

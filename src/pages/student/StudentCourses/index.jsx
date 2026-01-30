@@ -15,11 +15,10 @@ const StudentCourses = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All");
+  const [isFreeOnly, setIsFreeOnly] = useState(false); // NEW
 
   // 🔑 derive enrolledIds for the VIEW
-  const enrolledIds = myCourses.map(
-    (c) => c.courses_id || c.id
-  );
+  const enrolledIds = myCourses.map((c) => c.courses_id || c.id);
 
   // Fetch courses (My Learning + Explore)
   useEffect(() => {
@@ -52,8 +51,7 @@ const StudentCourses = () => {
   }, []);
 
   // Pick active list
-  const displayCourses =
-    activeTab === "my-learning" ? myCourses : allCourses;
+  const displayCourses = activeTab === "my-learning" ? myCourses : allCourses;
 
   // Apply filters
   const filteredCourses = displayCourses.filter((course) => {
@@ -62,13 +60,17 @@ const StudentCourses = () => {
       .includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-      selectedCategory === "All" ||
-      course.category === selectedCategory;
+      selectedCategory === "All" || course.category === selectedCategory;
 
     const matchesLevel =
-      selectedLevel === "All" || course.level === selectedLevel;
+      selectedLevel === "All" || course.difficulty === selectedLevel;
 
-    return matchesSearch && matchesCategory && matchesLevel;
+    const matchesPrice = isFreeOnly
+      ? course.price_type === false ||
+        course.price_type === "false" ||
+        !course.price_type
+      : true;
+    return matchesSearch && matchesCategory && matchesLevel && matchesPrice;
   });
 
   // Enroll handler
@@ -76,28 +78,40 @@ const StudentCourses = () => {
     try {
       const token = await auth.currentUser.getIdToken(true);
 
-      await api.post(
+      const res = await api.post(
         `/api/student/${courseId}/enroll`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      // Refresh both lists after enroll
-      const [myRes, exploreRes] = await Promise.all([
-        api.get("/api/student/my-courses", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        api.get("/api/courses/explore", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      // ✅ FREE course → enrolled
+      if (res.data?.success) {
+        const [myRes, exploreRes] = await Promise.all([
+          api.get("/api/student/my-courses", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          api.get("/api/courses/explore", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-      setMyCourses(myRes.data || []);
-      setAllCourses(exploreRes.data || []);
-      setActiveTab("my-learning");
+        setMyCourses(myRes.data || []);
+        setAllCourses(exploreRes.data || []);
+        setActiveTab("my-learning");
+      }
     } catch (err) {
+      // ✅ PAID course → redirect
+      if (
+        err.response?.status === 402 &&
+        err.response?.data?.redirectToPayment
+      ) {
+        // TEMP redirect for testing
+        window.location.href = "https://stripe.com/in";
+        return;
+      }
+
       console.error("Enroll failed:", err);
-      alert("Failed to enroll.");
+      alert(err.response?.data?.message || "Failed to enroll.");
     }
   };
 
@@ -118,10 +132,12 @@ const StudentCourses = () => {
       selectedLevel={selectedLevel}
       setSelectedLevel={setSelectedLevel}
       displayCourses={filteredCourses}
-      enrolledIds={enrolledIds}        
+      enrolledIds={enrolledIds}
       categories={categories}
       handleEnroll={handleEnroll}
       navigate={navigate}
+      isFreeOnly={isFreeOnly} // NEW
+      setIsFreeOnly={setIsFreeOnly} // NEW  
     />
   );
 };

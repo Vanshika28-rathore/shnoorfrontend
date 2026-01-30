@@ -5,6 +5,7 @@ import {
   FileText,
   Play,
   ExternalLink,
+  BookOpen,
 } from "lucide-react";
 
 const toEmbedUrl = (url) => {
@@ -38,6 +39,7 @@ const CoursePlayerView = ({
   handleMarkComplete,
   navigate,
   courseId,
+  recommendedCourses
 }) => {
   if (loading)
     return (
@@ -257,6 +259,53 @@ const CoursePlayerView = ({
           </div>
         </div>
       </div>
+      {/* =========================
+    RECOMMENDED COURSES
+   ========================= */}
+{recommendedCourses?.length > 0 && (
+  <div className="bg-slate-900 border-t border-slate-700 px-8 py-10">
+    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6">
+      Recommended for You
+    </h3>
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {recommendedCourses.slice(0, 4).map((rec) => (
+        <div
+          key={rec.courses_id}
+          onClick={() => navigate(`/student/course/${rec.courses_id}`)}
+          className="bg-slate-800 border border-slate-700 rounded-lg p-4 cursor-pointer hover:border-indigo-500 hover:shadow-lg transition-all group"
+        >
+          <div className="h-28 bg-slate-700 rounded-md flex items-center justify-center mb-4">
+            <BookOpen className="text-slate-500 group-hover:text-indigo-400 transition-colors" size={32} />
+          </div>
+
+          <h4 className="text-sm font-bold text-white mb-1 line-clamp-2">
+            {rec.title}
+          </h4>
+
+          <p className="text-xs text-slate-400 mb-2">
+            {rec.category}
+          </p>
+
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-500">{rec.difficulty}</span>
+
+            <span
+              className={`font-bold ${
+                rec.price_type === "paid"
+                  ? "text-emerald-400"
+                  : "text-indigo-400"
+              }`}
+            >
+              {rec.price_type === "paid" ? `₹${rec.price_amount}` : "FREE"}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

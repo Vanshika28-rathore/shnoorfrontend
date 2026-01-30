@@ -27,7 +27,7 @@ api.interceptors.response.use(
       error.response?.data?.message ||
       "Your account is suspended. Please contact admin.";
 
-    if (status === 403) {
+    if (status === 401) {
       try {
         await auth.signOut();
       } catch (e) {

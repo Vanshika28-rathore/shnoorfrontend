@@ -164,6 +164,72 @@ const AddCourseView = ({
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* --- NEW: Schedule & Pricing --- */}
+                                <div className="space-y-6 pt-4 border-t border-slate-100">
+
+                                    {/* Schedule Release */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Schedule Release (Optional)</label>
+                                        <input
+                                            type="datetime-local"
+                                            name="scheduleDate"
+                                            value={courseData.scheduleDate || ''}
+                                            onChange={handleCourseChange}
+                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:border-indigo-500 focus:ring-0 outline-none text-slate-700 text-sm"
+                                        />
+                                    </div>
+
+                                    {/* Pricing Section */}
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pricing Strategy</label>
+
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer p-3 border border-slate-200 rounded-md hover:bg-slate-50 flex-1">
+                                                <input
+                                                    type="radio"
+                                                    name="isPaid"
+                                                    value="false"
+                                                    checked={courseData.isPaid === false || courseData.isPaid === 'false'}
+                                                    onChange={(e) => handleCourseChange({ target: { name: 'isPaid', value: false } })}
+                                                    className="text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                <span className="text-sm font-semibold text-slate-700">Free Course</span>
+                                            </label>
+
+                                            <label className="flex items-center gap-2 cursor-pointer p-3 border border-slate-200 rounded-md hover:bg-slate-50 flex-1">
+                                                <input
+                                                    type="radio"
+                                                    name="isPaid"
+                                                    value="true"
+                                                    checked={courseData.isPaid === true || courseData.isPaid === 'true'}
+                                                    onChange={(e) => handleCourseChange({ target: { name: 'isPaid', value: true } })}
+                                                    className="text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                <span className="text-sm font-semibold text-slate-700">Paid Course</span>
+                                            </label>
+                                        </div>
+
+                                        {(courseData.isPaid === true || courseData.isPaid === 'true') && (
+                                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                                                <label className="text-xs font-bold text-emerald-600 uppercase tracking-wide">Price (INR)</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                                    <input
+                                                        type="number"
+                                                        name="price"
+                                                        placeholder="0.00"
+                                                        min="0"
+                                                        step="0.01"
+                                                        value={courseData.price || ''}
+                                                        onChange={handleCourseChange}
+                                                        className="w-full pl-8 pr-4 py-2.5 bg-white border border-emerald-200 rounded-md focus:border-emerald-500 focus:ring-0 outline-none text-slate-900 font-bold text-sm"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="mt-10 flex justify-end">

@@ -20,6 +20,8 @@ const AssignCourseView = ({
   toggleStudent,
   toggleCourse,
   handleAssign,
+  showSuccessPopup,
+  setShowSuccessPopup,
 }) => {
   if (loading)
     return (
@@ -36,7 +38,13 @@ const AssignCourseView = ({
   return (
     <div className="p-2 h-[calc(100vh-6rem)] flex flex-col font-sans w-full">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden w-full">
-        <form onSubmit={(e) => {e.preventDefault(); handleAssign()}} className="flex-1 flex flex-col h-full">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAssign();
+          }}
+          className="flex-1 flex flex-col h-full"
+        >
           <div className="flex flex-1 overflow-hidden divide-x divide-slate-200">
             {}
             <div className="flex-1 flex flex-col min-w-0 bg-slate-50/50">
@@ -205,6 +213,27 @@ const AssignCourseView = ({
           </div>
         </form>
       </div>
+      {showSuccessPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center scale-100 animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">
+              Assignment Complete!
+            </h3>
+            <p className="text-slate-500 mb-6">
+              Courses have been successfully assigned to the selected students.
+            </p>
+            <button
+              onClick={() => setShowSuccessPopup(false)}
+              className="w-full bg-[var(--color-primary)] hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/20"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
