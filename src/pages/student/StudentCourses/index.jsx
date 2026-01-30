@@ -60,7 +60,7 @@ const StudentCourses = () => {
       case "free-courses":
         return allCourses.filter(c => c.price_type === false || c.price_type === 'false' || !c.price_type);
       case "paid-courses":
-        return allCourses.filter(c => c.price_type === true || c.price_type === 'true');
+        return allCourses.filter(c => c.price_type === paid || c.price_type === 'paid');
       case "recommended":
         return allCourses.filter(c => c.category === "Recommended");
       case "upcoming":
