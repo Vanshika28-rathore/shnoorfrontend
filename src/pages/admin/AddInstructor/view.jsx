@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, BookOpen, Phone, Info, GraduationCap } from 'lucide-react';
+import { User, Mail, BookOpen, Phone, Info, GraduationCap, CheckCircle2 } from 'lucide-react';
 
 const AddInstructorView = ({ loading, data, handleChange, handleSubmit, navigate,showSuccessPopup, setShowSuccessPopup }) => {
 
