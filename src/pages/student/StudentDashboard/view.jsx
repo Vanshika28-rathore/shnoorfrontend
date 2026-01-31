@@ -103,7 +103,7 @@ const StudentDashboardView = ({
                   </div>
                 </div>
                 <button
-                  onClick={() => navigate(`/student/courses/${courseId}`)}
+                  onClick={() => navigate(`/student/courses/${lastCourse.course_id}`)}
                   className="px-6 py-2.5 bg-primary-900 hover:bg-black text-white font-bold rounded-md text-sm transition-colors shrink-0"
                 >
                   Continue
