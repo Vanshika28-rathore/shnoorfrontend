@@ -116,7 +116,7 @@ const StudentChat = () => {
             try {
                 const formData = new FormData();
                 formData.append('file', file);
-                const res = await api.post('/api/chats/media/upload', formData, {
+                const res = await api.post('/api/chats/upload', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 attachmentFileId = res.data.file_id;
