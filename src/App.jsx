@@ -46,6 +46,7 @@ import StudentExams from "./pages/student/StudentExams";
 import StudentChat from "./pages/student/StudentChat";
 import { SocketProvider } from "./context/SocketContext";
 import InstructorChat from "./pages/instructor/InstructorChat";
+import Leaderboard from "./pages/student/Leaderboard";
 // import Leaderboard from './pages/student/Leaderboard';
 
 function App() {
@@ -69,7 +70,6 @@ function App() {
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
-
               <Route path="add-instructor" element={<AddInstructor />} />
               <Route path="approve-users" element={<ApproveUsers />} />
               <Route path="approve-courses" element={<ApproveCourses />} />
@@ -124,7 +124,7 @@ function App() {
               <Route path="certificate" element={<MyCertificates />} />
               <Route path="chat" element={<StudentChat />} />
 
-              {/* <Route path="leaderboard" element={<Leaderboard />} /> */}
+              <Route path="leaderboard" element={<Leaderboard />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
