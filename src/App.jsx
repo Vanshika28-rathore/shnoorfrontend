@@ -44,6 +44,7 @@ import Landing from "./pages/Landing";
 import ProfileSettings from "./pages/shared/ProfileSettings";
 import StudentExams from "./pages/student/StudentExams";
 import StudentChat from "./pages/student/StudentChat";
+import { SocketProvider } from "./context/SocketContext";
 // import Leaderboard from './pages/student/Leaderboard';
 
 function App() {
