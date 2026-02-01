@@ -124,7 +124,7 @@ function App() {
               <Route path="certificate" element={<MyCertificates />} />
               <Route path="chat" element={<StudentChat />} />
 
-              <Route path="leaderboard" element={<Leaderboard />} />
+              {/* <Route path="leaderboard" element={<Leaderboard />} /> */}
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
