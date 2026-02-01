@@ -50,6 +50,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <SocketProvider>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -115,7 +116,7 @@ function App() {
             <Route path="exam/:examId" element={<ExamRunner />} />
             <Route path="settings" element={<ProfileSettings />} />
             <Route path="certificate" element={<MyCertificates />} />
-            {/* <Route path="chat" element={<StudentChat />} /> */}
+            <Route path="chat" element={<StudentChat />} />
 
             {/* <Route path="leaderboard" element={<Leaderboard />} /> */}
           </Route>
@@ -123,6 +124,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/suspended" element={<Suspended />} />
         </Routes>
+        </SocketProvider>
       </AuthProvider>
     </Router>
   );
