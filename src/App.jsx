@@ -45,6 +45,7 @@ import ProfileSettings from "./pages/shared/ProfileSettings";
 import StudentExams from "./pages/student/StudentExams";
 import StudentChat from "./pages/student/StudentChat";
 import { SocketProvider } from "./context/SocketContext";
+import InstructorChat from "./pages/instructor/InstructorChat";
 // import Leaderboard from './pages/student/Leaderboard';
 
 function App() {
@@ -97,7 +98,7 @@ function App() {
               <Route path="exams" element={<ExamBuilder />} />
               <Route path="performance" element={<StudentPerformance />} />
               <Route path="settings" element={<ProfileSettings />} />
-              <Route path="chat" element={<StudentChat />} />
+              <Route path="chat" element={<InstructorChat />} />
             </Route>
 
             <Route
