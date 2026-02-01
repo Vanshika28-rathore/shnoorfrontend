@@ -4,7 +4,6 @@ import api from '../api/axios';
 import { useAuth } from '../auth/AuthContext';
 
 const SocketContext = createContext();
-
 export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
@@ -18,10 +17,17 @@ export const SocketProvider = ({ children }) => {
     const dbUserRef = useRef(null);
 
     useEffect(() => {
-        const API_URL =import.meta.env.VITE_API_URL;
+        const API_URL = import.meta.env.VITE_API_URL;
         console.log('Initializing socket connection to:', API_URL);
         const newSocket = io(API_URL, {
-            withCredentials: true
+            withCredentials: true,
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: 5,
+            upgrade: true,
+            rememberUpgrade: true,
         });
 
         newSocket.on('connect', () => {
@@ -34,6 +40,14 @@ export const SocketProvider = ({ children }) => {
 
         newSocket.on('connect_error', (error) => {
             console.error('Socket connection error:', error);
+        });
+
+        newSocket.on('reconnect_attempt', () => {
+            console.log('Socket attempting to reconnect...');
+        });
+
+        newSocket.on('reconnect', () => {
+            console.log('Socket reconnected successfully!');
         });
 
         setSocket(newSocket);
