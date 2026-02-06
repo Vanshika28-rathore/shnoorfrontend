@@ -43,6 +43,12 @@ export function AuthProvider({ children }) {
         setCurrentUser(user);
         setUserRole(res.data.user.role.toLowerCase());
         setUserStatus(res.data.user.status.toLowerCase());
+        
+        // Store user_id in localStorage for certificate fetching
+        localStorage.setItem("user_id", res.data.user.user_id);
+        
+        // Store full_name for certificates
+        localStorage.setItem("full_name", user.displayName || user.email || "Student");
       } catch (error) {
         console.error("AuthContext backend sync failed:", error);
         setCurrentUser(null);
@@ -61,6 +67,8 @@ export function AuthProvider({ children }) {
     setCurrentUser(null);
     setUserRole(null);
     setUserStatus(null);
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("full_name");
   };
 
   const value = {

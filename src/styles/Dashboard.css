@@ -1979,3 +1979,161 @@ tr:hover td {
   font-size: 1.5rem;
   margin-bottom: 10px;
 }
+
+/* Certificate Styles */
+.certificate-view-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.certificate-paper {
+  width: 800px;
+  max-width: 100%;
+  margin: 40px auto;
+  padding: 60px 40px;
+  background: white;
+  border: 8px double #003366;
+  border-radius: 12px;
+  text-align: center;
+  font-family: 'Georgia', serif;
+  color: #1f2937;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.certificate-paper h1 {
+  font-size: 2.5rem;
+  color: #003366;
+  margin-bottom: 30px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.certificate-paper h2 {
+  font-size: 1.8rem;
+  color: #059669;
+  margin-bottom: 20px;
+  font-weight: normal;
+}
+
+.certificate-subtitle {
+  font-size: 1.2rem;
+  color: #6b7280;
+  margin: 20px 0;
+  font-style: italic;
+}
+
+.certificate-paper h3 {
+  font-size: 1.6rem;
+  color: #003366;
+  margin: 20px 0;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.certificate-score {
+  font-size: 1.3rem;
+  color: #059669;
+  margin: 15px 0;
+  font-weight: bold;
+}
+
+.certificate-date {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-top: 30px;
+  font-style: italic;
+}
+
+.no-print {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.no-print button {
+  background: #003366;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 0 10px;
+  font-size: 1rem;
+}
+
+.no-print button:hover {
+  background: #002244;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .certificate-paper {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 40px 20px !important;
+    border: 4px solid #003366 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+  
+  .certificate-paper h1 {
+    font-size: 2rem !important;
+  }
+  
+  .certificate-paper h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .certificate-paper h3 {
+    font-size: 1.3rem !important;
+  }
+}
+
+/* Certificate List Styles */
+.certificate-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.certificate-item h4 {
+  margin: 0 0 5px 0;
+  color: #1f2937;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.certificate-item p {
+  margin: 2px 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.certificate-item button {
+  background: #003366;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 0.9rem;
+}
+
+.certificate-item button:hover {
+  background: #002244;
+}

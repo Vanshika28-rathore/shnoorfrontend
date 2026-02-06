@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/axios";
-import { useSocket } from "../../../context/SocketContext";
+// import { useSocket } from "../../../context/SocketContext";
 import StudentLayoutView from "./view";
 
 const StudentLayout = () => {
@@ -16,8 +16,8 @@ const StudentLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Chat Unread Count
-  const { unreadCounts } = useSocket();
-  const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+  // const { unreadCounts } = useSocket();
+  // const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
 
   // Fetch student profile + XP
   useEffect(() => {
@@ -63,7 +63,7 @@ const StudentLayout = () => {
       handleLogout={handleLogout}
       navigate={navigate}
       location={location}
-      totalUnread={totalUnread}
+      // totalUnread={totalUnread}
     />
   );
 };

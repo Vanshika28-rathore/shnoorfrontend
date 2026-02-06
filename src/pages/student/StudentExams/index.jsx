@@ -1,34 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import StudentExamsView from "./view";
-import api from "../../../api/axios";
 
 const StudentExams = () => {
-  const navigate = useNavigate();
+  const [showQuiz, setShowQuiz] = useState(false);
 
-  const [exams, setExams] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const handleStartExam = () => {
+    setShowQuiz(true);
+  };
 
-  useEffect(() => {
-    const fetchExams = async () => {
-      try {
-        const res = await api.get("/api/exams");
-        setExams(res.data); // 👈 DIRECT rows
-      } catch (err) {
-        console.error("Failed to load exams", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchExams();
-  }, []);
+  const handleBackToExams = () => {
+    setShowQuiz(false);
+  };
 
   return (
     <StudentExamsView
-      loading={loading}
-      exams={exams}
-      navigate={navigate}
+      showQuiz={showQuiz}
+      onStartExam={handleStartExam}
+      onBack={handleBackToExams}
     />
   );
 };

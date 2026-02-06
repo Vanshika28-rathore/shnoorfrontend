@@ -121,8 +121,12 @@ function App() {
               <Route path="exams" element={<StudentExams />} />
               <Route path="exam/:examId" element={<ExamRunner />} />
               <Route path="settings" element={<ProfileSettings />} />
+              
+
               <Route path="certificate" element={<MyCertificates />} />
-              <Route path="chat" element={<StudentChat />} />
+              <Route path="certificates" element={<MyCertificates />} />
+
+              {/* <Route path="chat" element={<StudentChat />} /> */}
 
               {/* <Route path="leaderboard" element={<Leaderboard />} /> */}
             </Route>

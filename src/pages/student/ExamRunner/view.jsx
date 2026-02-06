@@ -145,6 +145,29 @@ const ExamRunnerView = ({
   const currentQ = exam.questions[currentQIndex];
   const questionId = currentQ.question_id || currentQ.id;
   const isPractice = exam.duration === 0;
+  /*{
+  "exam_id": 1,
+  "title": "Java Basics",
+  "duration": 30,
+  "pass_percentage": 50,
+  "questions": [
+    {
+      "question_id": 1,
+      "text": "Java is a ______ language?",
+      "type": "mcq",
+      "marks": 5,
+      "options": ["Procedural", "Object-Oriented", "Functional"]
+    },
+    {
+      "question_id": 2,
+      "text": "Which keyword is used to inherit a class in Java?",
+      "type": "mcq",
+      "marks": 5,
+      "options": ["extends", "implements", "inherits"]
+    }
+  ]
+}*/
+
 
   return (
     <div className="h-[calc(100vh-6rem)] flex flex-col bg-slate-50">

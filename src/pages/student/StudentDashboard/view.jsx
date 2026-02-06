@@ -1,3 +1,5 @@
+
+
 import React from "react";
 import {
   BookOpen,
@@ -70,6 +72,16 @@ const StudentDashboardView = ({
           subtext="Active learning paths"
           colorClass="text-emerald-600 bg-emerald-50"
         />
+        {/*added new state*/}
+        <StatCard
+          label="Certificates"
+          value="View"
+          icon={<Trophy size={20} />}
+          subtext="Download your achievements"
+          colorClass="text-green-600 bg-green-50"
+          onClick={() => navigate("/student/certificates")}    //add s
+        />
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -225,8 +237,12 @@ const StudentDashboardView = ({
   );
 };
 
-const StatCard = ({ label, value, icon, subtext, colorClass }) => (
-  <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between h-full">
+const StatCard = ({ label, value, icon, subtext, colorClass, onClick }) => (
+  <div 
+  onClick={onClick}
+  className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between h-full cursor-pointer hover:shadow-md transition"
+>
+
     <div className="flex justify-between items-start mb-4">
       <div className="space-y-1">
         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide">
