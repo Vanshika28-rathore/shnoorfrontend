@@ -1987,7 +1987,26 @@ tr:hover td {
   margin: 0 auto;
 }
 
-.certificate-paper {
+.certificate-container {
+  border: 6px solid #1E3A8A;
+  padding: 50px;
+  font-family: 'Times New Roman', serif;
+  text-align: center;
+  position: relative;
+  width: 900px;
+  margin: 40px auto;   /* yeh line container ko horizontally center karegi */
+  background: #fff;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+
+  display: flex;          /* flex layout */
+  flex-direction: column; /* elements vertically stack honge */
+  align-items: center;    /* sab content horizontally centre ho jayega */
+  justify-content: center;/* vertically bhi centre ho sakta hai agar parent height set ho */
+}
+
+ .corner { position: absolute; width: 50px; /* size bada karo */ height: 50px; background-color: #1E3A8A; } .top-left { top: -6px; left: -6px; } .top-right { top: -6px; right: -6px; } .bottom-left { bottom: -6px; left: -6px; } .bottom-right { bottom: -6px; right: -6px; }
+
+/*.certificate-paper {
   width: 800px;
   max-width: 100%;
   margin: 40px auto;
@@ -2000,7 +2019,54 @@ tr:hover td {
   color: #1f2937;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   position: relative;
+}*/
+.certificate-paper {
+  border: 6px solid #1E3A8A;
+  padding: 50px;
+  font-family: 'Times New Roman', serif;
+  text-align: center;
+  position: relative;
+  width: 900px;
+  margin: 40px auto;
+  background: #fff;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
 }
+
+/* Triangular corner accents */
+.triangle {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.top-left {
+  top: -6px;
+  left: -6px;
+  border-width: 40px 40px 0 0;
+  border-color: #1E3A8A transparent transparent transparent;
+}
+
+.top-right {
+  top: -6px;
+  right: -6px;
+  border-width: 40px 0 0 40px;
+  border-color: #1E3A8A transparent transparent transparent;
+}
+
+.triangle { position: absolute; width: 0; height: 0; border-style: solid; } /* Top-left corner */ .top-left { top: -6px; left: -6px; border-width: 40px 40px 0 0; border-color: #1E3A8A transparent transparent transparent; } /* Top-right corner */ .top-right { top: -6px; right: -6px; border-width: 40px 0 0 40px; border-color: #1E3A8A transparent transparent transparent; } /* Bottom-left corner (fixed) */ .bottom-left { bottom: -6px; left: -6px; border-width: 0 40px 40px 0; border-color: transparent transparent #1E3A8A transparent; }
+
+
+
+.bottom-right {
+  bottom: -6px;
+  right: -6px;
+  border-width: 0 0 40px 40px;
+  border-color: transparent transparent #1E3A8A transparent;
+}
+
+
+.certificate-logo { width: 100px; display: inline-block;}
 
 .certificate-paper h1 {
   font-size: 2.5rem;
@@ -2018,12 +2084,13 @@ tr:hover td {
   font-weight: normal;
 }
 
-.certificate-subtitle {
+/*.certificate-subtitle {
   font-size: 1.2rem;
   color: #6b7280;
   margin: 20px 0;
   font-style: italic;
-}
+}*/
+.certificate-subtitle { font-size: 1.2rem; margin: 10px 0; }
 
 .certificate-paper h3 {
   font-size: 1.6rem;
@@ -2033,12 +2100,7 @@ tr:hover td {
   text-transform: uppercase;
 }
 
-.certificate-score {
-  font-size: 1.3rem;
-  color: #059669;
-  margin: 15px 0;
-  font-weight: bold;
-}
+.certificate-score, .certificate-date { margin: 8px 0; font-size: 1rem; }
 
 .certificate-date {
   font-size: 1.1rem;
@@ -2137,3 +2199,30 @@ tr:hover td {
 .certificate-item button:hover {
   background: #002244;
 }
+/* ================= CERTIFICATE SIGNATURE ================= */
+
+.certificate-signature-section { margin-top: 50px; position: absolute; /* corner me fix karne ke liye */ bottom: 30px; /* thoda upar from bottom */ right: 30px; /* bilkul right corner */ text-align: center; /* image aur text ek line me centre aligned */ } /* thoda spacing right se */ 
+.signature-box {
+  text-align: center;
+  margin-right: 60px;         /* Right side se thoda gap */
+}
+
+.signature-img {
+  width: 100px;   /* pehle 140px tha, ab chhota */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.signature-text {
+  margin-top: 5px;
+  font-weight: 600;
+  text-align: center; /* text neatly niche centre me */
+}
+
+.signature-box p {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.certificate-logo-wrapper { text-align: center; margin-bottom: 20px; }
