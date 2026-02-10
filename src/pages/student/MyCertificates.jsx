@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import api from "../../api/axios";
 import { getLocalCertificates } from "../../utils/certificateStorage";
 import "../../styles/Dashboard.css";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../auth/firebase";
 
 // Generate certificate PDF via backend (optional)
 const generateCertificateAPI = async (user_id, course, score) => {
@@ -35,6 +37,22 @@ const MyCertificates = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCert, setSelectedCert] = useState(null);
   const [backendUnavailable, setBackendUnavailable] = useState(false);
+  const [certConfig, setCertConfig] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const docRef = doc(db, "settings", "certificateConfig");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setCertConfig(docSnap.data());
+        }
+      } catch (err) {
+        console.error("Error fetching certificate config:", err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const loadCertificates = useCallback(async () => {
     // 1) Always show local certificates first (no backend needed)
@@ -51,7 +69,7 @@ const MyCertificates = () => {
       if (meRes.data?.user_id != null) {
         localStorage.setItem("user_id", String(meRes.data.user_id));
       }
-    } catch (_) {}
+    } catch (_) { }
 
     try {
       const res = await api.get(`/api/certificate/${userId}`);
@@ -132,29 +150,48 @@ const MyCertificates = () => {
     <p>Authorized Signatory</p>
   </div>
 </div>
-        </div> endnow*/} 
-        <div className="certificate-paper">
+        </div> endnow*/}
+        <div className="certificate-paper" style={{ position: 'relative', overflow: 'hidden' }}>
+          {certConfig?.templateUrl && (
+            <img
+              src={certConfig.templateUrl}
+              alt="Background"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                opacity: 0.1,
+                zIndex: 0,
+                pointerEvents: 'none'
+              }}
+            />
+          )}
           {/* Triangle accents */} <div className="triangle top-left"></div> <div className="triangle top-right"></div> <div className="triangle bottom-left"></div> <div className="triangle bottom-right"></div>
-  <div className="certificate-logo-wrapper"> <img src="/just_logo.svg" alt="Company Logo" className="certificate-logo" /> </div>
-  <h1>Certificate Of Achievement</h1>
-  <h2>{localStorage.getItem("full_name") || "Student Name"}</h2>
-  <p className="certificate-subtitle">has successfully completed</p>
-  <h3>{selectedCert.course}</h3>
-  <p className="certificate-score">
-    Score: {selectedCert.score || selectedCert.score === 0 ? `${selectedCert.score}%` : 'Score not available'}
-  </p>
-  <p className="certificate-date">Date: {selectedCert.date}</p>
-  <div className="certificate-signature-section">
-    <div className="signature-box">
-      <img
-        src="/signatures/sign.png"
-        alt="Authorized Signature"
-        className="signature-img"
-      />
-      <p className="signature-text">Director of Education</p>
-    </div>
-  </div>
-</div>
+          <div className="certificate-logo-wrapper" style={{ position: 'relative', zIndex: 1 }}>
+            <img src={certConfig?.logoUrl || "/just_logo.svg"} alt="Company Logo" className="certificate-logo" />
+          </div>
+          <h1 style={{ position: 'relative', zIndex: 1 }}>{certConfig?.title || "Certificate Of Achievement"}</h1>
+          <h2 style={{ position: 'relative', zIndex: 1 }}>{localStorage.getItem("full_name") || "Student Name"}</h2>
+          <p className="certificate-subtitle" style={{ position: 'relative', zIndex: 1 }}>has successfully completed</p>
+          <h3 style={{ position: 'relative', zIndex: 1 }}>{selectedCert.course}</h3>
+          <p className="certificate-score" style={{ position: 'relative', zIndex: 1 }}>
+            Score: {selectedCert.score || selectedCert.score === 0 ? `${selectedCert.score}%` : 'Score not available'}
+          </p>
+          <p className="certificate-date" style={{ position: 'relative', zIndex: 1 }}>Date: {selectedCert.date}</p>
+          <div className="certificate-signature-section" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="signature-box">
+              {certConfig?.signatureUrl ? (
+                <img src={certConfig.signatureUrl} alt="Authorized Signature" className="signature-img" />
+              ) : (
+                <img src="/signatures/sign.png" alt="Authorized Signature" className="signature-img" />
+              )}
+              <p className="signature-text">{certConfig?.authorityName || "Director of Education"}</p>
+            </div>
+          </div>
+        </div>
 
       </div>
     );
