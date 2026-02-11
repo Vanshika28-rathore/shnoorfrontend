@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import api from "../../api/axios";
 import { getLocalCertificates } from "../../utils/certificateStorage";
 import "../../styles/Dashboard.css";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../../auth/firebase";
 
 // Generate certificate PDF via backend (optional)
@@ -32,6 +32,24 @@ function mergeCertificates(local, backendFormatted) {
   return [...local, ...fromBackend];
 }
 
+// ----------------------------------------------------------------------
+// DEFAULT CONFIGURATION & LOCAL OVERRIDES (Frontend Only)
+// ----------------------------------------------------------------------
+const defaultConfig = {
+  title: "Certificate of Achievement",
+  authorityName: "Director of Education",
+  issuerName: "Shnoor LMS", // Added default
+  logoUrl: "/just_logo.svg",
+  signatureUrl: "/signatures/sign.png",
+  templateUrl: "", // Empty string means no background by default
+};
+
+// OPTIONAL: Override specific fields here locally without changing Firestore
+// Example: { authorityName: "Chief Instructor" }
+const localOverrides = {
+  // authorityName: "Chief Instructor", 
+};
+
 const MyCertificates = () => {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,18 +58,49 @@ const MyCertificates = () => {
   const [certConfig, setCertConfig] = useState(null);
 
   useEffect(() => {
-    const fetchConfig = async () => {
+    // Real-time listener for certificate updates
+    const docRef = doc(db, "settings", "certificateConfig");
+
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
       try {
-        const docRef = doc(db, "settings", "certificateConfig");
-        const docSnap = await getDoc(docRef);
+        let firestoreData = {};
         if (docSnap.exists()) {
-          setCertConfig(docSnap.data());
+          firestoreData = docSnap.data();
         }
+
+        // Handle legacy 'imageUrl'
+        if (!firestoreData.signatureUrl && firestoreData.imageUrl) {
+          firestoreData.signatureUrl = firestoreData.imageUrl;
+        }
+
+        // Intelligent Merge:
+        // If Firestore has value, use it. If it's explicitly empty string, 
+        // we might want to respect it OR fallback.
+        // Given user complaint "doesn't show", we generally want fallback for empty strings 
+        // UNLESS it's a field where empty makes sense (like templateUrl).
+        // For Logo and Signature, usually we want a fallback.
+
+        const finalConfig = {
+          ...defaultConfig,
+          ...firestoreData,
+          ...localOverrides,
+          // Explicit fallbacks ensuring defaults if Firestore sends empty strings for critical assets
+          logoUrl: firestoreData.logoUrl || defaultConfig.logoUrl,
+          signatureUrl: firestoreData.signatureUrl || firestoreData.imageUrl || defaultConfig.signatureUrl,
+          authorityName: firestoreData.authorityName || defaultConfig.authorityName,
+          title: firestoreData.title || defaultConfig.title,
+        };
+
+        setCertConfig(finalConfig);
       } catch (err) {
-        console.error("Error fetching certificate config:", err);
+        console.error("Error processing config update:", err);
+        setCertConfig({ ...defaultConfig, ...localOverrides });
       }
-    };
-    fetchConfig();
+    }, (error) => {
+      console.error("Error listening to certificate config:", error);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const loadCertificates = useCallback(async () => {
@@ -170,25 +219,32 @@ const MyCertificates = () => {
             />
           )}
           {/* Triangle accents */} <div className="triangle top-left"></div> <div className="triangle top-right"></div> <div className="triangle bottom-left"></div> <div className="triangle bottom-right"></div>
+
           <div className="certificate-logo-wrapper" style={{ position: 'relative', zIndex: 1 }}>
-            <img src={certConfig?.logoUrl || "/just_logo.svg"} alt="Company Logo" className="certificate-logo" />
+            {/* Conditional Rendering for Logo */}
+            {certConfig?.logoUrl && (
+              <img src={certConfig.logoUrl} alt="Company Logo" className="certificate-logo" />
+            )}
           </div>
-          <h1 style={{ position: 'relative', zIndex: 1 }}>{certConfig?.title || "Certificate Of Achievement"}</h1>
+
+          <h1 style={{ position: 'relative', zIndex: 1, marginBottom: '0.5rem' }}>{certConfig?.title}</h1>
           <h2 style={{ position: 'relative', zIndex: 1 }}>{localStorage.getItem("full_name") || "Student Name"}</h2>
           <p className="certificate-subtitle" style={{ position: 'relative', zIndex: 1 }}>has successfully completed</p>
           <h3 style={{ position: 'relative', zIndex: 1 }}>{selectedCert.course}</h3>
+
           <p className="certificate-score" style={{ position: 'relative', zIndex: 1 }}>
             Score: {selectedCert.score || selectedCert.score === 0 ? `${selectedCert.score}%` : 'Score not available'}
           </p>
+
           <p className="certificate-date" style={{ position: 'relative', zIndex: 1 }}>Date: {selectedCert.date}</p>
-          <div className="certificate-signature-section" style={{ position: 'relative', zIndex: 1 }}>
+
+          <div className="certificate-signature-section" style={{ position: 'absolute', bottom: '30px', right: '30px', zIndex: 1 }}>
             <div className="signature-box">
-              {certConfig?.signatureUrl ? (
+              {/* Conditional Rendering for Signature */}
+              {certConfig?.signatureUrl && (
                 <img src={certConfig.signatureUrl} alt="Authorized Signature" className="signature-img" />
-              ) : (
-                <img src="/signatures/sign.png" alt="Authorized Signature" className="signature-img" />
               )}
-              <p className="signature-text">{certConfig?.authorityName || "Director of Education"}</p>
+              <p className="signature-text">{certConfig?.authorityName}</p>
             </div>
           </div>
         </div>

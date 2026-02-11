@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaCertificate, FaSignature, FaSave, FaImage } from 'react-icons/fa';
 
-const CertificateConfigView = ({ loading, config, setConfig, handleSave }) => {
+const CertificateConfigView = ({ loading, uploadingField, config, updateField, handleSave, handleFileUpload }) => {
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-[400px]">
@@ -31,18 +31,52 @@ const CertificateConfigView = ({ loading, config, setConfig, handleSave }) => {
                             <label className="text-sm font-bold text-slate-700">Issuer Name</label>
                             <input
                                 value={config.issuerName}
-                                onChange={e => setConfig({ ...config, issuerName: e.target.value })}
+                                onChange={e => updateField('issuerName', e.target.value)}
                                 placeholder="e.g. SHNOOR Academy"
                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium"
                             />
                         </div>
 
+
+
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">Signing Authority Title</label>
+                            <label className="text-sm font-bold text-slate-700">Certificate Title</label>
+                            <input
+                                value={config.title}
+                                onChange={e => updateField('title', e.target.value)}
+                                placeholder="Certificate of Achievement"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                <FaImage /> School/Company Logo
+                            </label>
+                            <input
+                                value={config.logoUrl}
+                                onChange={e => updateField('logoUrl', e.target.value)}
+                                placeholder="https://example.com/logo.png"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium mb-2"
+                            />
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    disabled={uploadingField === 'logoUrl'}
+                                    onChange={(e) => handleFileUpload(e.target.files[0], 'logoUrl')}
+                                    className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+                                />
+                                {uploadingField === 'logoUrl' && <span className="text-sm text-blue-600 font-medium animate-pulse">Uploading...</span>}
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">Issued By / Authority Name</label>
                             <input
                                 value={config.authorityName}
-                                onChange={e => setConfig({ ...config, authorityName: e.target.value })}
-                                placeholder="e.g. Program Director"
+                                onChange={e => updateField('authorityName', e.target.value)}
+                                placeholder="e.g. Director of Education"
                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium"
                             />
                         </div>
@@ -53,11 +87,21 @@ const CertificateConfigView = ({ loading, config, setConfig, handleSave }) => {
                             </label>
                             <input
                                 value={config.templateUrl}
-                                onChange={e => setConfig({ ...config, templateUrl: e.target.value })}
+                                onChange={e => updateField('templateUrl', e.target.value)}
                                 placeholder="https://example.com/cert-bg.png"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium mb-2"
                             />
-                            <p className="text-xs text-slate-500">Provide a direct link to an image to be used as the background.</p>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    disabled={uploadingField === 'templateUrl'}
+                                    onChange={(e) => handleFileUpload(e.target.files[0], 'templateUrl')}
+                                    className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+                                />
+                                {uploadingField === 'templateUrl' && <span className="text-sm text-blue-600 font-medium animate-pulse">Uploading...</span>}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">Provide a direct link or upload an image.</p>
                         </div>
 
                         <div className="space-y-2 md:col-span-2">
@@ -66,10 +110,20 @@ const CertificateConfigView = ({ loading, config, setConfig, handleSave }) => {
                             </label>
                             <input
                                 value={config.signatureUrl}
-                                onChange={e => setConfig({ ...config, signatureUrl: e.target.value })}
+                                onChange={e => updateField('signatureUrl', e.target.value)}
                                 placeholder="https://example.com/signature.png"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium mb-2"
                             />
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    disabled={uploadingField === 'signatureUrl'}
+                                    onChange={(e) => handleFileUpload(e.target.files[0], 'signatureUrl')}
+                                    className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+                                />
+                                {uploadingField === 'signatureUrl' && <span className="text-sm text-blue-600 font-medium animate-pulse">Uploading...</span>}
+                            </div>
                         </div>
 
                     </div>
@@ -104,9 +158,10 @@ const CertificateConfigView = ({ loading, config, setConfig, handleSave }) => {
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            className="flex items-center gap-2 px-8 py-3 bg-primary-900 text-white rounded-xl font-bold shadow-lg shadow-primary-900/30 hover:bg-slate-800 hover:-translate-y-0.5 transition-all"
+                            disabled={!!uploadingField}
+                            className={`flex items-center gap-2 px-8 py-3 bg-primary-900 text-white rounded-xl font-bold shadow-lg shadow-primary-900/30 transition-all ${uploadingField ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800 hover:-translate-y-0.5'}`}
                         >
-                            <FaSave /> Save Configuration
+                            <FaSave /> {uploadingField ? "Wait for Upload..." : "Save Configuration"}
                         </button>
                     </div>
                 </form>
