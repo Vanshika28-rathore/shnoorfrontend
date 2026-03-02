@@ -26,27 +26,33 @@ const AddPracticeView = ({
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans text-primary-900 pb-20">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
+      <div className="sticky top-0 z-30 px-8 py-4 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/instructor/practice")}
-            className="p-2 -ml-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-50 transition-colors"
+            className="p-2 -ml-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
-          <div>
-            <h1 className="text-xl font-bold text-primary-900">
-              New Coding Challenge
-            </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Create a practice problem for students
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+              <Code size={20} className="text-emerald-300" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-white">
+                New Coding Challenge
+              </h1>
+              <p className="text-xs text-slate-400 font-medium">
+                Create a practice problem for students
+              </p>
+            </div>
           </div>
         </div>
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="btn-instructor-primary flex items-center gap-2 px-6"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl active:scale-[0.98] disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' }}
         >
           {loading ? (
             "Saving..."
@@ -64,8 +70,8 @@ const AddPracticeView = ({
           <button
             onClick={() => setActiveTab("manual")}
             className={`px-6 py-2 rounded-md font-semibold text-sm transition-all ${activeTab === "manual"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+              ? "bg-indigo-600 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
               }`}
           >
             Manual Entry
@@ -73,8 +79,8 @@ const AddPracticeView = ({
           <button
             onClick={() => setActiveTab("bulk")}
             className={`px-6 py-2 rounded-md font-semibold text-sm transition-all flex items-center gap-2 ${activeTab === "bulk"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+              ? "bg-indigo-600 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
               }`}
           >
             <Upload size={16} />
