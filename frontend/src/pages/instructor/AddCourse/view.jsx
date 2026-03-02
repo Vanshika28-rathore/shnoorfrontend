@@ -71,46 +71,63 @@ const AddCourseView = ({
 }) => {
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-medium animate-pulse">
-        Processing course data...
+      <div className="flex items-center justify-center min-h-[500px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <p className="text-slate-400 font-medium text-sm">Processing course data...</p>
+        </div>
       </div>
     );
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-2 font-sans text-primary-900 flex flex-col">
       <div className="w-full max-w-none space-y-4 flex-1 flex flex-col">
-        {/* --- Header Section --- */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6 border-b border-slate-200 pb-4 shrink-0 bg-white px-6 py-4 rounded-lg shadow-sm border">
-          <div>
-            <h1 className="text-2xl font-bold text-primary-900 tracking-tight">
-              {editCourseId ? "Edit Course" : "Create New Course"}
-            </h1>
-            <p className="text-slate-500 text-sm mt-1">
-              Configure course details and curriculum.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${step >= s
-                      ? "bg-primary-900 text-white border-primary-900"
-                      : "bg-white text-slate-400 border-slate-200"
-                    }`}
-                >
-                  {s}
-                </div>
-                {s < 3 && (
+
+        {/* --- Header Section — file1 dark gradient style --- */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0"
+          style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)" }}
+        >
+          <div className="relative z-10 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">
+                {editCourseId ? "Edit Course" : "Create New Course"}
+              </h1>
+              <p className="text-slate-400 text-sm mt-1">
+                Configure course details and curriculum.
+              </p>
+            </div>
+            {/* Step indicators — file1 indigo style */}
+            <div className="flex items-center gap-2">
+              {[1, 2, 3].map((s) => (
+                <div key={s} className="flex items-center">
                   <div
-                    className={`w-8 h-0.5 mx-1 transition-all ${step > s ? "bg-primary-900" : "bg-slate-200"}`}
-                  ></div>
-                )}
-              </div>
-            ))}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${
+                      step >= s
+                        ? "bg-indigo-500 text-white border-indigo-400"
+                        : "bg-white/10 text-slate-400 border-white/20"
+                    }`}
+                  >
+                    {s}
+                  </div>
+                  {s < 3 && (
+                    <div
+                      className={`w-8 h-0.5 mx-1 transition-all ${step > s ? "bg-indigo-400" : "bg-white/20"}`}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+          {/* Decorative blob */}
+          <div
+            className="absolute -right-16 -top-16 w-56 h-56 rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)" }}
+          />
         </div>
+
         {!editCourseId && (
-          <div className="bg-white border-b border-slate-200 px-6 py-2 flex justify-end">
+          <div className="bg-white rounded-xl border border-slate-100 px-6 py-2 flex justify-end">
             <button
               onClick={() => setShowBulkUpload(true)}
               className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2"
@@ -121,11 +138,12 @@ const AddCourseView = ({
         )}
 
         {/* --- Main Content --- */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 flex-1 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex-1 p-6">
+
           {/* STEP 1: Course Details */}
           {step === 1 && (
             <div className="w-full">
-              <h3 className="text-lg font-bold text-primary-900 border-b border-slate-100 pb-4 mb-6 uppercase tracking-wide text-sm flex items-center gap-2">
+              <h3 className="text-sm font-bold text-primary-900 border-b border-slate-100 pb-4 mb-6 uppercase tracking-wide flex items-center gap-2">
                 <Info className="text-slate-400" size={16} /> Basic Information
               </h3>
 
@@ -172,9 +190,8 @@ const AddCourseView = ({
                     />
                   </div>
 
-                  {/* --- NEW: Schedule & Pricing --- */}
+                  {/* Schedule & Pricing */}
                   <div className="space-y-6 pt-4 border-t border-slate-100">
-                    {/* Schedule Release */}
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">
                         Schedule Release (Optional)
@@ -188,87 +205,64 @@ const AddCourseView = ({
                       />
                     </div>
 
-                    {/* Pricing Section */}
                     <div className="space-y-3">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">
                         Pricing Strategy
                       </label>
-
                       <div className="flex gap-4">
                         <label className="flex items-center gap-2 cursor-pointer p-3 border border-slate-200 rounded-md hover:bg-slate-50 flex-1">
                           <input
                             type="radio"
                             name="isPaid"
                             value="false"
-                            checked={
-                              courseData.isPaid === false ||
-                              courseData.isPaid === "false"
-                            }
-                            onChange={(e) =>
-                              handleCourseChange({
-                                target: { name: "isPaid", value: false },
-                              })
-                            }
+                            checked={courseData.isPaid === false || courseData.isPaid === "false"}
+                            onChange={() => handleCourseChange({ target: { name: "isPaid", value: false } })}
                             className="text-indigo-600 focus:ring-indigo-500"
                           />
-                          <span className="text-sm font-semibold text-slate-700">
-                            Free Course
-                          </span>
+                          <span className="text-sm font-semibold text-slate-700">Free Course</span>
                         </label>
-
                         <label className="flex items-center gap-2 cursor-pointer p-3 border border-slate-200 rounded-md hover:bg-slate-50 flex-1">
                           <input
                             type="radio"
                             name="isPaid"
                             value="true"
-                            checked={
-                              courseData.isPaid === true ||
-                              courseData.isPaid === "true"
-                            }
-                            onChange={(e) =>
-                              handleCourseChange({
-                                target: { name: "isPaid", value: true },
-                              })
-                            }
+                            checked={courseData.isPaid === true || courseData.isPaid === "true"}
+                            onChange={() => handleCourseChange({ target: { name: "isPaid", value: true } })}
                             className="text-indigo-600 focus:ring-indigo-500"
                           />
-                          <span className="text-sm font-semibold text-slate-700">
-                            Paid Course
-                          </span>
+                          <span className="text-sm font-semibold text-slate-700">Paid Course</span>
                         </label>
                       </div>
 
-                      {(courseData.isPaid === true ||
-                        courseData.isPaid === "true") && (
-                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
-                            <label className="text-xs font-bold text-emerald-600 uppercase tracking-wide">
-                              Price (INR)
-                            </label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
-                                ₹
-                              </span>
-                              <input
-                                type="number"
-                                name="price"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                                value={courseData.price || ""}
-                                onChange={handleCourseChange}
-                                className="w-full pl-8 pr-4 py-2.5 bg-white border border-emerald-200 rounded-md focus:border-emerald-500 focus:ring-0 outline-none text-slate-900 font-bold text-sm"
-                              />
-                            </div>
+                      {(courseData.isPaid === true || courseData.isPaid === "true") && (
+                        <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                          <label className="text-xs font-bold text-emerald-600 uppercase tracking-wide">
+                            Price (INR)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                            <input
+                              type="number"
+                              name="price"
+                              placeholder="0.00"
+                              min="0"
+                              step="0.01"
+                              value={courseData.price || ""}
+                              onChange={handleCourseChange}
+                              className="w-full pl-8 pr-4 py-2.5 bg-white border border-emerald-200 rounded-md focus:border-emerald-500 focus:ring-0 outline-none text-slate-900 font-bold text-sm"
+                            />
                           </div>
-                        )}
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Pre-requirements */}
                   <div className="mt-4 space-y-4 border border-slate-200 rounded-md p-4 bg-slate-50">
                     <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wide flex items-center gap-2">
                       <Info size={14} className="text-indigo-500" />
                       Pre-requirements for this course
                     </h4>
-
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500">
                         Concepts students should know before starting
@@ -282,31 +276,24 @@ const AddCourseView = ({
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md focus:border-indigo-500 focus:ring-0 outline-none text-xs"
                       />
                     </div>
-
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-slate-500">
-                          Recommended Video Links
-                        </label>
+                        <label className="text-xs font-semibold text-slate-500">Recommended Video Links</label>
                         <button
                           type="button"
                           onClick={addVideoUrl}
                           className="flex items-center gap-1 px-2 py-1 text-xs bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100 transition-colors"
                         >
-                          <Plus size={12} />
-                          Add Video
+                          <Plus size={12} /> Add Video
                         </button>
                       </div>
-
                       <div className="space-y-2">
                         {courseData.prereq_video_urls.map((url, index) => (
                           <div key={index} className="flex gap-2">
                             <input
                               placeholder={`Video ${index + 1}: https://youtube.com/...`}
                               value={url}
-                              onChange={(e) =>
-                                updateVideoUrl(index, e.target.value)
-                              }
+                              onChange={(e) => updateVideoUrl(index, e.target.value)}
                               className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-md focus:border-indigo-500 focus:ring-0 outline-none text-xs"
                             />
                             {courseData.prereq_video_urls.length > 1 && (
@@ -322,11 +309,8 @@ const AddCourseView = ({
                         ))}
                       </div>
                     </div>
-
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-500">
-                        PDF Links
-                      </label>
+                      <label className="text-xs font-semibold text-slate-500">PDF Links</label>
                       <input
                         name="prereq_pdf_url"
                         placeholder="https://... (public PDF link)"
@@ -420,8 +404,8 @@ const AddCourseView = ({
                 </div>
               </div>
 
-              {/* ── Learning Path Section ── */}
-              <div className="mt-6 border border-indigo-100 rounded-lg p-5 bg-indigo-50/40">
+              {/* ── Learning Path Section — file2 only ── */}
+              <div className="mt-6 border border-indigo-100 rounded-xl p-5 bg-indigo-50/40">
                 <div className="flex items-center gap-3 mb-4">
                   <input
                     type="checkbox"
@@ -448,7 +432,6 @@ const AddCourseView = ({
 
                 {courseData.isLearningPath && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-1">
-                    {/* Select existing path or create new */}
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">
                         Learning Path
@@ -476,7 +459,6 @@ const AddCourseView = ({
                       </select>
                     </div>
 
-                    {/* New path name input */}
                     {isCreatingNewPath && (
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-indigo-600 uppercase tracking-wide">
@@ -485,15 +467,12 @@ const AddCourseView = ({
                         <input
                           placeholder="e.g. AI & Machine Learning Path"
                           value={courseData.newLearningPathName}
-                          onChange={(e) =>
-                            setCourseData((p) => ({ ...p, newLearningPathName: e.target.value }))
-                          }
+                          onChange={(e) => setCourseData((p) => ({ ...p, newLearningPathName: e.target.value }))}
                           className="w-full px-4 py-2.5 bg-white border border-indigo-300 rounded-md focus:border-indigo-500 outline-none text-sm"
                         />
                       </div>
                     )}
 
-                    {/* Order index */}
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">
                         Order in Learning Path
@@ -503,9 +482,7 @@ const AddCourseView = ({
                         min="1"
                         placeholder="1"
                         value={courseData.learningPathOrder}
-                        onChange={(e) =>
-                          setCourseData((p) => ({ ...p, learningPathOrder: e.target.value }))
-                        }
+                        onChange={(e) => setCourseData((p) => ({ ...p, learningPathOrder: e.target.value }))}
                         className="w-28 px-4 py-2.5 bg-white border border-slate-200 rounded-md focus:border-indigo-500 outline-none text-sm"
                       />
                       <p className="text-xs text-slate-400">
@@ -516,15 +493,13 @@ const AddCourseView = ({
                 )}
               </div>
 
+              {/* Proceed button — file1 gradient style */}
               <div className="mt-10 flex justify-end">
                 <button
-                  className="bg-primary-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-6 rounded-md transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  className="text-white font-semibold py-2.5 px-6 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm shadow-lg shadow-indigo-500/20 hover:shadow-xl active:scale-[0.98]"
+                  style={{ background: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" }}
                   onClick={() => setStep(2)}
-                  disabled={
-                    !courseData.title ||
-                    (!courseData.category && !courseData.customCategory) ||
-                    !courseData.level
-                  }
+                  disabled={!courseData.title || (!courseData.category && !courseData.customCategory) || !courseData.level}
                 >
                   Proceed to Curriculum <ArrowRight size={12} />
                 </button>
@@ -543,9 +518,7 @@ const AddCourseView = ({
 
                 <div className="space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-500">
-                      Title
-                    </label>
+                    <label className="text-xs font-semibold text-slate-500">Title</label>
                     <input
                       name="title"
                       placeholder="Module Name"
@@ -557,9 +530,7 @@ const AddCourseView = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-500">
-                        Type
-                      </label>
+                      <label className="text-xs font-semibold text-slate-500">Type</label>
                       <select
                         name="type"
                         value={moduleForm.type}
@@ -573,9 +544,7 @@ const AddCourseView = ({
                     </div>
                     {moduleForm.type === "video" && (
                       <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-500">
-                          Duration (m)
-                        </label>
+                        <label className="text-xs font-semibold text-slate-500">Duration (m)</label>
                         <input
                           type="number"
                           name="duration"
@@ -589,9 +558,7 @@ const AddCourseView = ({
 
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
-                      <label className="text-xs font-semibold text-slate-500">
-                        Source
-                      </label>
+                      <label className="text-xs font-semibold text-slate-500">Source</label>
                       <div className="flex gap-2">
                         <span
                           onClick={() => setVideoInputType("url")}
@@ -612,11 +579,7 @@ const AddCourseView = ({
                     {videoInputType === "url" ? (
                       <input
                         name="url"
-                        placeholder={
-                          moduleForm.type === "video"
-                            ? "https://youtube.com/..."
-                            : "https://example.com/file.pdf"
-                        }
+                        placeholder={moduleForm.type === "video" ? "https://youtube.com/..." : "https://example.com/file.pdf"}
                         value={moduleForm.url}
                         onChange={handleModuleChange}
                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md focus:border-indigo-500 outline-none text-sm"
@@ -625,37 +588,23 @@ const AddCourseView = ({
                       <div className="border border-dashed border-slate-300 rounded-md p-4 text-center cursor-pointer hover:bg-slate-50 transition-colors relative">
                         <input
                           type="file"
-                          accept={
-                            moduleForm.type === "video"
-                              ? "video/*"
-                              : "application/pdf"
-                          }
-                          onChange={(e) =>
-                            handleFileUpload(e.target.files[0], "url")
-                          }
+                          accept={moduleForm.type === "video" ? "video/*" : "application/pdf"}
+                          onChange={(e) => handleFileUpload(e.target.files[0], "url")}
                           disabled={uploading}
                           className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
                         />
                         <div className="text-xs text-slate-500">
-                          {uploading
-                            ? `Uploading ${Math.round(uploadProgress)}%...`
-                            : moduleForm.url
-                              ? "File Uploaded"
-                              : "Click to Upload Content"}
+                          {uploading ? `Uploading ${Math.round(uploadProgress)}%...` : moduleForm.url ? "File Uploaded" : "Click to Upload Content"}
                         </div>
                         {uploading && (
                           <div className="w-full bg-slate-200 h-1 mt-2 rounded-full overflow-hidden">
-                            <div
-                              className="bg-indigo-600 h-full transition-all"
-                              style={{ width: `${uploadProgress}%` }}
-                            ></div>
+                            <div className="bg-indigo-600 h-full transition-all" style={{ width: `${uploadProgress}%` }} />
                           </div>
                         )}
                       </div>
                     )}
                   </div>
 
-                  {/* Module Notes Section - Restored as requested */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">
                       Module Notes (Optional)
@@ -664,17 +613,13 @@ const AddCourseView = ({
                       <input
                         type="file"
                         accept="application/pdf"
-                        onChange={(e) =>
-                          handleFileUpload(e.target.files[0], "notes")
-                        }
+                        onChange={(e) => handleFileUpload(e.target.files[0], "notes")}
                         disabled={uploading}
                         className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
                       />
                       <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
                         <FileText className="text-slate-400" size={14} />
-                        {moduleForm.notes
-                          ? "Notes Attached"
-                          : "Upload PDF Notes"}
+                        {moduleForm.notes ? "Notes Attached" : "Upload PDF Notes"}
                       </div>
                     </div>
                   </div>
@@ -696,7 +641,8 @@ const AddCourseView = ({
                     <ArrowLeft size={12} /> Back
                   </button>
                   <button
-                    className="bg-primary-900 hover:bg-slate-800 text-white font-semibold py-2 px-6 rounded-md text-sm flex items-center gap-2"
+                    className="text-white font-semibold py-2 px-6 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/20 hover:shadow-xl active:scale-[0.98] transition-all"
+                    style={{ background: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" }}
                     onClick={() => setStep(3)}
                   >
                     Review <ArrowRight size={12} />
@@ -706,20 +652,17 @@ const AddCourseView = ({
 
               {/* Right: Module List */}
               <div className="lg:col-span-2">
-                <div className="bg-[#f8fafc] h-full rounded-lg border border-slate-200 flex flex-col">
-                  <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white rounded-t-lg">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-sm font-bold text-primary-900">
-                        Curriculum ({courseData.modules.length})
-                      </h3>
-
-                      <button
-                        onClick={() => setShowModuleBulkUpload(true)}
-                        className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                      >
-                        <Plus size={12} /> Bulk Upload
-                      </button>
-                    </div>
+                <div className="bg-[#f8fafc] h-full rounded-xl border border-slate-200 flex flex-col">
+                  <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white rounded-t-xl">
+                    <h3 className="text-sm font-bold text-primary-900">
+                      Curriculum ({courseData.modules.length})
+                    </h3>
+                    <button
+                      onClick={() => setShowModuleBulkUpload(true)}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                    >
+                      <Plus size={12} /> Bulk Upload
+                    </button>
                   </div>
 
                   <div className="flex-1 overflow-auto p-4 space-y-2">
@@ -738,14 +681,15 @@ const AddCourseView = ({
                               {idx + 1}
                             </span>
                             <div>
-                              <div className="font-semibold text-primary-900 text-sm">
-                                {m.title}
-                              </div>
+                              <div className="font-semibold text-primary-900 text-sm">{m.title}</div>
                               <div className="text-xs text-slate-500 flex items-center gap-2">
-                                <span className="uppercase font-bold text-[10px]">
-                                  {m.type}
-                                </span>
+                                <span className="uppercase font-bold text-[10px]">{m.type}</span>
                                 {m.duration && <span>• {m.duration} mins</span>}
+                                {m.notes && (
+                                  <span className="flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md ml-2">
+                                    <FileText size={10} /> PDF Notes
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -755,29 +699,15 @@ const AddCourseView = ({
                                 onClick={() => setPreviewModuleId(m.id)}
                                 className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
                                 title="Preview"
-                              >
-                                👁
-                              </button>
+                              >👁</button>
                             )}
-
-                            <button
-                              onClick={() => moveModule(idx, -1)}
-                              disabled={idx === 0}
-                              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
-                            >
+                            <button onClick={() => moveModule(idx, -1)} disabled={idx === 0} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded">
                               <ArrowUp size={12} />
                             </button>
-                            <button
-                              onClick={() => moveModule(idx, 1)}
-                              disabled={idx === courseData.modules.length - 1}
-                              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
-                            >
+                            <button onClick={() => moveModule(idx, 1)} disabled={idx === courseData.modules.length - 1} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded">
                               <ArrowDown size={12} />
                             </button>
-                            <button
-                              onClick={() => removeModule(m.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"
-                            >
+                            <button onClick={() => removeModule(m.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded">
                               <Trash2 size={12} />
                             </button>
                           </div>
@@ -799,69 +729,44 @@ const AddCourseView = ({
                 >
                   &times;
                 </button>
-
                 <div className="flex-1 overflow-hidden">
                   <TextStreamPlayer moduleId={previewModuleId} />
                 </div>
               </div>
             </div>
           )}
+
           {/* STEP 3: Review */}
           {step === 3 && (
             <div className="w-full">
               <div className="text-center mb-8">
-                <h3 className="text-xl font-bold text-primary-900">
-                  Final Verification
-                </h3>
-                <p className="text-slate-500 text-sm">
-                  Review course details before publishing.
-                </p>
+                <h3 className="text-xl font-bold text-primary-900">Final Verification</h3>
+                <p className="text-slate-500 text-sm">Review course details before publishing.</p>
               </div>
 
-              <div className="bg-[#f8fafc] border border-slate-200 rounded-lg overflow-hidden">
+              <div className="bg-[#f8fafc] border border-slate-200 rounded-xl overflow-hidden">
                 <div className="p-6 grid grid-cols-2 gap-y-6 gap-x-12">
-                  <div>
-                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wide mb-1">
-                      Title
+                  {[
+                    { label: "Title", value: courseData.title },
+                    { label: "Category", value: isCustomCategory ? courseData.customCategory : courseData.category },
+                    { label: "Level", value: courseData.level },
+                    {
+                      label: "Content",
+                      value: (
+                        <>
+                          {courseData.modules.length} Modules{" "}
+                          <span className="text-slate-400 font-normal">
+                            ({courseData.modules.reduce((acc, m) => acc + Number(m.duration || 0), 0)} mins)
+                          </span>
+                        </>
+                      ),
+                    },
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <div className="text-xs text-slate-500 uppercase font-bold tracking-wide mb-1">{item.label}</div>
+                      <div className="text-sm font-semibold text-primary-900">{item.value}</div>
                     </div>
-                    <div className="text-sm font-semibold text-primary-900">
-                      {courseData.title}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wide mb-1">
-                      Category
-                    </div>
-                    <div className="text-sm font-semibold text-primary-900">
-                      {isCustomCategory
-                        ? courseData.customCategory
-                        : courseData.category}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wide mb-1">
-                      Level
-                    </div>
-                    <div className="text-sm font-semibold text-primary-900">
-                      {courseData.level}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wide mb-1">
-                      Content
-                    </div>
-                    <div className="text-sm font-semibold text-primary-900">
-                      {courseData.modules.length} Modules{" "}
-                      <span className="text-slate-400 font-normal">
-                        (
-                        {courseData.modules.reduce(
-                          (acc, m) => acc + Number(m.duration || 0),
-                          0,
-                        )}{" "}
-                        mins)
-                      </span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
                 <div className="bg-slate-100 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                   <button
@@ -877,8 +782,10 @@ const AddCourseView = ({
                     >
                       Save Draft
                     </button>
+                    {/* Submit button — file1 gradient style */}
                     <button
-                      className="px-6 py-2 bg-primary-900 hover:bg-slate-800 text-white font-bold rounded-md text-sm shadow-sm flex items-center gap-2"
+                      className="px-6 py-2 text-white font-bold rounded-xl text-sm shadow-lg shadow-indigo-500/20 flex items-center gap-2 hover:shadow-xl active:scale-[0.98] transition-all"
+                      style={{ background: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" }}
                       onClick={() => handleSubmit("pending")}
                     >
                       <Check size={12} /> Submit Course
@@ -890,22 +797,21 @@ const AddCourseView = ({
           )}
         </div>
       </div>
+
       {/* --- Bulk Upload Modal --- */}
       {showBulkUpload && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 m-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 m-4">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-primary-900 flex items-center gap-2">
                 <Upload size={20} /> Bulk Upload Courses
               </h3>
-              <button onClick={closeBulkUpload} className="text-slate-400 hover:text-slate-600">
-                &times;
-              </button>
+              <button onClick={closeBulkUpload} className="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
             </div>
 
             {!bulkUploadResult ? (
               <div className="space-y-6">
-                <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:bg-slate-50 transition-colors relative">
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-50 transition-colors relative">
                   <input
                     type="file"
                     accept=".csv"
@@ -917,12 +823,8 @@ const AddCourseView = ({
                     <div className="bg-indigo-50 text-indigo-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
                       <Upload size={24} />
                     </div>
-                    <p className="font-semibold text-slate-700">
-                      {bulkFile ? bulkFile.name : "Click to select CSV file"}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Max size 50MB. .csv files only.
-                    </p>
+                    <p className="font-semibold text-slate-700">{bulkFile ? bulkFile.name : "Click to select CSV file"}</p>
+                    <p className="text-xs text-slate-400">Max size 50MB. .csv files only.</p>
                   </div>
                 </div>
 
@@ -930,7 +832,8 @@ const AddCourseView = ({
                   <div className="flex justify-end">
                     <button
                       onClick={handleBulkUpload}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition-colors flex items-center gap-2"
+                      className="text-white font-bold py-2 px-6 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20 hover:shadow-xl active:scale-[0.98]"
+                      style={{ background: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" }}
                     >
                       <Upload size={16} /> Start Upload
                     </button>
@@ -939,48 +842,37 @@ const AddCourseView = ({
 
                 {isBulkUploading && (
                   <div className="space-y-2">
-
                     <div className="flex justify-between text-xs font-semibold text-slate-600">
                       <span>Uploading...</span>
                       <span>{Math.round(bulkUploadProgress)}%</span>
                     </div>
                     <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-indigo-600 h-full transition-all duration-300"
-                        style={{ width: `${bulkUploadProgress}%` }}
-                      ></div>
+                      <div className="bg-indigo-600 h-full transition-all duration-300" style={{ width: `${bulkUploadProgress}%` }} />
                     </div>
                   </div>
                 )}
               </div>
             ) : (
               <div className="space-y-4">
-                <div className={`p-4 rounded-md ${bulkUploadResult.successCount > 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>
+                <div className={`p-4 rounded-xl ${bulkUploadResult.successCount > 0 ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-800"}`}>
                   <p className="font-bold">Process Complete</p>
-                  <p className="text-sm mt-1">
-                    Successfully created: <b>{bulkUploadResult.successCount}</b> courses.
-                  </p>
+                  <p className="text-sm mt-1">Successfully created: <b>{bulkUploadResult.successCount}</b> courses.</p>
                 </div>
-
                 {bulkUploadResult.errors?.length > 0 && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-md p-3 max-h-48 overflow-y-auto">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 max-h-48 overflow-y-auto">
                     <p className="text-xs font-bold text-slate-500 uppercase mb-2">Errors ({bulkUploadResult.errors.length})</p>
                     <ul className="space-y-1">
                       {bulkUploadResult.errors.map((err, i) => (
                         <li key={i} className="text-xs text-rose-600 flex gap-2">
-                          <span className="font-mono bg-rose-100 px-1 rounded">{err.row || err.course || '?'}</span>
+                          <span className="font-mono bg-rose-100 px-1 rounded">{err.row || err.course || "?"}</span>
                           <span>{err.message}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-
                 <div className="flex justify-end pt-2">
-                  <button
-                    onClick={closeBulkUpload}
-                    className="bg-primary-900 text-white px-4 py-2 rounded text-sm hover:bg-slate-800 transition-colors"
-                  >
+                  <button onClick={closeBulkUpload} className="bg-primary-900 text-white px-4 py-2 rounded-xl text-sm hover:bg-slate-800 transition-colors">
                     Close & Refresh
                   </button>
                 </div>
@@ -989,23 +881,21 @@ const AddCourseView = ({
           </div>
         </div>
       )}
+
       {/* --- Module Bulk Upload Modal --- */}
       {showModuleBulkUpload && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 m-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 m-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-primary-900 flex items-center gap-2">
                 <Upload size={20} /> Bulk Upload Modules
               </h3>
-              <button onClick={closeModuleBulkUpload} className="text-slate-400 hover:text-slate-600">
-                &times;
-              </button>
+              <button onClick={closeModuleBulkUpload} className="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
             </div>
 
             {!moduleBulkUploadResult ? (
               <div className="space-y-6">
-                {/* CSV Selection */}
-                <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition-colors relative">
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors relative">
                   <input
                     type="file"
                     accept=".csv"
@@ -1017,17 +907,12 @@ const AddCourseView = ({
                     <div className="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2">
                       <FileText size={20} />
                     </div>
-                    <p className="font-semibold text-slate-700 text-sm">
-                      {moduleBulkFile ? moduleBulkFile.name : "Select CSV File"}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Req: module_name, module_type, module_source, module_duration
-                    </p>
+                    <p className="font-semibold text-slate-700 text-sm">{moduleBulkFile ? moduleBulkFile.name : "Select CSV File"}</p>
+                    <p className="text-xs text-slate-400">Req: module_name, module_type, module_source, module_duration</p>
                   </div>
                 </div>
 
-                {/* Resource Files Selection */}
-                <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition-colors relative">
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors relative">
                   <input
                     type="file"
                     multiple
@@ -1042,9 +927,7 @@ const AddCourseView = ({
                     <p className="font-semibold text-slate-700 text-sm">
                       {moduleResourceFiles.length > 0 ? `${moduleResourceFiles.length} files selected` : "Select Resource Files (Videos/PDFs)"}
                     </p>
-                    <p className="text-xs text-slate-400">
-                      Select all videos/PDFs referenced in your CSV
-                    </p>
+                    <p className="text-xs text-slate-400">Select all videos/PDFs referenced in your CSV</p>
                   </div>
                 </div>
 
@@ -1052,7 +935,8 @@ const AddCourseView = ({
                   <div className="flex justify-end pt-2">
                     <button
                       onClick={handleModuleBulkUpload}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition-colors flex items-center gap-2 text-sm"
+                      className="text-white font-bold py-2 px-6 rounded-xl transition-all flex items-center gap-2 text-sm shadow-lg shadow-indigo-500/20 hover:shadow-xl active:scale-[0.98]"
+                      style={{ background: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)" }}
                     >
                       <Upload size={14} /> Start Upload
                     </button>
@@ -1066,30 +950,22 @@ const AddCourseView = ({
                       <span>{Math.round(moduleBulkUploadProgress)}%</span>
                     </div>
                     <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-indigo-600 h-full transition-all duration-300"
-                        style={{ width: `${moduleBulkUploadProgress}%` }}
-                      ></div>
+                      <div className="bg-indigo-600 h-full transition-all duration-300" style={{ width: `${moduleBulkUploadProgress}%` }} />
                     </div>
                   </div>
                 )}
               </div>
             ) : (
               <div className="space-y-4">
-                <div className={`p-4 rounded-md ${moduleBulkUploadResult.successCount > 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>
+                <div className={`p-4 rounded-xl ${moduleBulkUploadResult.successCount > 0 ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-800"}`}>
                   <p className="font-bold">Process Complete</p>
-                  <p className="text-sm mt-1">
-                    Successfully created: <b>{moduleBulkUploadResult.successCount}</b> modules.
-                  </p>
+                  <p className="text-sm mt-1">Successfully created: <b>{moduleBulkUploadResult.successCount}</b> modules.</p>
                   {moduleBulkUploadResult.totalRows > 0 && (
-                    <p className="text-xs mt-1 text-slate-500">
-                      Processed {moduleBulkUploadResult.totalRows} rows.
-                    </p>
+                    <p className="text-xs mt-1 text-slate-500">Processed {moduleBulkUploadResult.totalRows} rows.</p>
                   )}
                 </div>
-
                 {moduleBulkUploadResult.errors?.length > 0 && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-md p-3 max-h-48 overflow-y-auto">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 max-h-48 overflow-y-auto">
                     <p className="text-xs font-bold text-slate-500 uppercase mb-2">Errors ({moduleBulkUploadResult.errors.length})</p>
                     <ul className="space-y-1">
                       {moduleBulkUploadResult.errors.map((err, i) => (
@@ -1101,12 +977,8 @@ const AddCourseView = ({
                     </ul>
                   </div>
                 )}
-
                 <div className="flex justify-end pt-2">
-                  <button
-                    onClick={closeModuleBulkUpload}
-                    className="bg-primary-900 text-white px-4 py-2 rounded text-sm hover:bg-slate-800 transition-colors"
-                  >
+                  <button onClick={closeModuleBulkUpload} className="bg-primary-900 text-white px-4 py-2 rounded-xl text-sm hover:bg-slate-800 transition-colors">
                     Close & Refresh
                   </button>
                 </div>
