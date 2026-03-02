@@ -952,3 +952,167 @@ export const unarchiveCourse = async (req, res) => {
     res.status(500).json({ message: "Failed to unarchive course" });
   }
 };
+
+export const editModule = async (req, res) => {
+  try {
+    const { moduleId } = req.params;
+    const instructorId = req.user.id;
+
+    const ownerCheck = await pool.query(
+      `SELECT m.module_id, m.course_id
+       FROM modules m
+       JOIN courses c ON c.courses_id = m.course_id
+       WHERE m.module_id = $1 AND c.instructor_id = $2`,
+      [moduleId, instructorId]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(403).json({ message: "Not authorized to edit this module" });
+    }
+
+    const { title, type, content_url, notes, duration_mins } = req.body;
+
+    if (!title || !type) {
+      return res.status(400).json({ message: "Title and type are required" });
+    }
+
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    fields.push(`title = $${idx++}`);   values.push(title);
+    fields.push(`type = $${idx++}`);    values.push(type);
+    fields.push(`notes = $${idx++}`);   values.push(notes || null);
+
+    if (duration_mins !== undefined && duration_mins !== "") {
+      fields.push(`duration_mins = $${idx++}`);
+      values.push(Number(duration_mins));
+    }
+
+    if (content_url) {
+      // Link / URL mode — clear any stored file data
+      fields.push(`content_url = $${idx++}`);   values.push(content_url);
+      fields.push(`pdf_data = $${idx++}`);       values.push(null);
+      fields.push(`pdf_filename = $${idx++}`);   values.push(null);
+      fields.push(`pdf_mime = $${idx++}`);       values.push(null);
+    } else if (req.file) {
+      // Upload mode — store binary, clear URL
+      fields.push(`pdf_data = $${idx++}`);       values.push(req.file.buffer);
+      fields.push(`pdf_filename = $${idx++}`);   values.push(req.file.originalname);
+      fields.push(`pdf_mime = $${idx++}`);       values.push(req.file.mimetype);
+      fields.push(`content_url = $${idx++}`);    values.push(null);
+    }
+
+    // Re-chunk text_stream content when notes change
+    if (type === "text_stream" && notes) {
+      const chunks = notes.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
+      await pool.query(`DELETE FROM module_text_chunks WHERE module_id = $1`, [moduleId]);
+      if (chunks.length > 0) {
+        const chunkVals = [];
+        const chunkPlaceholders = [];
+        for (let k = 0; k < chunks.length; k++) {
+          chunkVals.push(moduleId, chunks[k], k, 1);
+          const o = k * 4;
+          chunkPlaceholders.push(`($${o + 1}, $${o + 2}, $${o + 3}, $${o + 4})`);
+        }
+        await pool.query(
+          `INSERT INTO module_text_chunks (module_id, content, chunk_order, duration_seconds)
+           VALUES ${chunkPlaceholders.join(", ")}`,
+          chunkVals
+        );
+      }
+    }
+
+    values.push(moduleId);
+    const result = await pool.query(
+      `UPDATE modules SET ${fields.join(", ")} WHERE module_id = $${idx}
+       RETURNING module_id, course_id, title, type, content_url,
+                 duration_mins AS duration, module_order, notes, pdf_filename, created_at`,
+      values
+    );
+
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("editModule error:", error);
+    res.status(500).json({ message: "Failed to update module" });
+  }
+};
+
+
+// ─── PATCH: addModule in course.controller.js ──────────────────────────────
+// Same unified "file" field name for all upload types.
+
+export const addModule = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const instructorId = req.user.id;
+
+    const courseCheck = await pool.query(
+      `SELECT courses_id FROM courses WHERE courses_id = $1 AND instructor_id = $2`,
+      [courseId, instructorId]
+    );
+    if (courseCheck.rows.length === 0) {
+      return res.status(403).json({ message: "Not authorized to add modules to this course" });
+    }
+
+    const { title, type, content_url, notes, duration_mins } = req.body;
+
+    if (!title || !type) {
+      return res.status(400).json({ message: "Title and type are required" });
+    }
+
+    const orderResult = await pool.query(
+      `SELECT COALESCE(MAX(module_order), 0) + 1 AS next_order FROM modules WHERE course_id = $1`,
+      [courseId]
+    );
+    const nextOrder = orderResult.rows[0].next_order;
+
+    let finalContentUrl = content_url || null;
+    let pdfData     = null;
+    let pdfFilename = null;
+    let pdfMime     = null;
+
+    if (req.file) {
+      pdfData       = req.file.buffer;
+      pdfFilename   = req.file.originalname;
+      pdfMime       = req.file.mimetype;
+      finalContentUrl = null;
+    }
+
+    const result = await pool.query(
+      `INSERT INTO modules
+         (course_id, title, type, content_url, duration_mins, module_order, notes, pdf_data, pdf_filename, pdf_mime)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+       RETURNING module_id, course_id, title, type, content_url,
+                 duration_mins AS duration, module_order, notes, pdf_filename, created_at`,
+      [courseId, title, type, finalContentUrl,
+       duration_mins ? Number(duration_mins) : null,
+       nextOrder, notes || null, pdfData, pdfFilename, pdfMime]
+    );
+
+    // text_stream chunking
+    if (type === "text_stream" && notes) {
+      const moduleId = result.rows[0].module_id;
+      const chunks = notes.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
+      if (chunks.length > 0) {
+        const chunkVals = [];
+        const chunkPlaceholders = [];
+        for (let k = 0; k < chunks.length; k++) {
+          chunkVals.push(moduleId, chunks[k], k, 1);
+          const o = k * 4;
+          chunkPlaceholders.push(`($${o + 1}, $${o + 2}, $${o + 3}, $${o + 4})`);
+        }
+        await pool.query(
+          `INSERT INTO module_text_chunks (module_id, content, chunk_order, duration_seconds)
+           VALUES ${chunkPlaceholders.join(", ")}`,
+          chunkVals
+        );
+      }
+    }
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error("addModule error:", error);
+    res.status(500).json({ message: "Failed to add module" });
+  }
+};

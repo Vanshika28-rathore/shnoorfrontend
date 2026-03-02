@@ -16,7 +16,9 @@ import {
   archiveCourse,
   rejectCourse,
   publishCourse,
-  submitForReview
+  submitForReview,
+  editModule,
+  addModule
 } from "../controllers/course.controller.js";
 
 import firebaseAuth from "../middlewares/firebaseAuth.js";
@@ -25,6 +27,7 @@ import roleGuard from "../middlewares/roleGuard.js";
 import uploadCsv from "../middlewares/uploadCsv.js";
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 
 router.post(
@@ -165,4 +168,23 @@ router.patch(
   roleGuard("admin", "instructor"),
   unarchiveCourse
 );
+
+router.patch(
+  "/modules/:moduleId",
+  firebaseAuth,
+  attachUser,
+  roleGuard("instructor"),
+  upload.single("file"),
+  editModule
+);
+
+router.post(
+  "/:courseId/modules",
+  firebaseAuth,
+  attachUser,
+  roleGuard("instructor"),
+  upload.single("file"),   // reuse the existing multer instance
+  addModule
+);
+
 export default router;
