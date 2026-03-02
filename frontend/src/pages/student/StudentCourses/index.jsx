@@ -18,9 +18,11 @@ const StudentCourses = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All");
-  const [isFreeOnly, setIsFreeOnly] = useState(false); // NEW
-  const [learningPaths, setLearningPaths] = useState([]); // Learning Path search results
-  const [allLearningPaths, setAllLearningPaths] = useState([]); // All learning paths for tab
+  const [isFreeOnly, setIsFreeOnly] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [learningPaths, setLearningPaths] = useState([]);
+  const [allLearningPaths, setAllLearningPaths] = useState([]);
 
   // 🔑 derive enrolledIds for the VIEW
   const enrolledIds = myCourses.map((c) => c.courses_id || c.id);
@@ -64,6 +66,33 @@ const StudentCourses = () => {
 
     fetchCourses();
   }, []);
+
+  // Search courses when search term changes
+  useEffect(() => {
+    const performSearch = async () => {
+      if (!searchTerm.trim()) {
+        setSearchResults([]);
+        return;
+      }
+
+      try {
+        setSearchLoading(true);
+        const token = await auth.currentUser.getIdToken(true);
+        const res = await api.get("/api/student/search-courses", {
+          params: { query: searchTerm },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSearchResults(res.data || []);
+      } catch (err) {
+        console.error("Search failed:", err);
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+
+    performSearch();
+  }, [searchTerm]);
 
   // Search learning paths when search term changes (debounced)
   useEffect(() => {
@@ -119,17 +148,18 @@ const StudentCourses = () => {
         return allCourses.filter((c) => c.price_type === "paid");
 
       case "recommended":
-        const userCategories = myCourses.map(c => c.category);
-        return allCourses.filter(c =>
-          userCategories.includes(c.category) &&
-          !enrolledIds.includes(c.courses_id || c.id)
+        const userCategories = myCourses.map((c) => c.category);
+        return allCourses.filter(
+          (c) =>
+            userCategories.includes(c.category) &&
+            !enrolledIds.includes(c.courses_id || c.id)
         );
 
       case "upcoming":
         return upcomingCourses;
 
       case "learning-paths":
-        return allCourses; // Show all courses so search filter works alongside learning paths
+        return allCourses;
 
       default:
         return allCourses;
@@ -164,7 +194,7 @@ const StudentCourses = () => {
       const res = await api.post(
         `/api/student/${courseId}/enroll`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       // ✅ FREE course → enrolled
@@ -188,7 +218,6 @@ const StudentCourses = () => {
         err.response?.status === 402 &&
         err.response?.data?.redirectToPayment
       ) {
-        // TEMP redirect for testing
         window.location.href = "https://stripe.com/in";
         return;
       }
@@ -219,8 +248,10 @@ const StudentCourses = () => {
       categories={categories}
       handleEnroll={handleEnroll}
       navigate={navigate}
-      isFreeOnly={isFreeOnly} // NEW
-      setIsFreeOnly={setIsFreeOnly} // NEW
+      isFreeOnly={isFreeOnly}
+      setIsFreeOnly={setIsFreeOnly}
+      searchResults={searchResults}
+      searchLoading={searchLoading}
       learningPaths={learningPaths}
       allLearningPaths={allLearningPaths}
     />

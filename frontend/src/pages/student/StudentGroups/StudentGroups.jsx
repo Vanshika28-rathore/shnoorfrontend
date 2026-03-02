@@ -19,9 +19,39 @@ const StudentGroups = () => {
 
     const fetchInitialData = async () => {
         try {
-            // Fetch my groups
+            // Fetch college/public groups
             const myGroupsRes = await api.get('/api/chats/groups/my');
-            setGroups(myGroupsRes.data);
+
+            // Fetch admin-assigned groups (Cohorts)
+            // The endpoint /api/admingroups/my-groups returns groups the student interaction with
+            // OR we can use the endpoint `getStudentGroups` logic which is mapped to `/api/admingroups/my-groups`
+            let adminGroupsRes = { data: [] };
+            try {
+                adminGroupsRes = await api.get('/api/admingroups/my-groups');
+            } catch (err) {
+                console.error("Failed to fetch admin groups:", err);
+            }
+
+            // Merge groups
+            // Normalize data structure if needed
+            const collegeGroups = myGroupsRes.data.map(g => ({ ...g, type: 'college' }));
+            const adminGroups = adminGroupsRes.data.map(g => ({
+                ...g,
+                type: 'admin',
+                // Map fields to match UI expectations if different
+                creator_id: g.admin_id
+            }));
+
+            // Combine and remove duplicates if any (based on group_id)
+            const allGroups = [...collegeGroups, ...adminGroups];
+            // Simple uniq by group_id but handle collision via composite key
+            // Note: UI might need unique key prop, so ensure rendering uses something unique if possible.
+            // But here we just want the list. 
+            // If we use group_id as key in Map, we lose one.
+            // So key by type+id
+            const uniqueGroups = Array.from(new Map(allGroups.map(item => [`${item.type}-${item.group_id}`, item])).values());
+
+            setGroups(uniqueGroups);
 
             // Fetch available groups (the backend already filters by college)
             const availableRes = await api.get('/api/chats/groups/available');
@@ -85,10 +115,13 @@ const StudentGroups = () => {
     };
 
     const handleSelectGroup = async (group) => {
-
         setActiveGroup(group);
         try {
-            const res = await api.get(`/api/chats/groups/${group.group_id}/messages`);
+            let url = `/api/chats/groups/${group.group_id}/messages`;
+            if (group.type === 'admin') {
+                url = `/api/admingroups/${group.group_id}/messages`;
+            }
+            const res = await api.get(url);
             setMessages(res.data);
         } catch (err) {
             console.error("Error loading messages:", err);
@@ -99,24 +132,42 @@ const StudentGroups = () => {
         e.preventDefault();
         if (!newMessage.trim() || !activeGroup) return;
 
-        const payload = {
-            groupId: activeGroup.group_id,
-            text: newMessage,
-            senderId: 'currentUser_ID', // Replaced by actual ID from auth
-        };
+        try {
+            let res;
+            if (activeGroup.type === 'admin') {
+                res = await api.post(`/api/admingroups/${activeGroup.group_id}/messages`, {
+                    text: newMessage
+                });
+            } else {
+                // College group message
+                // Assuming there is an endpoint or socket event for this
+                // For now, let's use the socket or if there is an API
+                // Looking at chat.routes.js, there isn't a clear "send message" API for college groups 
+                // distinct from specific socket events, BUT generic chat might handle it.
+                // However, let's implement the admin group sending first as that's the fix.
+                // For college groups, if it was working before via socket, we keep it, but the previous code was just a console.log!
+                // Let's assume we need to use the socket for college groups as per the `ChatWindow` logic,
+                // OR we can try to find a generic endpoint. The `app.js` has `send_message` socket event.
 
-        // In a real app, this would use the socket instance
-        // For this module demonstration, we'll assume the socket is handled globally
-        console.log("Sending message to group:", activeGroup.name, payload);
+                // Since this file didn't have real sending logic before (just console.log), 
+                // I will strictly implement the Admin Group sending via API which I know exists.
+                // For completeness, I'll add a comment about college groups requiring socket.
+                console.warn("College group messaging not fully implemented in this view yet - requires socket connection");
+            }
 
-        // Optimistic update
-        setMessages([...messages, {
-            text: newMessage,
-            sender_id: 'currentUser_ID',
-            sender_name: 'Me',
-            created_at: new Date().toISOString()
-        }]);
-        setNewMessage("");
+            if (res && res.data) {
+                setMessages([...messages, {
+                    ...res.data,
+                    sender_name: 'Me', // Optimistic/Response adjustment
+                    created_at: new Date().toISOString()
+                }]);
+                setNewMessage("");
+            }
+
+        } catch (err) {
+            console.error("Failed to send message", err);
+            alert("Failed to send message");
+        }
     };
 
     return (
@@ -154,7 +205,7 @@ const StudentGroups = () => {
                     {activeTab === 'my-groups' ? (
                         <div className="group-grid">
                             {groups.map(group => (
-                                <div key={group.group_id} className="group-card" onClick={() => handleSelectGroup(group)}>
+                                <div key={`${group.type}-${group.group_id}`} className="group-card" onClick={() => handleSelectGroup(group)}>
                                     <span className="college-badge">{group.college}</span>
                                     <h3 className="font-bold text-xl mb-2">{group.name}</h3>
                                     <p className="text-slate-500 text-sm mb-4 line-clamp-2">{group.description}</p>

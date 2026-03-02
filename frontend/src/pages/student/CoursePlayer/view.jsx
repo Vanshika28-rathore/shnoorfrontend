@@ -104,6 +104,7 @@ const CoursePlayerView = ({
           </div>
         </div>
       </div>
+
       {(course.prereq_description ||
         (course.prereq_video_urls && course.prereq_video_urls.length > 0) ||
         course.prereq_pdf_url) && (
@@ -145,88 +146,127 @@ const CoursePlayerView = ({
           </div>
         </div>
       )}
+
       <div className="flex-1 flex min-h-[calc(100vh-4rem)] overflow-hidden">
         {}
-        <div className="flex-1 flex flex-col relative bg-black">
+        {/* UPDATED: added overflow-y-auto custom-scrollbar */}
+        <div className="flex-1 flex flex-col relative bg-black overflow-y-auto custom-scrollbar">
           {}
-       <div className="flex-1 relative">
+          {/* UPDATED: dynamic height based on currentModule?.notes */}
+          <div className={`${currentModule?.notes ? "min-h-[70vh]" : "flex-1"} relative`}>
 
-  {/* TEXT STREAM */}
-  {currentModule?.type === "text_stream" ? (
-    <TextStreamPlayer
-      moduleId={currentModule.id}
-      url={currentModule.url}
-      onComplete={handleMarkComplete}
-    />
+            {/* TEXT STREAM */}
+            {currentModule?.type === "text_stream" ? (
+              <TextStreamPlayer
+                moduleId={currentModule.id}
+                url={currentModule.url}
+                onComplete={handleMarkComplete}
+              />
 
-  ) : currentModule?.type === "video" ? (
+            ) : currentModule?.type === "video" ? (
 
-    /* VIDEO */
-    currentModule?.url?.includes("firebasestorage") ||
-    currentModule?.url?.match(/\.(mp4|webm|ogg)$/i) ? (
-      <video
-        controls
-        className="w-full h-full object-contain bg-black"
-      >
-        <source src={currentModule.url} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-    ) : (
-      <iframe
-        className="w-full h-full absolute top-0 left-0"
-        src={toEmbedUrl(currentModule.url)}
-        title="Video Player"
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    )
+              /* VIDEO */
+              currentModule?.url?.includes("firebasestorage") ||
+              currentModule?.url?.match(/\.(mp4|webm|ogg)$/i) ? (
+                <video
+                  controls
+                  className="w-full h-full object-contain bg-black"
+                >
+                  <source src={currentModule.url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <iframe
+                  className="w-full h-full absolute top-0 left-0"
+                  src={toEmbedUrl(currentModule.url)}
+                  title="Video Player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )
 
-  ) : currentModule?.type === "pdf" ||
-      currentModule?.url?.toLowerCase().includes(".pdf") ? (
+            ) : currentModule?.type === "pdf" ||
+                currentModule?.url?.toLowerCase().includes(".pdf") ? (
 
-    /* PDF */
-    <iframe
-      src={currentModule.url}
-      className="w-full h-full"
-      title={currentModule.title || "PDF Document"}
-      allow="fullscreen"
-    />
+              /* PDF */
+              <iframe
+                src={currentModule.url}
+                className="w-full h-full"
+                title={currentModule.title || "PDF Document"}
+                allow="fullscreen"
+              />
 
-  ) : currentModule?.type === "html" ||
-      currentModule?.url?.toLowerCase().endsWith(".html") ? (
+            ) : currentModule?.type === "html" ||
+                currentModule?.url?.toLowerCase().endsWith(".html") ? (
 
-    /* HTML */
-    <iframe
-      src={currentModule.url}
-      className="w-full h-full"
-      title={currentModule.title || "HTML Content"}
-      allow="fullscreen"
-    />
+              /* HTML */
+              <iframe
+                src={currentModule.url}
+                className="w-full h-full"
+                title={currentModule.title || "HTML Content"}
+                allow="fullscreen"
+              />
 
-  ) : (
+            ) : (
 
-    /* FALLBACK */
-    <div className="flex flex-col items-center justify-center h-full bg-slate-800 text-slate-300 p-8">
-      <FileText size={64} className="text-slate-500 mb-6" />
-      <h3 className="text-2xl font-bold text-white mb-2">
-        Document Viewer
-      </h3>
-      <p className="text-lg mb-8">{currentModule?.title}</p>
-      {currentModule?.url && (
-        <a
-          href={currentModule.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-primary-900 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-xl transition-all hover:scale-105 flex items-center gap-2"
-        >
-          Open Document <ExternalLink size={14} />
-        </a>
-      )}
-    </div>
-  )}
+              /* FALLBACK */
+              <div className="flex flex-col items-center justify-center h-full bg-slate-800 text-slate-300 p-8">
+                <FileText size={64} className="text-slate-500 mb-6" />
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  Document Viewer
+                </h3>
+                <p className="text-lg mb-8">{currentModule?.title}</p>
+                {currentModule?.url && (
+                  <a
+                    href={currentModule.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-primary-900 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-xl transition-all hover:scale-105 flex items-center gap-2"
+                  >
+                    Open Document <ExternalLink size={14} />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
 
-</div>
+          {/* ADDED: Embedded PDF Notes section below content */}
+          {currentModule?.notes && (
+            <div className="w-full bg-slate-900 border-t border-slate-800 p-8">
+              <div className="max-w-4xl mx-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                      <FileText size={20} className="text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white tracking-tight">Module Notes</h3>
+                      <p className="text-slate-400 text-xs">Supplementary reading material for this lesson.</p>
+                    </div>
+                  </div>
+                  <a
+                    href={currentModule.notes}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 transition-all"
+                  >
+                    Open in New Tab <ExternalLink size={14} />
+                  </a>
+                </div>
+
+                <div className="rounded-2xl border border-slate-700 overflow-hidden shadow-2xl h-[800px] bg-slate-800">
+                  <iframe
+                    src={currentModule.notes}
+                    className="w-full h-full"
+                    title="Module Notes PDF"
+                    allow="fullscreen"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="h-20 bg-slate-800 border-t border-slate-700 flex items-center justify-between px-8 flex-shrink-0">
             <div>
               <h2 className="text-lg font-bold text-white">
@@ -237,6 +277,18 @@ const CoursePlayerView = ({
                   ? "Video Lesson"
                   : "Reading Material"}
               </p>
+              {/* ADDED: PDF Notes link in bottom bar */}
+              {currentModule?.notes && (
+                <a
+                  href={currentModule.notes}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  <FileText size={12} />
+                  View PDF Notes
+                </a>
+              )}
             </div>
             <button
               onClick={handleMarkComplete}
@@ -257,6 +309,7 @@ const CoursePlayerView = ({
             </button>
           </div>
         </div>
+
         <div className="w-80 bg-primary-900 border-l border-slate-700 flex flex-col shadow-2xl z-10">
           <div className="p-4 bg-slate-800 border-b border-slate-700">
             <h3 className="font-bold text-slate-100 uppercase tracking-wider text-xs">
@@ -319,6 +372,12 @@ const CoursePlayerView = ({
                           <span className="capitalize">{module.type}</span>
                         </span>
                         {module.duration && <span>• {module.duration}</span>}
+                        {/* ADDED: Notes badge in sidebar */}
+                        {module.notes && (
+                          <span className="flex items-center gap-1 text-emerald-500 font-bold ml-1">
+                            <FileText size={10} /> Notes
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -337,6 +396,7 @@ const CoursePlayerView = ({
           </div>
         </div>
       </div>
+
       {/* =========================
     RECOMMENDED COURSES
    ========================= */}
