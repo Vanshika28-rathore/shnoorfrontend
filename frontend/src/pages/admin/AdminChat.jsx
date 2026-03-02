@@ -16,7 +16,7 @@ const AdminChat = () => {
     const [activeChat, setActiveChat] = useState(null);
     const [messages, setMessages] = useState([]);
     const [loadingMessages, setLoadingMessages] = useState(false);
-
+    
     // Search states
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
@@ -39,7 +39,7 @@ const AdminChat = () => {
                 }));
 
                 // All students
-                const studentsRes = await api.get('/api/chats/available-students');
+                const studentsRes = await api.get('/api/chats/available-students'); // reuse same endpoint
                 const allStudents = studentsRes.data;
 
                 // Merge: chats + students without chat yet
@@ -66,7 +66,7 @@ const AdminChat = () => {
         fetchData();
     }, [unreadCounts]);
 
-    // Refresh list on new notification
+    // Refresh list on new notification (same as instructor)
     useEffect(() => {
         if (!socket) return;
         const refresh = async () => { /* same logic as in InstructorChat */ };
@@ -74,7 +74,7 @@ const AdminChat = () => {
         return () => socket.off('new_notification', refresh);
     }, [socket]);
 
-    // Receive message
+    // Receive message (same as instructor)
     useEffect(() => {
         if (!socket) return;
         const onReceive = (msg) => {
@@ -90,112 +90,135 @@ const AdminChat = () => {
         return () => socket.off('receive_message', onReceive);
     }, [socket, activeChat, dbUser]);
 
-    // Select chat & create if new
+    // Select chat & create if new (same logic)
     const handleSelectChat = async (chat) => {
+    // Handle group chat
+    if (chat.type === 'group') {
         handleSetActiveChat(chat.id);
         markChatRead(chat.id);
-
-        let chatId = chat.id;
-
-        // If new chat, create it first
-        if (!chat.exists) {
-            try {
-                const res = await api.post('/api/chats', { recipientId: chat.recipientId });
-                chatId = res.data.chat_id;
-                chat.id = chatId;
-                chat.exists = true;
-            } catch (err) {
-                console.error("Create chat error:", err);
-                return;
-            }
-        }
-
         setActiveChat(chat);
-        socket.emit('join_chat', chatId);
+        socket.emit('join_chat', chat.id);
 
         setLoadingMessages(true);
         try {
-            const res = await api.get(`/api/chats/messages/${chatId}`);
+            const res = await api.get(`/api/chats/group/${chat.id}/messages`);
             const uiMessages = res.data.map(m => ({
                 ...m,
                 isMyMessage: m.sender_id === dbUser?.id
             }));
             setMessages(uiMessages);
-            await api.put('/api/chats/read', { chatId: chatId });
         } catch (err) {
             console.error(err);
         } finally {
             setLoadingMessages(false);
         }
-    };
+        return;
+    }
 
-    // Send message
+    // Handle DM chat (existing logic)
+    handleSetActiveChat(chat.id);
+    markChatRead(chat.id);
+
+    let chatId = chat.id;
+
+    if (!chat.exists && !chat.id) {
+        try {
+            const res = await api.post('/api/chats', { recipientId: chat.recipientId });
+            chatId = res.data.chat_id;
+            chat.id = chatId;
+            chat.exists = true;
+        } catch (err) {
+            console.error("Create chat error:", err);
+            return;
+        }
+    }
+
+    setActiveChat(chat);
+    socket.emit('join_chat', chatId);
+
+    setLoadingMessages(true);
+    try {
+        const res = await api.get(`/api/chats/messages/${chatId}`);
+        const uiMessages = res.data.map(m => ({
+            ...m,
+            isMyMessage: m.sender_id === dbUser?.id
+        }));
+        setMessages(uiMessages);
+        await api.put('/api/chats/read', { chatId });
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setLoadingMessages(false);
+    }
+};
+
+    // Send message (same logic)
     const handleSendMessage = async (text, file) => {
-        console.log('[SEND DEBUG] handleSendMessage called', { text, file, activeChat });
+  console.log('[SEND DEBUG] handleSendMessage called', { text, file, activeChat });
 
-        if (!socket) {
-            console.error('[SEND DEBUG] socket is null or undefined!');
-            alert('Chat connection not ready. Please refresh.');
-            return;
-        }
+  if (!socket) {
+    console.error('[SEND DEBUG] socket is null or undefined!');
+    alert('Chat connection not ready. Please refresh.');
+    return;
+  }
 
-        if (!activeChat?.id) {
-            console.error('[SEND DEBUG] No active chat selected');
-            return;
-        }
+  if (!activeChat?.id) {
+    console.error('[SEND DEBUG] No active chat selected');
+    return;
+  }
 
-        console.log('[SEND DEBUG] Emitting send_message with chatId:', activeChat.id);
+  console.log('[SEND DEBUG] Emitting send_message with chatId:', activeChat.id);
 
-        // Handle file upload
-        let attachmentFileId = null;
-        let attachmentName = null;
-        let attachmentType = null;
-        let attachmentUrl = null;
+  // Handle file upload
+  let attachmentFileId = null;
+  let attachmentName = null;
+  let attachmentType = null;
+  let attachmentUrl = null;
 
-        if (file) {
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-                const res = await api.post('/api/chats/upload', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
-                attachmentFileId = res.data.file_id;
-                attachmentName = file.name;
-                attachmentType = file.type;
-                attachmentUrl = URL.createObjectURL(file);
-            } catch (err) {
-                console.error("Upload failed:", err);
-                alert('Failed to upload file');
-                return;
-            }
-        }
+  if (file) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.post('/api/chats/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      attachmentFileId = res.data.file_id;
+      attachmentName = file.name;
+      attachmentType = file.type;
+      attachmentUrl = URL.createObjectURL(file);
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert('Failed to upload file');
+      return;
+    }
+  }
 
-        // Optimistic UI
-        setMessages(prev => [...prev, {
-            message_id: Date.now(),
-            text,
-            isMyMessage: true,
-            created_at: new Date().toISOString(),
-            attachment_file_id: attachmentFileId,
-            attachment_name: attachmentName,
-            attachment_type: attachmentType,
-            attachment_url: attachmentUrl
-        }]);
+  // Optimistic UI
+  setMessages(prev => [...prev, {
+    message_id: Date.now(),
+    text,
+    isMyMessage: true,
+    created_at: new Date().toISOString(),
+    attachment_file_id: attachmentFileId,
+    attachment_name: attachmentName,
+    attachment_type: attachmentType,
+    attachment_url: attachmentUrl
+  }]);
 
-        socket.emit('send_message', {
-            chatId: activeChat.id,
-            text,
-            senderId: dbUser?.id,
-            senderUid: dbUser?.firebase_uid,
-            senderName: dbUser?.fullName,
-            recipientId: activeChat.recipientId,
-            attachment_file_id: attachmentFileId,
-            attachment_type: attachmentType,
-            attachment_name: attachmentName,
-        });
+  socket.emit('send_message', {
+    chatId: activeChat.id,
+    text,
+    senderId: dbUser?.id,
+    senderUid: dbUser?.firebase_uid,
+    senderName: dbUser?.fullName,
+    recipientId: activeChat.recipientId,
+    attachment_file_id: attachmentFileId,
+    attachment_type: attachmentType,
+    attachment_name: attachmentName,
+  });
 
-        console.log('[SEND DEBUG] emit("send_message") was called');
-    };
+  console.log('[SEND DEBUG] emit("send_message") was called');
+};
 
     // Search messages handler
     const handleSearchMessages = async (query) => {
@@ -224,6 +247,7 @@ const AdminChat = () => {
         try {
             let chat;
             if (result.type === "dm") {
+                // Find or create chat
                 let existingChat = chats.find((c) => c.id === result.chat_id);
                 if (!existingChat) {
                     existingChat = {
@@ -235,6 +259,7 @@ const AdminChat = () => {
                 }
                 chat = existingChat;
             } else {
+                // This shouldn't happen for admin, but handle it
                 return;
             }
 
@@ -243,6 +268,7 @@ const AdminChat = () => {
             setSearchQuery("");
             setSearchResults([]);
 
+            // Handle select chat
             await handleSelectChat(chat);
         } catch (err) {
             console.error("Error selecting search result:", err);
@@ -260,7 +286,7 @@ const AdminChat = () => {
                         Connect with students
                     </p>
                 </div>
-
+                
                 <div className="flex flex-col gap-3 items-end">
                     {/* Search Bar */}
                     <div className="relative w-64">
@@ -286,7 +312,7 @@ const AdminChat = () => {
                                 </button>
                             )}
                         </div>
-
+                        
                         {/* Search Results Dropdown */}
                         {showSearchResults && (
                             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
@@ -331,7 +357,6 @@ const AdminChat = () => {
                     </div>
                 </div>
             </div>
-
             <div className="chat-container">
                 <ChatList
                     chats={chats}
