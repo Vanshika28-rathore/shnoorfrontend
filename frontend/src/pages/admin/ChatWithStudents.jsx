@@ -533,6 +533,7 @@ export default ChatWithStudents;*/}
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 // src/pages/admin/ChatWithStudents.jsx
+// src/pages/admin/ChatWithStudents.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { PlusCircle, X, Loader2 } from 'lucide-react';
 import { useSocket } from '../../context/SocketContext';
@@ -550,6 +551,8 @@ const ChatWithStudents = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingChats, setLoadingChats] = useState(true);
   const [error, setError] = useState(null);
+
+  // Search states
   const [searchQuery, setSearchQuery] = useState('');
   const [allMessages, setAllMessages] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
@@ -568,39 +571,40 @@ const ChatWithStudents = () => {
   const [loadingColleges, setLoadingColleges] = useState(false);
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
+
   const fetchExecuted = useRef(false);
+
   const fetchData = async () => {
-  try {
-    setLoadingChats(true);
-    setError(null);
+    try {
+      setLoadingChats(true);
+      setError(null);
 
-    // Fetch only group chats for admin
-    const groupsRes = await api.get('/api/admingroups');
-    const adminGroups = groupsRes.data.map(g => ({
-      id: g.group_id,
-      type: 'group',
-      name: g.name,
-      recipientName: g.name,
-      lastMessage: 'Group chat',
-      unread: 0,
-      memberCount: g.member_count || 0,
-      groupType: 'admin',
-    }));
+      const groupsRes = await api.get('/api/admingroups');
+      const adminGroups = groupsRes.data.map(g => ({
+        id: g.group_id,
+        type: 'group',
+        name: g.name,
+        recipientName: g.name,
+        lastMessage: 'Group chat',
+        unread: 0,
+        memberCount: g.member_count || 0,
+        groupType: 'admin',
+      }));
 
-    setChats(adminGroups);
-  } catch (err) {
-    console.error('Failed to load admin groups:', err);
-    setError('Failed to load groups');
-  } finally {
-    setLoadingChats(false);
-  }
-};
+      setChats(adminGroups);
+    } catch (err) {
+      console.error('Failed to load admin groups:', err);
+      setError('Failed to load groups');
+    } finally {
+      setLoadingChats(false);
+    }
+  };
 
   const fetchAllMessages = async () => {
     try {
       setLoadingSearch(true);
       const groupMessages = [];
-      
+
       for (const chat of chats) {
         try {
           const res = await api.get(`/api/admingroups/${chat.id}/messages`);
@@ -614,7 +618,7 @@ const ChatWithStudents = () => {
           console.error(`Failed to load messages for group ${chat.id}:`, err);
         }
       }
-      
+
       setAllMessages(groupMessages);
       setShowSearch(true);
     } catch (err) {
@@ -624,13 +628,14 @@ const ChatWithStudents = () => {
     }
   };
 
+  // Initial fetch (once)
   useEffect(() => {
     if (fetchExecuted.current) return;
     fetchExecuted.current = true;
-
     fetchData();
   }, [unreadCounts]);
 
+  // Socket: new 1-on-1 message
   useEffect(() => {
     if (!socket) return;
 
@@ -647,261 +652,240 @@ const ChatWithStudents = () => {
     return () => socket.off('new_message', onNewMessage);
   }, [socket, activeChat, dbUser]);
 
-  const handleSelectChat = async (chat) => {
-  setActiveChat(chat);
-  handleSetActiveChat(chat.id);
-  markChatRead(chat.id);
+  // Socket: group message
+  useEffect(() => {
+    if (!socket) return;
 
-  setLoadingMessages(true);
-  setMessages([]);
-
-  if (chat.id.startsWith('new_')) {
-    setMessages([]);
-    setLoadingMessages(false);
-    return;
-  }
-
-  try {
-    let res;
-
-    if (chat.type === 'group') {
-      // JOIN GROUP ROOM (this was missing for admin!)
-      if (socket) {
-        socket.emit('join_group', chat.id);
-        console.log(`[Admin] Joined group room: ${chat.id}`);
+    const handleGroupMessage = (msg) => {
+      if (msg.group_id === activeChat?.id) {
+        setMessages(prev => [...prev, {
+          ...msg,
+          isMyMessage: msg.sender_id === dbUser?.id,
+          sender_name: msg.sender_name || 'Unknown',
+        }]);
       }
-
-      res = await api.get(`/api/admingroups/${chat.id}/messages`);
-    } else {
-      res = await api.get(`/api/chats/messages/${chat.id}`);
-    }
-
-    setMessages(
-      res.data.map(m => ({
-        ...m,
-        isMyMessage: m.sender_id === dbUser?.id,
-        sender_name: m.sender_name || 'Unknown',
-      }))
-    );
-  } catch (err) {
-    console.error('[Messages] Failed to load:', err);
-    setError('Could not load messages');
-  } finally {
-    setLoadingMessages(false);
-  }
-};
-useEffect(() => {
-  if (!socket) return;
-
-  const handleGroupMessage = (msg) => {
-    // Only append if this is the currently open group
-    if (msg.group_id === activeChat?.id) {
-      setMessages(prev => [...prev, {
-        ...msg,
-        isMyMessage: msg.sender_id === dbUser?.id,
-        sender_name: msg.sender_name || 'Unknown',
-      }]);
-    }
-
-    // Optional: show notification/toast for other groups
-    // e.g. if (msg.group_id !== activeChat?.id) { show toast }
-  };
-
-  socket.on('group_message', handleGroupMessage);
-
-  return () => {
-    socket.off('group_message', handleGroupMessage);
-  };
-}, [socket, activeChat, dbUser]);
-
-  const handleSendMessage = async (text, file) => {
-  if (!socket || !activeChat || (!text?.trim() && !file)) return;
-
-  const isGroupChat = activeChat.type === 'group';
-
-  // ── 1. Handle new 1-on-1 chat creation (only for private chats) ─────────────
-  let chatId = activeChat.id;
-
-  if (!isGroupChat && chatId.startsWith('new_')) {
-    try {
-      const createRes = await api.post('/api/chats', {
-        recipientId: activeChat.recipientId,
-      });
-      chatId = createRes.data.chat_id;
-      setActiveChat(prev => ({ ...prev, id: chatId, type: '1on1' }));
-    } catch (err) {
-      console.error('Failed to create 1-on-1 chat:', err);
-      alert('Failed to start conversation');
-      return;
-    }
-  }
-
-  // ── 1.5. Handle file upload ──────────────────────────────────────────────────
-  let attachmentFileId = null;
-  let attachmentName = null;
-  let attachmentType = null;
-  let attachmentUrl = null;
-
-  if (file) {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await api.post("/api/chats/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      attachmentFileId = res.data.file_id;
-      attachmentName = file.name;
-      attachmentType = file.type;
-      attachmentUrl = URL.createObjectURL(file);
-    } catch (err) {
-      console.error("Upload failed:", err);
-      alert('Failed to upload file');
-      return;
-    }
-  }
-
-  // ── 2. Prepare payload according to chat type ───────────────────────────────
-  const payload = {
-    // Common fields
-    text: text?.trim() || null,
-    senderId: dbUser?.id,
-    senderUid: dbUser?.firebase_uid || dbUser?.uid,
-    senderName: dbUser?.full_name || dbUser?.name || 'You',
-
-    // Type-specific fields
-    ...(isGroupChat
-      ? { groupId: chatId }                 // group chat → send groupId
-      : { chatId, recipientId: activeChat.recipientId }  // 1-on-1 → chatId + recipient
-    ),
-
-    // Attachments
-    attachment_file_id: attachmentFileId,
-    attachment_type: attachmentType,
-    attachment_name: attachmentName,
-  };
-
-  // ── 3. Optimistic UI update ─────────────────────────────────────────────────
-  const optimisticMessage = {
-    text,
-    created_at: new Date().toISOString(),
-    sender_id: dbUser?.id,
-    sender_name: dbUser?.full_name || 'You',
-    isMyMessage: true,
-    attachment_file_id: attachmentFileId,
-    attachment_name: attachmentName,
-    attachment_type: attachmentType,
-    attachment_url: attachmentUrl,
-    // Optional: group-specific fields for rendering
-    ...(isGroupChat && { group_id: chatId }),
-  };
-
-  setMessages(prev => [...prev, optimisticMessage]);
-
-  // ── 4. Emit the correct event with correct payload ───────────────────────────
-  try {
-    socket.emit('send_message', payload);
-  } catch (err) {
-    console.error('Socket emit failed:', err);
-    // Optional: rollback optimistic message
-    setMessages(prev => prev.filter(m => m.created_at !== optimisticMessage.created_at));
-    alert('Failed to send message');
-  }
-};
-
-  const handleCreateGroup = async () => {
-  if (!groupName.trim()) return alert('Group name is required');
-
-  setCreatingGroup(true);
-
-  try {
-    let payload = {
-      name: groupName.trim(),
-      description: groupDescription.trim() || null,
     };
 
-    let endpoint = '/api/admingroups'; // default for manual
+    socket.on('group_message', handleGroupMessage);
+    return () => socket.off('group_message', handleGroupMessage);
+  }, [socket, activeChat, dbUser]);
 
-    if (addMode === 'college') {
-      if (!selectedCollege) return alert('Please select a college');
-      payload.college_id = selectedCollege;
-      endpoint = '/api/admingroups/by-college';
-    } else {
-      // Manual mode
-      if (selectedMembers.length === 0) return alert('Select at least one student');
-      payload.studentIds = selectedMembers;
-    }
-
-    const res = await api.post(endpoint, payload);
-
-    alert(`Group created successfully!\nAdded ${res.data.member_count || selectedMembers.length || '?'} students.`);
-
-    setShowGroupModal(false);
-    setGroupName('');
-    setGroupDescription('');
-    setSelectedCollege('');
-    setSelectedMembers([]);
-    setAddMode('college'); // reset to default
-  } catch (err) {
-    console.error('Group creation failed:', err);
-    alert('Failed to create group: ' + (err.response?.data?.message || err.message));
-  } finally {
-    setCreatingGroup(false);
-  }
-};
-// Fetch colleges when modal opens
-useEffect(() => {
-  if (showGroupModal) {
-    setLoadingColleges(true);
-    api.get('/api/admingroups/colleges')
-      .then(res => setColleges(res.data))
-      .catch(err => console.error(err))
-      .finally(() => setLoadingColleges(false));
-  }
-}, [showGroupModal]);
-
-// Fetch colleges only when needed
-useEffect(() => {
-  if (showGroupModal && addMode === 'college') {
-    setLoadingColleges(true);
-    api.get('/api/admingroups/colleges')
-      .then(res => setColleges(res.data))
-      .catch(err => console.error('Failed to load colleges:', err))
-      .finally(() => setLoadingColleges(false));
-  }
-}, [showGroupModal, addMode]);
-
-// Fetch students only when needed for manual selection
-useEffect(() => {
-  if (showGroupModal && addMode === 'manual') {
-    setLoadingStudents(true);
-    api.get('/api/admin/users')
-      .then(res => {
-        const list = Array.isArray(res.data) ? res.data : [];
-        setStudents(list.filter(u => u.role === 'student' && u.status === 'active'));
-      })
-      .catch(err => console.error('Failed to load students:', err))
-      .finally(() => setLoadingStudents(false));
-  }
-}, [showGroupModal, addMode]);
-
-  // Search messages when query changes
+  // Search: filter allMessages when query changes
   useEffect(() => {
     if (searchQuery.trim() && allMessages.length > 0) {
-      const results = allMessages.filter(msg =>
-        msg.text?.toLowerCase().includes(searchQuery.toLowerCase())
-      ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const results = allMessages
+        .filter(msg => msg.text?.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       setSearchResults(results);
     } else {
       setSearchResults([]);
     }
   }, [searchQuery, allMessages]);
 
-  // Fetch all messages when search is opened (only once)
+  // Lazy-fetch all messages when search panel is first opened
   useEffect(() => {
     if (showSearch && allMessages.length === 0 && chats.length > 0) {
       fetchAllMessages();
     }
   }, [showSearch, chats]);
+
+  const handleSelectChat = async (chat) => {
+    setActiveChat(chat);
+    handleSetActiveChat(chat.id);
+    markChatRead(chat.id);
+
+    setLoadingMessages(true);
+    setMessages([]);
+
+    if (chat.id.startsWith('new_')) {
+      setLoadingMessages(false);
+      return;
+    }
+
+    try {
+      let res;
+
+      if (chat.type === 'group') {
+        if (socket) {
+          socket.emit('join_group', chat.id);
+          console.log(`[Admin] Joined group room: ${chat.id}`);
+        }
+        res = await api.get(`/api/admingroups/${chat.id}/messages`);
+      } else {
+        res = await api.get(`/api/chats/messages/${chat.id}`);
+      }
+
+      setMessages(
+        res.data.map(m => ({
+          ...m,
+          isMyMessage: m.sender_id === dbUser?.id,
+          sender_name: m.sender_name || 'Unknown',
+        }))
+      );
+    } catch (err) {
+      console.error('[Messages] Failed to load:', err);
+      setError('Could not load messages');
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
+  const handleSendMessage = async (text, file) => {
+    if (!socket || !activeChat || (!text?.trim() && !file)) return;
+
+    const isGroupChat = activeChat.type === 'group';
+    let chatId = activeChat.id;
+
+    // Create new 1-on-1 chat if needed
+    if (!isGroupChat && chatId.startsWith('new_')) {
+      try {
+        const createRes = await api.post('/api/chats', { recipientId: activeChat.recipientId });
+        chatId = createRes.data.chat_id;
+        setActiveChat(prev => ({ ...prev, id: chatId, type: '1on1' }));
+      } catch (err) {
+        console.error('Failed to create 1-on-1 chat:', err);
+        alert('Failed to start conversation');
+        return;
+      }
+    }
+
+    // Handle file upload
+    let attachmentFileId = null;
+    let attachmentName = null;
+    let attachmentType = null;
+    let attachmentUrl = null;
+
+    if (file) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await api.post('/api/chats/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        attachmentFileId = res.data.file_id;
+        attachmentName = file.name;
+        attachmentType = file.type;
+        attachmentUrl = URL.createObjectURL(file);
+      } catch (err) {
+        console.error('Upload failed:', err);
+        alert('Failed to upload file');
+        return;
+      }
+    }
+
+    const payload = {
+      text: text?.trim() || null,
+      senderId: dbUser?.id,
+      senderUid: dbUser?.firebase_uid || dbUser?.uid,
+      senderName: dbUser?.full_name || dbUser?.name || 'You',
+      ...(isGroupChat
+        ? { groupId: chatId }
+        : { chatId, recipientId: activeChat.recipientId }
+      ),
+      attachment_file_id: attachmentFileId,
+      attachment_type: attachmentType,
+      attachment_name: attachmentName,
+    };
+
+    const optimisticMessage = {
+      text,
+      created_at: new Date().toISOString(),
+      sender_id: dbUser?.id,
+      sender_name: dbUser?.full_name || 'You',
+      isMyMessage: true,
+      attachment_file_id: attachmentFileId,
+      attachment_name: attachmentName,
+      attachment_type: attachmentType,
+      attachment_url: attachmentUrl,
+      ...(isGroupChat && { group_id: chatId }),
+    };
+
+    setMessages(prev => [...prev, optimisticMessage]);
+
+    try {
+      socket.emit('send_message', payload);
+    } catch (err) {
+      console.error('Socket emit failed:', err);
+      setMessages(prev => prev.filter(m => m.created_at !== optimisticMessage.created_at));
+      alert('Failed to send message');
+    }
+  };
+
+  const handleCreateGroup = async () => {
+    if (!groupName.trim()) return alert('Group name is required');
+
+    setCreatingGroup(true);
+
+    try {
+      let payload = {
+        name: groupName.trim(),
+        description: groupDescription.trim() || null,
+      };
+
+      let endpoint = '/api/admingroups';
+
+      if (addMode === 'college') {
+        if (!selectedCollege) return alert('Please select a college');
+        payload.college_id = selectedCollege;
+        endpoint = '/api/admingroups/by-college';
+      } else {
+        if (selectedMembers.length === 0) return alert('Select at least one student');
+        payload.studentIds = selectedMembers;
+      }
+
+      const res = await api.post(endpoint, payload);
+
+      alert(`Group created successfully!\nAdded ${res.data.member_count || selectedMembers.length || '?'} students.`);
+
+      setShowGroupModal(false);
+      setGroupName('');
+      setGroupDescription('');
+      setSelectedCollege('');
+      setSelectedMembers([]);
+      setAddMode('college');
+    } catch (err) {
+      console.error('Group creation failed:', err);
+      alert('Failed to create group: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setCreatingGroup(false);
+    }
+  };
+
+  // Fetch colleges when modal opens
+  useEffect(() => {
+    if (showGroupModal) {
+      setLoadingColleges(true);
+      api.get('/api/admingroups/colleges')
+        .then(res => setColleges(res.data))
+        .catch(err => console.error(err))
+        .finally(() => setLoadingColleges(false));
+    }
+  }, [showGroupModal]);
+
+  // Fetch colleges when mode switches to 'college'
+  useEffect(() => {
+    if (showGroupModal && addMode === 'college') {
+      setLoadingColleges(true);
+      api.get('/api/admingroups/colleges')
+        .then(res => setColleges(res.data))
+        .catch(err => console.error('Failed to load colleges:', err))
+        .finally(() => setLoadingColleges(false));
+    }
+  }, [showGroupModal, addMode]);
+
+  // Fetch students when mode switches to 'manual'
+  useEffect(() => {
+    if (showGroupModal && addMode === 'manual') {
+      setLoadingStudents(true);
+      api.get('/api/admin/users')
+        .then(res => {
+          const list = Array.isArray(res.data) ? res.data : [];
+          setStudents(list.filter(u => u.role === 'student' && u.status === 'active'));
+        })
+        .catch(err => console.error('Failed to load students:', err))
+        .finally(() => setLoadingStudents(false));
+    }
+  }, [showGroupModal, addMode]);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -1008,142 +992,140 @@ useEffect(() => {
               </button>
             </div>
 
-  
-<div className="p-6 space-y-6">
-  {/* Group Name */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Group Name <span className="text-red-500">*</span>
-    </label>
-    <input
-      type="text"
-      value={groupName}
-      onChange={e => setGroupName(e.target.value)}
-      placeholder="e.g. B.Tech CSE 2025 Batch"
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-      required
-    />
-  </div>
+            <div className="p-6 space-y-6">
+              {/* Group Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Group Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={groupName}
+                  onChange={e => setGroupName(e.target.value)}
+                  placeholder="e.g. B.Tech CSE 2025 Batch"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                  required
+                />
+              </div>
 
-  {/* Description */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Description (optional)
-    </label>
-    <textarea
-      value={groupDescription}
-      onChange={e => setGroupDescription(e.target.value)}
-      placeholder="Purpose, schedule, rules..."
-      rows={4}
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none resize-none"
-    />
-  </div>
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description (optional)
+                </label>
+                <textarea
+                  value={groupDescription}
+                  onChange={e => setGroupDescription(e.target.value)}
+                  placeholder="Purpose, schedule, rules..."
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none resize-none"
+                />
+              </div>
 
-  {/* New: Mode Toggle */}
-  <div className="flex items-center gap-4">
-    <label className="text-sm font-medium text-gray-700">
-      Add students by:
-    </label>
-    <div className="flex gap-4">
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="radio"
-          name="addMode"
-          value="college"
-          checked={addMode === 'college'}
-          onChange={() => setAddMode('college')}
-          className="h-4 w-4 text-orange-500 focus:ring-orange-500"
-        />
-        <span>College (auto-add all)</span>
-      </label>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="radio"
-          name="addMode"
-          value="manual"
-          checked={addMode === 'manual'}
-          onChange={() => setAddMode('manual')}
-          className="h-4 w-4 text-orange-500 focus:ring-orange-500"
-        />
-        <span>Manual Selection</span>
-      </label>
-    </div>
-  </div>
+              {/* Mode Toggle */}
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Add students by:
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="addMode"
+                      value="college"
+                      checked={addMode === 'college'}
+                      onChange={() => setAddMode('college')}
+                      className="h-4 w-4 text-orange-500 focus:ring-orange-500"
+                    />
+                    <span>College (auto-add all)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="addMode"
+                      value="manual"
+                      checked={addMode === 'manual'}
+                      onChange={() => setAddMode('manual')}
+                      className="h-4 w-4 text-orange-500 focus:ring-orange-500"
+                    />
+                    <span>Manual Selection</span>
+                  </label>
+                </div>
+              </div>
 
-  {/* Conditional content based on mode */}
-  {addMode === 'college' ? (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Select College <span className="text-red-500">*</span>
-      </label>
-
-      {loadingColleges ? (
-        <div className="flex items-center gap-2 text-gray-500">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          Loading colleges...
-        </div>
-      ) : colleges.length === 0 ? (
-        <p className="text-red-600">No colleges found in the system</p>
-      ) : (
-        <select
-          value={selectedCollege}
-          onChange={e => setSelectedCollege(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-          required
-        >
-          <option value="">-- Choose a college --</option>
-          {colleges.map(c => (
-            <option key={c.college_id} value={c.college_id}>
-              {c.name} ({c.student_count || 0} students)
-            </option>
-          ))}
-        </select>
-      )}
-
-      <p className="mt-2 text-sm text-gray-500">
-        All students from the selected college will be automatically added.
-      </p>
-    </div>
-  ) : (
-    // Manual mode – old checkbox list (keep your existing code here)
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Select Students <span className="text-red-500">*</span>
-      </label>
-      <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
-        {loadingStudents ? (
-          <div className="flex items-center gap-2 text-gray-500">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Loading students...
-          </div>
-        ) : students.length === 0 ? (
-          <p className="text-red-600">No active students found</p>
-        ) : (
-          students.map(student => (
-            <label key={student.user_id} className="flex items-center gap-3 p-3 hover:bg-white rounded cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedMembers.includes(student.user_id)}
-                onChange={e => {
-                  if (e.target.checked) {
-                    setSelectedMembers([...selectedMembers, student.user_id]);
-                  } else {
-                    setSelectedMembers(selectedMembers.filter(id => id !== student.user_id));
-                  }
-                }}
-                className="h-5 w-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
-              />
-              <span className="text-gray-900 font-medium">{student.full_name || student.name || student.email}</span>
-            </label>
-          ))
-        )}
-      </div>
-      <p className="mt-2 text-sm text-gray-500">
-        {selectedMembers.length} student{selectedMembers.length !== 1 ? 's' : ''} selected
-      </p>
-    </div>
-  )}
-</div>
+              {/* Conditional content based on mode */}
+              {addMode === 'college' ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select College <span className="text-red-500">*</span>
+                  </label>
+                  {loadingColleges ? (
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Loading colleges...
+                    </div>
+                  ) : colleges.length === 0 ? (
+                    <p className="text-red-600">No colleges found in the system</p>
+                  ) : (
+                    <select
+                      value={selectedCollege}
+                      onChange={e => setSelectedCollege(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                      required
+                    >
+                      <option value="">-- Choose a college --</option>
+                      {colleges.map(c => (
+                        <option key={c.college_id} value={c.college_id}>
+                          {c.name} ({c.student_count || 0} students)
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <p className="mt-2 text-sm text-gray-500">
+                    All students from the selected college will be automatically added.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Students <span className="text-red-500">*</span>
+                  </label>
+                  <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
+                    {loadingStudents ? (
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Loading students...
+                      </div>
+                    ) : students.length === 0 ? (
+                      <p className="text-red-600">No active students found</p>
+                    ) : (
+                      students.map(student => (
+                        <label key={student.user_id} className="flex items-center gap-3 p-3 hover:bg-white rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedMembers.includes(student.user_id)}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setSelectedMembers([...selectedMembers, student.user_id]);
+                              } else {
+                                setSelectedMembers(selectedMembers.filter(id => id !== student.user_id));
+                              }
+                            }}
+                            className="h-5 w-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="text-gray-900 font-medium">
+                            {student.full_name || student.name || student.email}
+                          </span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {selectedMembers.length} student{selectedMembers.length !== 1 ? 's' : ''} selected
+                  </p>
+                </div>
+              )}
+            </div>
 
             <div className="sticky bottom-0 bg-white border-t px-6 py-5 flex justify-end gap-4">
               <button
@@ -1155,7 +1137,12 @@ useEffect(() => {
               </button>
               <button
                 onClick={handleCreateGroup}
-                disabled={creatingGroup || !groupName.trim() || (addMode === 'college' && (!selectedCollege || loadingColleges)) || (addMode === 'manual' && selectedMembers.length === 0)}
+                disabled={
+                  creatingGroup ||
+                  !groupName.trim() ||
+                  (addMode === 'college' && (!selectedCollege || loadingColleges)) ||
+                  (addMode === 'manual' && selectedMembers.length === 0)
+                }
                 className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform-none"
               >
                 {creatingGroup && <Loader2 className="h-5 w-5 animate-spin" />}
