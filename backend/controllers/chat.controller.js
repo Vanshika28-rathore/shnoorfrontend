@@ -2674,3 +2674,141 @@ export const getAvailableAdmins = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 };
+
+export const searchContacts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { query } = req.query;
+
+    console.log("🔍 searchContacts called:", { userId, query });
+
+    if (!query || query.trim().length === 0) {
+      return res.json({ users: [], groups: [] });
+    }
+
+    const searchTerm = `%${query.trim()}%`;
+
+    const userRes = await pool.query(
+      "SELECT role, college FROM users WHERE user_id = $1",
+      [userId]
+    );
+
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { role, college } = userRes.rows[0];
+    const isAdmin = role?.toLowerCase() === 'admin';
+    const isStudent = role?.toLowerCase() === 'student';
+
+    console.log("🔍 role:", role, "| college:", college);
+
+    // Search users (skip entirely for admin)
+    let usersResult = { rows: [] };
+
+    if (!isAdmin) {
+      const targetRoles = isStudent ? ['instructor'] : ['student'];
+
+      usersResult = await pool.query(
+        `
+        SELECT 
+          u.user_id,
+          u.full_name AS name,
+          u.email,
+          u.firebase_uid,
+          u.photo_url,
+          u.role,
+          CASE 
+            WHEN c.chat_id IS NOT NULL THEN c.chat_id 
+            ELSE NULL 
+          END AS existing_chat_id,
+          'user' AS type
+        FROM users u
+        LEFT JOIN chats c ON (
+          (c.student_id = u.user_id AND c.instructor_id = $1)
+          OR (c.instructor_id = u.user_id AND c.student_id = $1)
+        )
+        WHERE LOWER(u.role) = ANY($2::text[])
+          AND u.status = 'active'
+          AND u.user_id != $1
+          AND u.full_name ILIKE $3
+        ORDER BY u.full_name ASC
+        LIMIT 20
+        `,
+        [userId, targetRoles, searchTerm]
+      );
+
+      console.log("🔍 Users found:", usersResult.rows.length);
+    }
+
+    // Search groups
+    let groupsResult = { rows: [] };
+
+    if (isAdmin) {
+      // Admin: search admin_groups where they are creator OR a member
+      groupsResult = await pool.query(
+        `
+        SELECT
+          ag.group_id AS id,
+          ag.name,
+          ag.description,
+          ag.purpose,
+          ag.created_at,
+          ag.admin_id,
+          NULL AS college,
+          'group' AS type,
+          TRUE AS is_member,
+          COUNT(agm_all.user_id) AS member_count
+        FROM admin_groups ag
+        LEFT JOIN admin_group_members agm
+          ON ag.group_id = agm.group_id AND agm.user_id = $1
+        LEFT JOIN admin_group_members agm_all
+          ON ag.group_id = agm_all.group_id
+        WHERE ag.name ILIKE $2
+          AND (agm.user_id IS NOT NULL OR ag.admin_id = $1)
+        GROUP BY ag.group_id
+        ORDER BY ag.name ASC
+        LIMIT 20
+        `,
+        [userId, searchTerm]
+      );
+      console.log("🔍 Admin groups found:", groupsResult.rows.length);
+
+    } else if (college) {
+      // Student/Instructor: search college_groups by college
+      groupsResult = await pool.query(
+        `
+        SELECT DISTINCT
+          cg.group_id AS id,
+          cg.name,
+          cg.description,
+          cg.college,
+          'group' AS type,
+          CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_member
+        FROM college_groups cg
+        LEFT JOIN clg_group_members gm 
+          ON cg.group_id = gm.group_id AND gm.user_id = $1
+        WHERE cg.college = $2
+          AND cg.name ILIKE $3
+        ORDER BY cg.name ASC
+        LIMIT 20
+        `,
+        [userId, college, searchTerm]
+      );
+      console.log("🔍 College groups found:", groupsResult.rows.length);
+
+    } else {
+      console.log("🔍 No college set — skipping group search");
+    }
+
+    res.json({
+      users: usersResult.rows,
+      groups: groupsResult.rows,
+    });
+
+  } catch (err) {
+    console.error("❌ searchContacts Error:", err.message);
+    console.error(err.stack);
+    res.status(500).json({ message: "Server Error", error: err.message });
+  }
+};

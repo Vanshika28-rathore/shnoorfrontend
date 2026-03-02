@@ -534,13 +534,15 @@ export default ChatWithStudents;*/}
 /* eslint-disable no-unused-vars */
 // src/pages/admin/ChatWithStudents.jsx
 // src/pages/admin/ChatWithStudents.jsx
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+// src/pages/admin/ChatWithStudents.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { PlusCircle, X, Loader2 } from 'lucide-react';
+import { PlusCircle, X, Loader2, Search } from 'lucide-react';
 import { useSocket } from '../../context/SocketContext';
 import ChatList from '../../components/chat/ChatList';
 import ChatWindow from '../../components/chat/ChatWindow';
 import api from '../../api/axios';
-import { getAuth } from 'firebase/auth';
 
 const ChatWithStudents = () => {
   const { socket, dbUser, unreadCounts, markChatRead, handleSetActiveChat } = useSocket();
@@ -552,15 +554,17 @@ const ChatWithStudents = () => {
   const [loadingChats, setLoadingChats] = useState(true);
   const [error, setError] = useState(null);
 
-  // Search states
+  // ── Search ──────────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('');
   const [allMessages, setAllMessages] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
+  const [groupResults, setGroupResults] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const searchRef = useRef(null);
 
-  // Group modal
-  const [addMode, setAddMode] = useState('college'); // 'college' or 'manual'
+  // ── Group modal ─────────────────────────────────────────────────────────────
+  const [addMode, setAddMode] = useState('college'); // 'college' | 'manual'
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupDescription, setGroupDescription] = useState('');
@@ -574,6 +578,7 @@ const ChatWithStudents = () => {
 
   const fetchExecuted = useRef(false);
 
+  // ── Fetch groups ────────────────────────────────────────────────────────────
   const fetchData = async () => {
     try {
       setLoadingChats(true);
@@ -600,12 +605,16 @@ const ChatWithStudents = () => {
     }
   };
 
-  const fetchAllMessages = async () => {
+  // ── Fetch all messages for search ───────────────────────────────────────────
+  const fetchAllMessages = async (chatList) => {
+    const list = chatList || chats;
+    if (!list.length) return;
+
     try {
       setLoadingSearch(true);
       const groupMessages = [];
 
-      for (const chat of chats) {
+      for (const chat of list) {
         try {
           const res = await api.get(`/api/admingroups/${chat.id}/messages`);
           const messagesWithChat = res.data.map(m => ({
@@ -620,7 +629,6 @@ const ChatWithStudents = () => {
       }
 
       setAllMessages(groupMessages);
-      setShowSearch(true);
     } catch (err) {
       console.error('Failed to fetch all messages:', err);
     } finally {
@@ -628,34 +636,71 @@ const ChatWithStudents = () => {
     }
   };
 
-  // Initial fetch (once)
+  // Initial fetch
   useEffect(() => {
     if (fetchExecuted.current) return;
     fetchExecuted.current = true;
     fetchData();
   }, [unreadCounts]);
 
-  // Socket: new 1-on-1 message
+  // Lazy-load all messages once search panel opens
   useEffect(() => {
-    if (!socket) return;
+    if (showSearch && allMessages.length === 0 && chats.length > 0) {
+      fetchAllMessages(chats);
+    }
+  }, [showSearch, chats]);
 
-    const onNewMessage = (msg) => {
-      if (msg.chat_id === activeChat?.id) {
-        setMessages(prev => [...prev, {
-          ...msg,
-          isMyMessage: msg.sender_id === dbUser?.id
-        }]);
+  // ── Search filter ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    const q = searchQuery.trim().toLowerCase();
+
+    if (!q) {
+      setSearchResults([]);
+      setGroupResults([]);
+      return;
+    }
+
+    // Filter groups / contacts by name
+    const matchedGroups = chats.filter(c =>
+      c.name?.toLowerCase().includes(q)
+    );
+    setGroupResults(matchedGroups);
+
+    // Filter messages by text
+    if (allMessages.length > 0) {
+      const matchedMsgs = allMessages
+        .filter(msg => msg.text?.toLowerCase().includes(q))
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setSearchResults(matchedMsgs);
+    }
+  }, [searchQuery, allMessages, chats]);
+
+  // Close search on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        if (!searchQuery.trim()) setShowSearch(false);
       }
     };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
 
+  // ── Socket: 1-on-1 messages ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (!socket) return;
+    const onNewMessage = (msg) => {
+      if (msg.chat_id === activeChat?.id) {
+        setMessages(prev => [...prev, { ...msg, isMyMessage: msg.sender_id === dbUser?.id }]);
+      }
+    };
     socket.on('new_message', onNewMessage);
     return () => socket.off('new_message', onNewMessage);
   }, [socket, activeChat, dbUser]);
 
-  // Socket: group message
+  // ── Socket: group messages ──────────────────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
-
     const handleGroupMessage = (msg) => {
       if (msg.group_id === activeChat?.id) {
         setMessages(prev => [...prev, {
@@ -665,35 +710,15 @@ const ChatWithStudents = () => {
         }]);
       }
     };
-
     socket.on('group_message', handleGroupMessage);
     return () => socket.off('group_message', handleGroupMessage);
   }, [socket, activeChat, dbUser]);
 
-  // Search: filter allMessages when query changes
-  useEffect(() => {
-    if (searchQuery.trim() && allMessages.length > 0) {
-      const results = allMessages
-        .filter(msg => msg.text?.toLowerCase().includes(searchQuery.toLowerCase()))
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      setSearchResults(results);
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchQuery, allMessages]);
-
-  // Lazy-fetch all messages when search panel is first opened
-  useEffect(() => {
-    if (showSearch && allMessages.length === 0 && chats.length > 0) {
-      fetchAllMessages();
-    }
-  }, [showSearch, chats]);
-
+  // ── Select chat ─────────────────────────────────────────────────────────────
   const handleSelectChat = async (chat) => {
     setActiveChat(chat);
     handleSetActiveChat(chat.id);
     markChatRead(chat.id);
-
     setLoadingMessages(true);
     setMessages([]);
 
@@ -704,11 +729,9 @@ const ChatWithStudents = () => {
 
     try {
       let res;
-
       if (chat.type === 'group') {
         if (socket) {
           socket.emit('join_group', chat.id);
-          console.log(`[Admin] Joined group room: ${chat.id}`);
         }
         res = await api.get(`/api/admingroups/${chat.id}/messages`);
       } else {
@@ -730,13 +753,13 @@ const ChatWithStudents = () => {
     }
   };
 
+  // ── Send message ────────────────────────────────────────────────────────────
   const handleSendMessage = async (text, file) => {
     if (!socket || !activeChat || (!text?.trim() && !file)) return;
 
     const isGroupChat = activeChat.type === 'group';
     let chatId = activeChat.id;
 
-    // Create new 1-on-1 chat if needed
     if (!isGroupChat && chatId.startsWith('new_')) {
       try {
         const createRes = await api.post('/api/chats', { recipientId: activeChat.recipientId });
@@ -749,7 +772,6 @@ const ChatWithStudents = () => {
       }
     }
 
-    // Handle file upload
     let attachmentFileId = null;
     let attachmentName = null;
     let attachmentType = null;
@@ -811,9 +833,9 @@ const ChatWithStudents = () => {
     }
   };
 
+  // ── Create group ────────────────────────────────────────────────────────────
   const handleCreateGroup = async () => {
     if (!groupName.trim()) return alert('Group name is required');
-
     setCreatingGroup(true);
 
     try {
@@ -821,7 +843,6 @@ const ChatWithStudents = () => {
         name: groupName.trim(),
         description: groupDescription.trim() || null,
       };
-
       let endpoint = '/api/admingroups';
 
       if (addMode === 'college') {
@@ -834,7 +855,6 @@ const ChatWithStudents = () => {
       }
 
       const res = await api.post(endpoint, payload);
-
       alert(`Group created successfully!\nAdded ${res.data.member_count || selectedMembers.length || '?'} students.`);
 
       setShowGroupModal(false);
@@ -843,6 +863,11 @@ const ChatWithStudents = () => {
       setSelectedCollege('');
       setSelectedMembers([]);
       setAddMode('college');
+
+      // Refresh chat list & reset message cache so search stays fresh
+      fetchExecuted.current = false;
+      setAllMessages([]);
+      fetchData();
     } catch (err) {
       console.error('Group creation failed:', err);
       alert('Failed to create group: ' + (err.response?.data?.message || err.message));
@@ -851,18 +876,7 @@ const ChatWithStudents = () => {
     }
   };
 
-  // Fetch colleges when modal opens
-  useEffect(() => {
-    if (showGroupModal) {
-      setLoadingColleges(true);
-      api.get('/api/admingroups/colleges')
-        .then(res => setColleges(res.data))
-        .catch(err => console.error(err))
-        .finally(() => setLoadingColleges(false));
-    }
-  }, [showGroupModal]);
-
-  // Fetch colleges when mode switches to 'college'
+  // Fetch colleges when modal opens or mode is 'college'
   useEffect(() => {
     if (showGroupModal && addMode === 'college') {
       setLoadingColleges(true);
@@ -873,7 +887,7 @@ const ChatWithStudents = () => {
     }
   }, [showGroupModal, addMode]);
 
-  // Fetch students when mode switches to 'manual'
+  // Fetch students when mode is 'manual'
   useEffect(() => {
     if (showGroupModal && addMode === 'manual') {
       setLoadingStudents(true);
@@ -887,70 +901,125 @@ const ChatWithStudents = () => {
     }
   }, [showGroupModal, addMode]);
 
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  const hasSearchQuery = searchQuery.trim().length > 0;
+  const showSearchPanel = showSearch && hasSearchQuery;
+
+  const handleSearchResultClick = async (chatId) => {
+    const chatToLoad = chats.find(c => c.id === chatId);
+    if (chatToLoad) {
+      setShowSearch(false);
+      setSearchQuery('');
+      await handleSelectChat(chatToLoad);
+    }
+  };
+
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* ── Sidebar ── */}
       <div className="w-80 md:w-96 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+
+        {/* Header */}
         <div className="p-4 border-b bg-white sticky top-0 z-10 shadow-sm space-y-3">
           <button
             onClick={() => setShowGroupModal(true)}
             disabled={loadingChats || creatingGroup}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600/10 text-indigo-600 rounded-xl font-bold hover:bg-indigo-600 hover:text-white transition-all border border-indigo-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transform-none"
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600/10 text-indigo-600 rounded-xl font-bold hover:bg-indigo-600 hover:text-white transition-all border border-indigo-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <PlusCircle size={20} />
             Create New Group
           </button>
 
-          <input
-            type="text"
-            placeholder="Search messages..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setShowSearch(true)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-          />
+          {/* Search bar */}
+          <div ref={searchRef} className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search groups or messages..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowSearch(true)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+            />
+            {hasSearchQuery && (
+              <button
+                onClick={() => { setSearchQuery(''); setShowSearch(false); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
 
-        {showSearch && searchQuery.trim() ? (
+        {/* ── Search results panel ── */}
+        {showSearchPanel ? (
           <div className="flex-1 overflow-y-auto">
             {loadingSearch ? (
               <div className="flex items-center justify-center h-32">
                 <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
               </div>
-            ) : searchResults.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                No messages found
-              </div>
             ) : (
-              <div className="border-t">
-                {searchResults.map((result, idx) => (
-                  <div
-                    key={idx}
-                    onClick={async () => {
-                      const chatToLoad = chats.find(c => c.id === result.chat_id);
-                      if (chatToLoad) {
-                        setShowSearch(false);
-                        setSearchQuery('');
-                        await handleSelectChat(chatToLoad);
-                      }
-                    }}
-                    className="p-4 border-b cursor-pointer hover:bg-orange-50 transition-colors"
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="font-semibold text-gray-900 text-sm">{result.chat_name}</div>
-                      <div className="text-gray-600 text-sm line-clamp-2">{result.text || '(No text)'}</div>
-                      <div className="text-xs text-gray-400">
-                        {new Date(result.created_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </div>
+              <>
+                {/* Group / contact matches */}
+                {groupResults.length > 0 && (
+                  <div>
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b">
+                      Groups
                     </div>
+                    {groupResults.map(group => (
+                      <div
+                        key={group.id}
+                        onClick={() => handleSearchResultClick(group.id)}
+                        className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-orange-50 border-b transition-colors ${activeChat?.id === group.id ? 'bg-orange-50' : ''}`}
+                      >
+                        <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-indigo-600 font-bold text-sm">
+                            {group.name?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-900 text-sm truncate">{group.name}</div>
+                          <div className="text-xs text-gray-400">{group.memberCount} members</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )}
+
+                {/* Message matches */}
+                {searchResults.length > 0 && (
+                  <div>
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b">
+                      Messages
+                    </div>
+                    {searchResults.map((result, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleSearchResultClick(result.chat_id)}
+                        className="p-4 border-b cursor-pointer hover:bg-orange-50 transition-colors"
+                      >
+                        <div className="font-semibold text-gray-900 text-sm mb-1">{result.chat_name}</div>
+                        <div className="text-gray-600 text-sm line-clamp-2">{result.text || '(No text)'}</div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {new Date(result.created_at).toLocaleDateString('en-US', {
+                            month: 'short', day: 'numeric', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit',
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* No results */}
+                {groupResults.length === 0 && searchResults.length === 0 && !loadingSearch && (
+                  <div className="p-6 text-center text-gray-500">
+                    No groups or messages found
+                  </div>
+                )}
+              </>
             )}
           </div>
         ) : loadingChats ? (
@@ -973,6 +1042,7 @@ const ChatWithStudents = () => {
         )}
       </div>
 
+      {/* ── Chat window ── */}
       <div className="flex-1 flex flex-col bg-gray-50">
         <ChatWindow
           activeChat={activeChat}
@@ -982,6 +1052,7 @@ const ChatWithStudents = () => {
         />
       </div>
 
+      {/* ── Create Group Modal ── */}
       {showGroupModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -1004,7 +1075,6 @@ const ChatWithStudents = () => {
                   onChange={e => setGroupName(e.target.value)}
                   placeholder="e.g. B.Tech CSE 2025 Batch"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                  required
                 />
               </div>
 
@@ -1023,37 +1093,31 @@ const ChatWithStudents = () => {
               </div>
 
               {/* Mode Toggle */}
-              <div className="flex items-center gap-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Add students by:
-                </label>
+              <div className="flex items-center gap-4 flex-wrap">
+                <label className="text-sm font-medium text-gray-700">Add students by:</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="radio"
-                      name="addMode"
-                      value="college"
+                      type="radio" name="addMode" value="college"
                       checked={addMode === 'college'}
                       onChange={() => setAddMode('college')}
                       className="h-4 w-4 text-orange-500 focus:ring-orange-500"
                     />
-                    <span>College (auto-add all)</span>
+                    <span className="text-sm">College (auto-add all)</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="radio"
-                      name="addMode"
-                      value="manual"
+                      type="radio" name="addMode" value="manual"
                       checked={addMode === 'manual'}
                       onChange={() => setAddMode('manual')}
                       className="h-4 w-4 text-orange-500 focus:ring-orange-500"
                     />
-                    <span>Manual Selection</span>
+                    <span className="text-sm">Manual Selection</span>
                   </label>
                 </div>
               </div>
 
-              {/* Conditional content based on mode */}
+              {/* College mode */}
               {addMode === 'college' ? (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1061,8 +1125,7 @@ const ChatWithStudents = () => {
                   </label>
                   {loadingColleges ? (
                     <div className="flex items-center gap-2 text-gray-500">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Loading colleges...
+                      <Loader2 className="h-5 w-5 animate-spin" /> Loading colleges...
                     </div>
                   ) : colleges.length === 0 ? (
                     <p className="text-red-600">No colleges found in the system</p>
@@ -1071,7 +1134,6 @@ const ChatWithStudents = () => {
                       value={selectedCollege}
                       onChange={e => setSelectedCollege(e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                      required
                     >
                       <option value="">-- Choose a college --</option>
                       {colleges.map(c => (
@@ -1086,6 +1148,7 @@ const ChatWithStudents = () => {
                   </p>
                 </div>
               ) : (
+                /* Manual mode */
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Select Students <span className="text-red-500">*</span>
@@ -1093,8 +1156,7 @@ const ChatWithStudents = () => {
                   <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
                     {loadingStudents ? (
                       <div className="flex items-center gap-2 text-gray-500">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        Loading students...
+                        <Loader2 className="h-5 w-5 animate-spin" /> Loading students...
                       </div>
                     ) : students.length === 0 ? (
                       <p className="text-red-600">No active students found</p>
@@ -1106,9 +1168,9 @@ const ChatWithStudents = () => {
                             checked={selectedMembers.includes(student.user_id)}
                             onChange={e => {
                               if (e.target.checked) {
-                                setSelectedMembers([...selectedMembers, student.user_id]);
+                                setSelectedMembers(prev => [...prev, student.user_id]);
                               } else {
-                                setSelectedMembers(selectedMembers.filter(id => id !== student.user_id));
+                                setSelectedMembers(prev => prev.filter(id => id !== student.user_id));
                               }
                             }}
                             className="h-5 w-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
@@ -1130,8 +1192,8 @@ const ChatWithStudents = () => {
             <div className="sticky bottom-0 bg-white border-t px-6 py-5 flex justify-end gap-4">
               <button
                 onClick={() => setShowGroupModal(false)}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
                 disabled={creatingGroup}
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -1143,7 +1205,7 @@ const ChatWithStudents = () => {
                   (addMode === 'college' && (!selectedCollege || loadingColleges)) ||
                   (addMode === 'manual' && selectedMembers.length === 0)
                 }
-                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform-none"
+                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {creatingGroup && <Loader2 className="h-5 w-5 animate-spin" />}
                 {creatingGroup ? 'Creating...' : 'Create Group'}
