@@ -25,14 +25,14 @@ const ExamBuilderView = ({
     return (
         <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans text-primary-900">
             {/* --- Top Bar --- */}
-            <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shrink-0 h-16">
+            <header className="px-6 py-3 flex items-center justify-between shrink-0 h-16 shadow-lg" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/instructor/dashboard')} className="text-slate-400 hover:text-slate-700 transition-colors">
+                    <button onClick={() => navigate('/instructor/dashboard')} className="text-slate-400 hover:text-white transition-colors">
                         <ArrowLeft size={20} />
                     </button>
                     <div>
-                        <h1 className="text-lg font-bold text-primary-900 tracking-tight">{formData.title || 'Untitled Exam'}</h1>
-                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                        <h1 className="text-lg font-bold text-white tracking-tight">{formData.title || 'Untitled Exam'}</h1>
+                        <div className="flex items-center gap-3 text-xs text-slate-400">
                             {formData.duration && <span className="flex items-center gap-1"><Clock size={14} /> {formData.duration} mins</span>}
                             <span>• {formData.questions.length} Questions</span>
                             <span>• {formData.questions.reduce((acc, q) => acc + (q.marks || 0), 0)} Total Marks</span>
@@ -41,13 +41,14 @@ const ExamBuilderView = ({
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        className="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-md text-xs hover:bg-slate-200 transition-colors"
-                        onClick={() => handleSave()} // Save Draft logic conceptually
+                        className="px-4 py-2 bg-white/10 border border-white/20 text-slate-300 font-bold rounded-xl text-xs hover:bg-white/20 hover:text-white transition-colors"
+                        onClick={() => handleSave()}
                     >
                         Save Draft
                     </button>
                     <button
-                        className="px-6 py-2 bg-primary-900 hover:bg-slate-800 text-white font-bold rounded-md text-xs shadow-sm flex items-center gap-2 transition-colors"
+                        className="px-6 py-2 text-white font-bold rounded-xl text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all hover:shadow-xl active:scale-[0.98]"
+                        style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' }}
                         onClick={handleSave}
                     >
                         <Save size={16} /> Publish Exam
@@ -347,7 +348,7 @@ const ExamBuilderView = ({
                                                         />
                                                         <p className="text-[10px] text-slate-400 mt-1">Student answers will be scored based on keyword presence (60% of marks).</p>
                                                     </div>
-                                                    
+
                                                     <div>
                                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-2">Minimum Word Count</label>
                                                         <input
