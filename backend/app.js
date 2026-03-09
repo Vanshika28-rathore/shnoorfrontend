@@ -569,7 +569,7 @@ import { router as admingroupsRoutes } from "./routes/admingroups.routes.js";
 import courseCommentsRoutes from "./routes/courseComments.routes.js";
 import learningPathRoutes from "./routes/LearningPath.routes.js";
 import mocktestRoutes from "./routes/mocktest.routes.js";
-import { initializeDatabase } from "./db/dbInit.js";
+// import { initializeDatabase } from "./db/dbInit.js";
 
 
 const app = express();
