@@ -30,34 +30,44 @@ const EditModuleModal = ({ module, onClose, onSave }) => {
   };
 
   const handleSave = async () => {
-    if (!title.trim()) {
-      setError("Title is required.");
-      return;
-    }
-    if ((type === "video" || type === "text_stream") && !contentUrl.trim()) {
-      setError(type === "video" ? "Video URL is required." : "Text stream URL is required.");
-      return;
-    }
-    if (type === "pdf" && !pdfFile && !pdfFileName) {
-      setError("Please upload a PDF file.");
-      return;
-    }
-
     setSaving(true);
     setError("");
 
     try {
       const formData = new FormData();
-      formData.append("title", title.trim());
-      formData.append("type", type);
-      if (durationMins) formData.append("duration_mins", durationMins);
+      const initialTitle = module.title || "";
+      const initialType = module.type || "video";
+      const initialContentUrl = module.content_url || "";
+      const initialDuration = module.duration_mins ?? module.duration ?? "";
+      const initialNotes = module.notes || "";
 
-      if (type === "video") {
-        formData.append("content_url", contentUrl.trim());
+      const nextTitle = title.trim();
+      const nextContentUrl = contentUrl.trim();
+      const nextDuration = durationMins === "" ? "" : Number(durationMins);
+
+      let hasChanges = false;
+
+      if (nextTitle && nextTitle !== initialTitle) {
+        formData.append("title", nextTitle);
+        hasChanges = true;
+      }
+
+      if (type !== initialType) {
+        formData.append("type", type);
+        hasChanges = true;
+      }
+
+      if (String(nextDuration) !== String(initialDuration)) {
+        formData.append("duration_mins", durationMins);
+        hasChanges = true;
+      }
+
+      if ((type === "video" || type === "text_stream") && nextContentUrl !== initialContentUrl) {
+        formData.append("content_url", nextContentUrl);
+        hasChanges = true;
       } else if (type === "pdf" && pdfFile) {
         formData.append("file", pdfFile);
-      } else if (type === "text_stream") {
-        formData.append("content_url", contentUrl.trim());
+        hasChanges = true;
       }
 
       let finalNotesUrl = notesUrl;
@@ -69,8 +79,16 @@ const EditModuleModal = ({ module, onClose, onSave }) => {
         });
         finalNotesUrl = uploadRes?.data?.url || "";
       }
-      if (finalNotesUrl) {
+
+      if (finalNotesUrl !== initialNotes) {
         formData.append("notes", finalNotesUrl);
+        hasChanges = true;
+      }
+
+      if (!hasChanges) {
+        setError("No changes to save.");
+        setSaving(false);
+        return;
       }
 
       await onSave(module.module_id, formData);
@@ -145,7 +163,7 @@ const EditModuleModal = ({ module, onClose, onSave }) => {
           {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-              Title <span className="text-rose-500">*</span>
+              Title
             </label>
             <input
               type="text"
@@ -160,7 +178,7 @@ const EditModuleModal = ({ module, onClose, onSave }) => {
           {(type === "video" || type === "text_stream") && (
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                {type === "video" ? "Video URL" : "Text Stream URL"} <span className="text-rose-500">*</span>
+                {type === "video" ? "Video URL" : "Text Stream URL"}
               </label>
               <div className="relative">
                 <Link
@@ -182,7 +200,7 @@ const EditModuleModal = ({ module, onClose, onSave }) => {
           {type === "pdf" && (
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                PDF File {!pdfFileName && <span className="text-rose-500">*</span>}
+                PDF File
               </label>
               <div
                 onClick={() => fileInputRef.current?.click()}

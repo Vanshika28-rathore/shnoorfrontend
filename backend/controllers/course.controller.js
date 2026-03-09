@@ -965,7 +965,7 @@ export const editModule = async (req, res) => {
     const instructorId = req.user.id;
 
     const ownerCheck = await pool.query(
-      `SELECT m.module_id, m.course_id
+      `SELECT m.module_id, m.course_id, m.type
        FROM modules m
        JOIN courses c ON c.courses_id = m.course_id
        WHERE m.module_id = $1 AND c.instructor_id = $2`,
@@ -978,43 +978,73 @@ export const editModule = async (req, res) => {
 
     const { title, type, content_url, notes, duration_mins } = req.body;
 
-    if (!title || !type) {
-      return res.status(400).json({ message: "Title and type are required" });
+    const hasField = (key) => Object.prototype.hasOwnProperty.call(req.body, key);
+    const hasTitle = hasField("title");
+    const hasType = hasField("type");
+    const hasContentUrl = hasField("content_url");
+    const hasNotes = hasField("notes");
+    const hasDuration = hasField("duration_mins");
+
+    if (hasTitle && !String(title || "").trim()) {
+      return res.status(400).json({ message: "Title cannot be empty" });
     }
 
     const fields = [];
     const values = [];
     let idx = 1;
 
-    fields.push(`title = $${idx++}`); values.push(title);
-    fields.push(`type = $${idx++}`); values.push(type);
-    fields.push(`notes = $${idx++}`); values.push(notes || null);
-
-    if (duration_mins !== undefined && duration_mins !== "") {
-      fields.push(`duration_mins = $${idx++}`);
-      values.push(Number(duration_mins));
+    if (hasTitle) {
+      fields.push(`title = $${idx++}`);
+      values.push(String(title).trim());
     }
 
-    if (content_url) {
-      // Link / URL mode — clear any stored file data
-      fields.push(`content_url = $${idx++}`); values.push(content_url);
-      fields.push(`pdf_data = $${idx++}`); values.push(null);
-      fields.push(`pdf_filename = $${idx++}`); values.push(null);
-      fields.push(`pdf_mime = $${idx++}`); values.push(null);
-    } else if (req.file) {
+    if (hasType) {
+      fields.push(`type = $${idx++}`);
+      values.push(type);
+    }
+
+    if (hasNotes) {
+      fields.push(`notes = $${idx++}`);
+      values.push(notes || null);
+    }
+
+    if (hasDuration && duration_mins !== "") {
+      fields.push(`duration_mins = $${idx++}`);
+      values.push(Number(duration_mins));
+    } else if (hasDuration && duration_mins === "") {
+      fields.push(`duration_mins = $${idx++}`);
+      values.push(null);
+    }
+
+    if (req.file) {
       // Upload mode — store binary, clear URL
       fields.push(`pdf_data = $${idx++}`); values.push(req.file.buffer);
       fields.push(`pdf_filename = $${idx++}`); values.push(req.file.originalname);
       fields.push(`pdf_mime = $${idx++}`); values.push(req.file.mimetype);
       fields.push(`content_url = $${idx++}`); values.push(null);
+    } else if (hasContentUrl) {
+      // Link / URL mode — clear any stored file data when URL is provided/changed.
+      const nextContentUrl = String(content_url || "").trim();
+      fields.push(`content_url = $${idx++}`);
+      values.push(nextContentUrl || null);
+      if (nextContentUrl) {
+        fields.push(`pdf_data = $${idx++}`); values.push(null);
+        fields.push(`pdf_filename = $${idx++}`); values.push(null);
+        fields.push(`pdf_mime = $${idx++}`); values.push(null);
+      }
     }
 
+    if (fields.length === 0) {
+      return res.status(400).json({ message: "No changes provided" });
+    }
+
+    const effectiveType = hasType ? type : ownerCheck.rows[0].type;
     const isNotesPdfUrl =
       typeof notes === "string" &&
       (/^https?:\/\//i.test(notes) || notes.includes("/uploads/") || /\.pdf($|\?)/i.test(notes));
 
-    // Re-chunk text_stream content only when notes contains inline text content.
-    if (type === "text_stream" && notes && !isNotesPdfUrl) {
+    // Re-chunk text_stream content only when notes is being updated with inline text content.
+    if (hasNotes && effectiveType === "text_stream" && notes && !isNotesPdfUrl) {
       const chunks = notes.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
       await pool.query(`DELETE FROM module_text_chunks WHERE module_id = $1`, [moduleId]);
       if (chunks.length > 0) {

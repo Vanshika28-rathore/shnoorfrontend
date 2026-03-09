@@ -471,6 +471,7 @@ export const AddCourse = () => {
               title: m.title,
               type: m.type,
               content_url: m.url,
+              notes: m.notes || null,
               duration: m.duration || 0,
               order_index: i + 1,
             })),
