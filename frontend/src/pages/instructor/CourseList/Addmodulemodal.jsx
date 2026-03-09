@@ -1,12 +1,14 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef } from "react";
 import { X, Upload, Link, FileText, Video, Plus, Loader2, AlignLeft } from "lucide-react";
+import api from "../../../api/axios";
 
 const AddModuleModal = ({ onClose, onSave }) => {
   const [title, setTitle]               = useState("");
   const [type, setType]                 = useState("video");
   const [contentUrl, setContentUrl]     = useState("");
-  const [notes, setNotes]               = useState("");
+  const [notesFile, setNotesFile]       = useState(null);
+  const [notesFileName, setNotesFileName] = useState("");
   const [durationMins, setDurationMins] = useState("");
   const [file, setFile]                 = useState(null);
   const [fileName, setFileName]         = useState("");
@@ -14,6 +16,7 @@ const AddModuleModal = ({ onClose, onSave }) => {
   const [saving, setSaving]             = useState(false);
   const [error, setError]               = useState("");
   const fileInputRef                    = useRef(null);
+  const notesInputRef                   = useRef(null);
 
   const ACCEPT_MAP = {
     video:       "video/*",
@@ -54,13 +57,23 @@ const AddModuleModal = ({ onClose, onSave }) => {
     const data = new FormData();
     data.append("title", title.trim());
     data.append("type",  type);
-    data.append("notes", notes.trim());
     if (durationMins) data.append("duration_mins", durationMins);
 
     if (inputMode === "link") {
       data.append("content_url", contentUrl.trim());
     } else {
       data.append("file", file);
+    }
+
+    if (notesFile) {
+      const notesUpload = new FormData();
+      notesUpload.append("file", notesFile);
+      const notesRes = await api.post("/api/upload", notesUpload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (notesRes?.data?.url) {
+        data.append("notes", notesRes.data.url);
+      }
     }
 
     try {
@@ -233,14 +246,48 @@ const AddModuleModal = ({ onClose, onSave }) => {
             />
           </div>
 
-          {/* Notes */}
+          {/* Optional Notes PDF */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Notes</label>
-            <textarea
-              value={notes} onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional notes for this module..."
-              rows={3}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition-all resize-none"
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+              Optional Notes PDF
+            </label>
+            <div
+              onClick={() => notesInputRef.current?.click()}
+              className="flex items-center gap-3 border-2 border-dashed border-slate-200 hover:border-indigo-400 rounded-lg px-4 py-3 cursor-pointer transition-colors group"
+            >
+              <div className="p-2 rounded-md bg-slate-100 group-hover:bg-indigo-50 transition-colors">
+                <FileText size={16} className="text-slate-500 group-hover:text-indigo-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                {notesFileName ? (
+                  <>
+                    <p className="text-sm font-semibold text-slate-700 truncate">{notesFileName}</p>
+                    <p className="text-xs text-slate-400">Click to replace notes PDF</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-slate-600">Attach optional notes PDF</p>
+                    <p className="text-xs text-slate-400">PDF only</p>
+                  </>
+                )}
+              </div>
+            </div>
+            <input
+              ref={notesInputRef}
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                if (f.type !== "application/pdf") {
+                  setError("Notes must be a PDF file.");
+                  return;
+                }
+                setError("");
+                setNotesFile(f);
+                setNotesFileName(f.name);
+              }}
             />
           </div>
 

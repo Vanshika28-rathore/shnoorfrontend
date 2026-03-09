@@ -150,6 +150,18 @@ const CourseListView = ({
                 >
                   <Pencil size={14} />
                 </button>
+
+                {m.notes && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(m.notes, "_blank", "noopener,noreferrer");
+                    }}
+                    className="px-2.5 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-semibold"
+                  >
+                    Notes PDF
+                  </button>
+                )}
               </div>
             ))
           )}

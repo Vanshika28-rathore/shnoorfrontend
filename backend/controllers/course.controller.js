@@ -117,6 +117,7 @@ export const getInstructorCourses = async (req, res) => {
           'type', m.type,
           'duration', m.duration_mins,
           'order', m.module_order,
+          'notes', m.notes,
           'content_url', CASE 
             WHEN m.pdf_filename IS NOT NULL THEN '${baseUrl}/api/modules/' || m.module_id || '/pdf'
             ELSE m.content_url 
@@ -1008,8 +1009,12 @@ export const editModule = async (req, res) => {
       fields.push(`content_url = $${idx++}`); values.push(null);
     }
 
-    // Re-chunk text_stream content when notes change
-    if (type === "text_stream" && notes) {
+    const isNotesPdfUrl =
+      typeof notes === "string" &&
+      (/^https?:\/\//i.test(notes) || notes.includes("/uploads/") || /\.pdf($|\?)/i.test(notes));
+
+    // Re-chunk text_stream content only when notes contains inline text content.
+    if (type === "text_stream" && notes && !isNotesPdfUrl) {
       const chunks = notes.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
       await pool.query(`DELETE FROM module_text_chunks WHERE module_id = $1`, [moduleId]);
       if (chunks.length > 0) {
@@ -1113,8 +1118,12 @@ export const addModule = async (req, res) => {
       newModule.content_url = newModule.resolved_url;
     }
 
-    // text_stream chunking
-    if (type === "text_stream" && notes) {
+    const isNotesPdfUrl =
+      typeof notes === "string" &&
+      (/^https?:\/\//i.test(notes) || notes.includes("/uploads/") || /\.pdf($|\?)/i.test(notes));
+
+    // text_stream chunking only when notes contains inline text content.
+    if (type === "text_stream" && notes && !isNotesPdfUrl) {
       const moduleId = result.rows[0].module_id;
       const chunks = notes.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
       if (chunks.length > 0) {
