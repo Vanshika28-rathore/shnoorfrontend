@@ -34,6 +34,8 @@ import LearningPaths from "./pages/instructor/LearningPaths";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import CoursePlayer from "./pages/student/CoursePlayer";
 import ExamRunner from "./pages/student/ExamRunner";
+import MockExam from "./pages/student/MockTest/Exam";
+import MockTest from "./pages/student/MockTest";
 import MyCertificates from "./pages/student/MyCertificates";
 import StudentCourses from "./pages/student/StudentCourses";
 import StudentPerformance from "./pages/instructor/StudentPerformance";
@@ -176,6 +178,8 @@ function App() {
                 element={<ContestLeaderboard />}
               />
               <Route path="exams" element={<StudentExams />} />
+              <Route path="mock-test" element={<MockTest />} />
+              <Route path="mock-exam" element={<MockExam />} />
               <Route path="exam/:examId" element={<ExamRunner />} />
               <Route path="settings" element={<ProfileSettings />} />
               <Route path="certificates" element={<MyCertificates />} />

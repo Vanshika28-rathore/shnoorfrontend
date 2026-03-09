@@ -104,6 +104,7 @@ const StudentLayoutView = ({
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             <NavItem path="dashboard" icon={TrendingUp} label="Dashboard" />
             <NavItem path="courses" icon={List} label="My Courses" />
+            <NavItem path="mock-test" icon={ClipboardList} label="Mock Test" />
             <NavItem path="exams" icon={ClipboardList} label="Exams" />
             <NavItem path="groups" icon={Users} label="My Groups" />
             <NavItem path="certificates" icon={Trophy} label="Certificates" />

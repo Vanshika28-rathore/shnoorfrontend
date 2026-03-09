@@ -1,0 +1,50 @@
+.mocktest-coding {
+  /* container wrapper used by mock test pages */
+  display: flex;
+  flex-direction: column;
+}
+
+/* override CodeEditorPanel style if it ever appears here */
+.mocktest-coding .code-editor-panel {
+  min-height: 320px;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.mocktest-coding .monaco-editor {
+  height: 100% !important;
+}
+
+/* new light editor styling */
+.mocktest-code-editor {
+  background: white;
+  border: 1px solid #e5e7eb; /* slate-200 */
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  /* give more vertical space so user can write comfortably */
+  min-height: 360px;
+}
+
+.mocktest-code-editor .monaco-editor {
+  height: 100% !important;
+}
+
+/* optionally expand the overall mocktest wrapper a bit when coding
+   (ensures question card grows too) */
+.mocktest-coding {
+  min-height: 420px;
+}
+
+/* shrink testcases console considerably */
+.mocktest-code-editor .max-h-36 {
+  max-height: 150px;
+}
+
+/* keep the panel visible when code area scrolls */
+.mocktest-code-editor .bottom-panel {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
