@@ -5,6 +5,44 @@ import { validateBulkInstructors } from "../utils/csvValidator.js";
 import csvParser from "csv-parser";
 import { Readable } from "stream";
 const baseUrl = process.env.BACKEND_URL;
+const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+
+const normalizeOptionalPassword = (password) => {
+  if (typeof password !== "string") {
+    return undefined;
+  }
+
+  const trimmed = password.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
+const validateOptionalPassword = (password) => {
+  if (!password) {
+    return null;
+  }
+
+  if (password.length < 6) {
+    return "Password must be at least 6 characters long";
+  }
+
+  return null;
+};
+
+const buildCreatePasswordUrl = async (email) => {
+  const resetLink = await admin.auth().generatePasswordResetLink(email);
+  const resetUrl = new URL(resetLink);
+  const params = new URLSearchParams(resetUrl.search);
+  params.set("email", email);
+  return `${frontendUrl}/create-password?${params.toString()}`;
+};
+
+const buildInvitePayload = async ({ email, fullName, hasPassword }) => ({
+  email,
+  name: fullName,
+  loginUrl: `${frontendUrl}/login`,
+  createPasswordUrl: hasPassword ? null : await buildCreatePasswordUrl(email),
+  hasPredefinedPassword: hasPassword,
+});
 
 export const getMyProfile = async (req, res) => {
   try {
@@ -53,6 +91,12 @@ export const getAllUsers = async (req, res) => {
 
 export const addInstructor = async (req, res) => {
   const { fullName, email, subject, phone, bio } = req.body;
+  const password = normalizeOptionalPassword(req.body.password);
+
+  const passwordError = validateOptionalPassword(password);
+  if (passwordError) {
+    return res.status(400).json({ message: passwordError });
+  }
 
   try {
     console.log(`📝 Attempting to add instructor: ${email}`);
@@ -73,6 +117,7 @@ export const addInstructor = async (req, res) => {
     const firebaseUser = await admin.auth().createUser({
       email,
       displayName: fullName,
+      ...(password ? { password } : {}),
     });
 
     console.log(`✅ Firebase user created: ${firebaseUser.uid}`);
@@ -104,7 +149,13 @@ export const addInstructor = async (req, res) => {
     // 🔵 6️⃣ SEND EMAIL (DO NOT BREAK API IF IT FAILS)
     try {
       console.log(`📧 Attempting to send instructor invite to: ${email}`);
-      await sendInstructorInvite(email, fullName);
+      await sendInstructorInvite(
+        await buildInvitePayload({
+          email,
+          fullName,
+          hasPassword: Boolean(password),
+        }),
+      );
       console.log(`✅ Instructor invite sent successfully to: ${email}`);
     } catch (mailError) {
       console.error(`❌ Instructor invite failed for ${email}:`, mailError?.message || mailError);
@@ -117,6 +168,12 @@ export const addInstructor = async (req, res) => {
 
 export const addStudent = async (req, res) => {
   const { fullName, email, phone, bio } = req.body;
+  const password = normalizeOptionalPassword(req.body.password);
+
+  const passwordError = validateOptionalPassword(password);
+  if (passwordError) {
+    return res.status(400).json({ message: passwordError });
+  }
 
   try {
     console.log(`📝 Attempting to add student: ${email}`);
@@ -137,6 +194,7 @@ export const addStudent = async (req, res) => {
     const firebaseUser = await admin.auth().createUser({
       email,
       displayName: fullName,
+      ...(password ? { password } : {}),
     });
 
     console.log(`✅ Firebase user created: ${firebaseUser.uid}`);
@@ -161,7 +219,13 @@ export const addStudent = async (req, res) => {
     // 🔵 5️⃣ SEND EMAIL (DO NOT BREAK API IF IT FAILS)
     try {
       console.log(`📧 Attempting to send email to: ${email}`);
-      await sendStudentInvite(email, fullName);
+      await sendStudentInvite(
+        await buildInvitePayload({
+          email,
+          fullName,
+          hasPassword: Boolean(password),
+        }),
+      );
       console.log(`✅ Email sent successfully to: ${email}`);
     } catch (mailError) {
       console.error("SMTP failed:", mailError);
