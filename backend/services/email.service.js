@@ -10,6 +10,7 @@ const normalizeInviteInput = (emailOrObj, name) => {
       createPasswordUrl: emailOrObj.createPasswordUrl || null,
       loginUrl: emailOrObj.loginUrl || `${defaultFrontendUrl}/login`,
       hasPredefinedPassword: Boolean(emailOrObj.hasPredefinedPassword),
+      temporaryPassword: emailOrObj.temporaryPassword || null,
     };
   }
 
@@ -19,11 +20,12 @@ const normalizeInviteInput = (emailOrObj, name) => {
     createPasswordUrl: null,
     loginUrl: `${defaultFrontendUrl}/login`,
     hasPredefinedPassword: false,
+    temporaryPassword: null,
   };
 };
 
-const buildInviteHtml = ({ displayName, roleLabel, createPasswordUrl, loginUrl, hasPredefinedPassword }) => {
-  const passwordSection = createPasswordUrl
+const buildInviteHtml = ({ displayName, roleLabel, createPasswordUrl, loginUrl, hasPredefinedPassword, temporaryPassword }) => {
+  const linkSection = createPasswordUrl
     ? `
         <p>Set your password before signing in.</p>
         <p>
@@ -32,9 +34,11 @@ const buildInviteHtml = ({ displayName, roleLabel, createPasswordUrl, loginUrl, 
           </a>
         </p>
       `
-    : hasPredefinedPassword
-      ? `<p>Your account password was set during account creation. Use it to sign in to your dashboard.</p>`
-      : `<p>Use the link below to sign in to your dashboard.</p>`;
+    : `<p>Use the link below to sign in to your dashboard.</p>`;
+
+  const passwordSection = hasPredefinedPassword && temporaryPassword
+    ? `<p><b>Temporary Password:</b> ${temporaryPassword}</p>`
+    : "";
 
   return `
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:600px;">
@@ -42,6 +46,7 @@ const buildInviteHtml = ({ displayName, roleLabel, createPasswordUrl, loginUrl, 
       <p>Hello <b>${displayName || ""}</b>,</p>
       <p>You have been added as a ${roleLabel}.</p>
       ${passwordSection}
+      ${linkSection}
       <p>
         <a href="${loginUrl}" style="display:inline-block;padding:12px 18px;background:#0f172a;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;">
           Login to Dashboard
@@ -70,6 +75,7 @@ const sendInvite = async (emailOrObj, name, roleLabel, subject) => {
         createPasswordUrl: invite.createPasswordUrl,
         loginUrl: invite.loginUrl,
         hasPredefinedPassword: invite.hasPredefinedPassword,
+        temporaryPassword: invite.temporaryPassword,
       }),
     });
   } catch (error) {

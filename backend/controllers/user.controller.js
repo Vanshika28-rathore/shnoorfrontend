@@ -36,12 +36,13 @@ const buildCreatePasswordUrl = async (email) => {
   return `${frontendUrl}/create-password?${params.toString()}`;
 };
 
-const buildInvitePayload = async ({ email, fullName, hasPassword }) => ({
+const buildInvitePayload = async ({ email, fullName, hasPassword, temporaryPassword }) => ({
   email,
   name: fullName,
   loginUrl: `${frontendUrl}/login`,
-  createPasswordUrl: hasPassword ? null : await buildCreatePasswordUrl(email),
+  createPasswordUrl: await buildCreatePasswordUrl(email),
   hasPredefinedPassword: hasPassword,
+  temporaryPassword: temporaryPassword || null,
 });
 
 export const getMyProfile = async (req, res) => {
@@ -154,6 +155,7 @@ export const addInstructor = async (req, res) => {
           email,
           fullName,
           hasPassword: Boolean(password),
+          temporaryPassword: password,
         }),
       );
       console.log(`✅ Instructor invite sent successfully to: ${email}`);
@@ -224,6 +226,7 @@ export const addStudent = async (req, res) => {
           email,
           fullName,
           hasPassword: Boolean(password),
+          temporaryPassword: password,
         }),
       );
       console.log(`✅ Email sent successfully to: ${email}`);
@@ -470,7 +473,14 @@ export const bulkUploadInstructors = async (req, res) => {
 
         // Send email (non-blocking, don't fail transaction if email fails)
         try {
-          await sendInstructorInvite(email, fullName);
+          await sendInstructorInvite(
+            await buildInvitePayload({
+              email,
+              fullName,
+              hasPassword: false,
+              temporaryPassword: null,
+            }),
+          );
           console.log(`  📧 Email sent to: ${email}`);
         } catch (emailError) {
           console.error(`  ⚠️ Email failed for ${email}:`, emailError.message);
@@ -707,7 +717,14 @@ export const bulkUploadStudents = async (req, res) => {
 
         // Send email (non-blocking)
         try {
-          await sendStudentInvite(email, fullName);
+          await sendStudentInvite(
+            await buildInvitePayload({
+              email,
+              fullName,
+              hasPassword: false,
+              temporaryPassword: null,
+            }),
+          );
           console.log(`  📧 Email sent to: ${email}`);
         } catch (emailError) {
           console.error(`  ⚠️ Email failed for ${email}:`, emailError.message);
