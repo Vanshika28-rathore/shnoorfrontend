@@ -11,6 +11,7 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import CreatePassword from "./pages/auth/CreatePassword";
 import AdminLayout from "./components/layout/AdminLayout";
 import InstructorLayout from "./components/layout/InstructorLayout";
 import StudentLayout from "./components/layout/StudentLayout";
@@ -91,6 +92,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/create-password" element={<CreatePassword />} />
 
             <Route
               path="/admin"

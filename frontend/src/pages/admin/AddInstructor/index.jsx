@@ -19,6 +19,7 @@ const AddInstructor = () => {
   const [data, setData] = useState({
     fullName: "",
     email: "",
+    password: "",
     subject: "",
     phone: "",
     bio: "",
@@ -41,6 +42,7 @@ const AddInstructor = () => {
         {
           fullName: data.fullName,
           email: data.email,
+          password: data.password,
           subject: data.subject,
           phone: data.phone,
           bio: data.bio,

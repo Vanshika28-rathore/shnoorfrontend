@@ -19,6 +19,7 @@ const AddStudent = () => {
     const [data, setData] = useState({
         fullName: "",
         email: "",
+        password: "",
         phone: "",
         college: "",
     });
@@ -40,6 +41,7 @@ const AddStudent = () => {
                 {
                     fullName: data.fullName,
                     email: data.email,
+                    password: data.password,
                     phone: data.phone,
                     college: data.college,
                 },

@@ -1,8 +1,8 @@
 import React from 'react';
-import { User, Mail, BookOpen, Phone, Info, GraduationCap, CheckCircle2, ArrowLeft, Upload, FileText, Check, X, AlertCircle } from 'lucide-react';
+import { User, Mail, BookOpen, Phone, Info, GraduationCap, CheckCircle2, ArrowLeft, Upload, FileText, X, LockKeyhole } from 'lucide-react';
 
 const AddInstructorView = ({
-    loading, data, handleChange, handleSubmit, navigate, showSuccessPopup, setShowSuccessPopup,
+    loading, data, error, handleChange, handleSubmit, navigate, showSuccessPopup, setShowSuccessPopup,
     showBulkUpload, setShowBulkUpload, handleBulkFileSelect, bulkFile, handleBulkUpload,
     bulkUploadProgress, isBulkUploading, bulkUploadResult, closeBulkUpload
 }) => {
@@ -50,6 +50,12 @@ const AddInstructorView = ({
                         Bulk Upload (CSV)
                     </button>
                 </div>
+                {error && (
+                    <div className="mx-6 lg:mx-8 mt-4 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-sm font-medium flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></div>
+                        {error}
+                    </div>
+                )}
                 <form onSubmit={handleSubmit} className="p-6 lg:p-8 pt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
@@ -96,6 +102,17 @@ const AddInstructorView = ({
                                                focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 focus:bg-white transition-all placeholder:text-slate-300" />
                             </div>
                         </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Password (Optional)</label>
+                            <div className="relative group">
+                                <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <input name="password" type="password" value={data.password} onChange={handleChange}
+                                    placeholder="Leave blank to send a create-password email"
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 font-medium
+                                               focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 focus:bg-white transition-all placeholder:text-slate-300" />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="space-y-2 mb-6">
@@ -131,7 +148,7 @@ const AddInstructorView = ({
                             <CheckCircle2 size={32} />
                         </div>
                         <h3 className="text-xl font-bold text-primary-900 mb-2">Instructor Added!</h3>
-                        <p className="text-slate-400 text-sm mb-6">The instructor has been created and an invite email has been sent.</p>
+                        <p className="text-slate-400 text-sm mb-6">The instructor has been created and the invite email includes the next login steps.</p>
                         <button onClick={() => setShowSuccessPopup()}
                             className="w-full py-3 text-white font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-indigo-500/20 text-sm"
                             style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' }}>

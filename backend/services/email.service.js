@@ -1,76 +1,85 @@
-import { sendMail } from "../config/mailer.js"; // the resend mailer you created
-export const sendInstructorInvite = async (emailOrObj, name) => {
-  let email;
-  let displayName;
+import { sendMail } from "../config/mailer.js";
 
+const defaultFrontendUrl = (process.env.FRONTEND_URL || "https://lms.shnoor.com").replace(/\/$/, "");
+
+const normalizeInviteInput = (emailOrObj, name) => {
   if (typeof emailOrObj === "object" && emailOrObj !== null) {
-    email = emailOrObj.email;
-    displayName = emailOrObj.name || emailOrObj.displayName;
-  } else {
-    email = emailOrObj;
-    displayName = name;
+    return {
+      email: emailOrObj.email,
+      displayName: emailOrObj.name || emailOrObj.displayName,
+      createPasswordUrl: emailOrObj.createPasswordUrl || null,
+      loginUrl: emailOrObj.loginUrl || `${defaultFrontendUrl}/login`,
+      hasPredefinedPassword: Boolean(emailOrObj.hasPredefinedPassword),
+    };
   }
 
-  if (!email) {
-    console.error("sendInstructorInvite: missing email");
+  return {
+    email: emailOrObj,
+    displayName: name,
+    createPasswordUrl: null,
+    loginUrl: `${defaultFrontendUrl}/login`,
+    hasPredefinedPassword: false,
+  };
+};
+
+const buildInviteHtml = ({ displayName, roleLabel, createPasswordUrl, loginUrl, hasPredefinedPassword }) => {
+  const passwordSection = createPasswordUrl
+    ? `
+        <p>Set your password before signing in.</p>
+        <p>
+          <a href="${createPasswordUrl}" style="display:inline-block;padding:12px 18px;background:#4f46e5;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;">
+            Create Password
+          </a>
+        </p>
+      `
+    : hasPredefinedPassword
+      ? `<p>Your account password was set during account creation. Use it to sign in to your dashboard.</p>`
+      : `<p>Use the link below to sign in to your dashboard.</p>`;
+
+  return `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:600px;">
+      <h2 style="margin-bottom:8px;">Welcome to SHNOOR LMS</h2>
+      <p>Hello <b>${displayName || ""}</b>,</p>
+      <p>You have been added as a ${roleLabel}.</p>
+      ${passwordSection}
+      <p>
+        <a href="${loginUrl}" style="display:inline-block;padding:12px 18px;background:#0f172a;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;">
+          Login to Dashboard
+        </a>
+      </p>
+      <p style="color:#475569;font-size:14px;">If you did not expect this invite, please contact the SHNOOR LMS administrator.</p>
+    </div>
+  `;
+};
+
+const sendInvite = async (emailOrObj, name, roleLabel, subject) => {
+  const invite = normalizeInviteInput(emailOrObj, name);
+
+  if (!invite.email) {
+    console.error(`send${roleLabel}Invite: missing email`);
     return;
   }
 
   try {
     return await sendMail({
-      to: email,
-      subject: "You’ve been invited as an Instructor",
-      html: `
-        <h2>Welcome to SHNOOR LMS 🎓</h2>
-        <p>Hello <b>${displayName || ""}</b>,</p>
-        <p>You have been added as an Instructor.</p>
-        <p>Please login using your email.</p>
-        <br />
-        <a href="https://lms.shnoor.com/login">
-          Login to Dashboard
-        </a>
-      `,
+      to: invite.email,
+      subject,
+      html: buildInviteHtml({
+        displayName: invite.displayName,
+        roleLabel,
+        createPasswordUrl: invite.createPasswordUrl,
+        loginUrl: invite.loginUrl,
+        hasPredefinedPassword: invite.hasPredefinedPassword,
+      }),
     });
   } catch (error) {
-    console.error("Failed to send instructor invite:", error);
+    console.error(`Failed to send ${roleLabel.toLowerCase()} invite:`, error);
     throw error;
   }
 };
 
-export const sendStudentInvite = async (emailOrObj, name) => {
-  let email;
-  let displayName;
+export const sendInstructorInvite = async (emailOrObj, name) =>
+  sendInvite(emailOrObj, name, "Instructor", "You have been invited as an Instructor");
 
-  if (typeof emailOrObj === "object" && emailOrObj !== null) {
-    email = emailOrObj.email;
-    displayName = emailOrObj.name || emailOrObj.displayName;
-  } else {
-    email = emailOrObj;
-    displayName = name;
-  }
-
-  if (!email) {
-    console.error("sendStudentInvite: missing email");
-    return;
-  }
-
-  try {
-    return await sendMail({
-      to: email,
-      subject: "You've been invited as a Student",
-      html: `
-        <h2>Welcome to SHNOOR LMS 🎓</h2>
-        <p>Hello <b>${displayName || ""}</b>,</p>
-        <p>You have been added as a Student.</p>
-        <p>Please login using your email.</p>
-        <br />
-        <a href="https://lms.shnoor.com/login">
-          Login to Dashboard
-        </a>
-      `,
-    });
-  } catch (error) {
-    console.error("Failed to send student invite:", error);
-    throw error;
-  }
-};
+export const sendStudentInvite = async (emailOrObj, name) =>
+  sendInvite(emailOrObj, name, "Student", "You have been invited as a Student");

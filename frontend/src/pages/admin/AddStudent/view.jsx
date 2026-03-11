@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Phone, Building, UserPlus, CheckCircle2, ArrowLeft, Upload, FileText, Check, X, AlertCircle, Info } from 'lucide-react';
+import { User, Mail, Phone, Building, UserPlus, CheckCircle2, ArrowLeft, Upload, FileText, X, Info, LockKeyhole } from 'lucide-react';
 
 const AddStudentView = ({
     loading, data, handleChange, handleSubmit, navigate, showSuccessPopup, setShowSuccessPopup, error,
@@ -103,6 +103,17 @@ const AddStudentView = ({
                                                focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 focus:bg-white transition-all placeholder:text-slate-300" />
                             </div>
                         </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Password (Optional)</label>
+                            <div className="relative group">
+                                <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <input name="password" type="password" value={data.password} onChange={handleChange}
+                                    placeholder="Leave blank to send a create-password email"
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 font-medium
+                                               focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 focus:bg-white transition-all placeholder:text-slate-300" />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex items-center justify-end gap-3 pt-5 border-t border-slate-100">
@@ -127,7 +138,7 @@ const AddStudentView = ({
                             <CheckCircle2 size={32} />
                         </div>
                         <h3 className="text-xl font-bold text-primary-900 mb-2">Student Added!</h3>
-                        <p className="text-slate-400 text-sm mb-6">The student account has been created and is now active.</p>
+                        <p className="text-slate-400 text-sm mb-6">The student account has been created and the invite email includes the next login steps.</p>
                         <button onClick={() => setShowSuccessPopup()}
                             className="w-full py-3 text-white font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-indigo-500/20 text-sm"
                             style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' }}>
