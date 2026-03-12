@@ -1,15 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../../../api/axios';
 import { getEmbedUrl } from '../../../utils/urlHelper';
-import { Clock, ArrowRight, CheckCircle, Loader2, Play, Pause, RefreshCw } from 'lucide-react';
+import { Clock, ArrowRight, CheckCircle, Loader2, Play, Pause, FileText } from 'lucide-react';
 
-const TextStreamPlayer = ({ moduleId, url, onComplete }) => {
+const TextStreamPlayer = ({ moduleId, url }) => {
     const [loading, setLoading] = useState(true);
     const [streamData, setStreamData] = useState(null);
+    const [plainTextContent, setPlainTextContent] = useState("");
+    const [streamedWordCount, setStreamedWordCount] = useState(0);
     const [timeLeft, setTimeLeft] = useState(0);
     const [advancing, setAdvancing] = useState(false);
     const [isPlaying, setIsPlaying] = useState(true);
     const timerRef = useRef(null);
+    const plainTextContainerRef = useRef(null);
+    const isPlainTextUrl = !!url && /\.txt($|\?)/i.test(url);
+    const WORD_STREAM_DELAY_MS = 650;
 
     // If URL indicates HTML or Gamma, render iframe instead of text stream
     // Check this immediately to avoid unnecessary fetch or loading state
@@ -74,15 +79,56 @@ const TextStreamPlayer = ({ moduleId, url, onComplete }) => {
         const fetchStream = async () => {
             try {
                 setLoading(true);
-                const res = await api.get(`/api/modules/${moduleId}/stream`);
-                if (mounted) {
-                    setStreamData(res.data);
-                    // If not completed and has duration, start timer
-                    if (!res.data.completed && (res.data.currentChunk || res.data.chunk)) {
-                        setTimeLeft((res.data.currentChunk || res.data.chunk).duration_seconds || 60);
-                    } else {
-                        setTimeLeft(0);
+                setPlainTextContent("");
+                setStreamData(null);
+                let triedDirectTextUrl = false;
+
+                // For uploaded .txt files, read and render full text in player area.
+                if (url) {
+                    triedDirectTextUrl = true;
+                    try {
+                        const textRes = await api.get(url, {
+                            responseType: "text",
+                            transformResponse: [(data) => data],
+                        });
+                        const contentType = String(textRes.headers?.["content-type"] || "").toLowerCase();
+                        const isPdfResponse = contentType.includes("application/pdf");
+                        const textData = typeof textRes.data === "string" ? textRes.data : "";
+                        const canRenderAsText =
+                            isPlainTextUrl ||
+                            contentType.includes("text/plain") ||
+                            contentType.includes("text/markdown") ||
+                            contentType.includes("text/") ||
+                            contentType.includes("application/octet-stream") ||
+                            contentType === "";
+
+                        if (!isPdfResponse && canRenderAsText && textData.length > 0) {
+                            if (mounted) {
+                                setPlainTextContent(textData);
+                                setLoading(false);
+                            }
+                            return;
+                        }
+                    } catch (textErr) {
+                        console.warn("Plain text fetch failed:", textErr);
                     }
+
+                    // URL-based text modules should not fallback to stream endpoint.
+                    if (triedDirectTextUrl) {
+                        if (mounted) setLoading(false);
+                        return;
+                    }
+                }
+
+                const res = await api.get(`/api/modules/${moduleId}/stream`);
+                if (!mounted) return;
+
+                setStreamData(res.data);
+                // If not completed and has duration, start timer
+                if (!res.data.completed && (res.data.currentChunk || res.data.chunk)) {
+                    setTimeLeft((res.data.currentChunk || res.data.chunk).duration_seconds || 60);
+                } else {
+                    setTimeLeft(0);
                 }
             } catch (err) {
                 console.error("Failed to load stream:", err);
@@ -93,7 +139,37 @@ const TextStreamPlayer = ({ moduleId, url, onComplete }) => {
 
         fetchStream();
         return () => { mounted = false; clearInterval(timerRef.current); };
-    }, [moduleId]);
+    }, [moduleId, url, isPlainTextUrl]);
+
+    // Word-by-word stream effect for full plain-text modules
+    useEffect(() => {
+        if (!plainTextContent) {
+            setStreamedWordCount(0);
+            return;
+        }
+
+        const words = plainTextContent.match(/\S+\s*/g) || [];
+        setStreamedWordCount(words.length > 0 ? 1 : 0);
+
+        if (words.length <= 1) return;
+
+        const wordTimer = setInterval(() => {
+            setStreamedWordCount((prev) => {
+                if (prev >= words.length) {
+                    clearInterval(wordTimer);
+                    return prev;
+                }
+                return prev + 1;
+            });
+        }, WORD_STREAM_DELAY_MS);
+
+        return () => clearInterval(wordTimer);
+    }, [plainTextContent]);
+
+    useEffect(() => {
+        if (!plainTextContainerRef.current) return;
+        plainTextContainerRef.current.scrollTop = plainTextContainerRef.current.scrollHeight;
+    }, [streamedWordCount]);
 
     // Wrap handleNext to be usable in effect
     const handleNext = async () => {
@@ -130,6 +206,31 @@ const TextStreamPlayer = ({ moduleId, url, onComplete }) => {
         );
     }
 
+    if (plainTextContent) {
+        const plainTextWords = plainTextContent.match(/\S+\s*/g) || [];
+        const streamedText = plainTextWords.slice(0, streamedWordCount).join("");
+        const plainTextCompleted = streamedWordCount >= plainTextWords.length;
+
+        return (
+            <div ref={plainTextContainerRef} className="h-full bg-slate-900 text-slate-200 p-6 md:p-8 overflow-y-auto custom-scrollbar">
+                <div className="max-w-4xl mx-auto">
+                    <div className="mb-4 flex items-center gap-2 text-slate-300">
+                        <FileText size={18} />
+                        <h3 className="text-sm md:text-base font-semibold">Text Module</h3>
+                    </div>
+                    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 md:p-7 shadow-xl">
+                        <pre className="whitespace-pre-wrap break-words text-[15px] leading-7 font-mono text-slate-100">
+                            {streamedText}
+                            {!plainTextCompleted && (
+                                <span className="inline-block w-2 h-4 bg-indigo-400 ml-1 align-middle animate-pulse" />
+                            )}
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (!streamData) {
         // Fallback: If stream failed to load (e.g. 404 because no chunks were created) 
         // AND it is an HTML/PDF file, show an improved failure UI
@@ -157,9 +258,9 @@ const TextStreamPlayer = ({ moduleId, url, onComplete }) => {
                 <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-inner">
                     <FileText className="text-slate-600" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">Content Not Available</h3>
+                <h3 className="text-lg font-bold text-white mb-2">Text Content Not Added Yet</h3>
                 <p className="text-sm text-center max-w-xs mb-6">
-                    This module doesn't have any streaming content yet or the source is unavailable.
+                    This text module does not have readable content yet. Please contact your instructor.
                 </p>
                 {url && (
                     <a

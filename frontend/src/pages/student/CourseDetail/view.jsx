@@ -23,6 +23,46 @@ const CourseDetailView = ({
   handleContinue,
   navigate,
 }) => {
+  const formatTime = (totalSeconds) => {
+    if (!totalSeconds) return "0m 0s";
+    const totalSecs = Math.floor(totalSeconds);
+    const hours = Math.floor(totalSecs / 3600);
+    const minutes = Math.floor((totalSecs % 3600) / 60);
+    const seconds = totalSecs % 60;
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+    return `${minutes}m ${seconds}s`;
+  };
+
+  const totalCourseTime = course?.modules?.reduce(
+    (acc, m) => acc + (parseInt(m.time_spent_seconds) || 0),
+    0
+  ) || 0;
+
+  const getModuleTypeMeta = (type) => {
+    if (type === "video") {
+      return {
+        label: "Video",
+        className: "bg-indigo-100 text-indigo-700",
+      };
+    }
+    if (
+      type === "pdf" ||
+      type === "text_stream" ||
+      type === "html" ||
+      type === "text" ||
+      type === "notes"
+    ) {
+      return {
+        label: "Notes",
+        className: "bg-emerald-100 text-emerald-700",
+      };
+    }
+    return {
+      label: type || "Module",
+      className: "bg-slate-100 text-slate-700",
+    };
+  };
+
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -60,9 +100,9 @@ const CourseDetailView = ({
         <ArrowLeft size={16} /> Back to Courses
       </button>
 
-      {}
+      { }
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {}
+        { }
         <div className="lg:col-span-2 space-y-8">
           <div>
             <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 uppercase tracking-wide mb-4">
@@ -116,51 +156,51 @@ const CourseDetailView = ({
           {(course.prereq_description ||
             (course.prereq_video_urls && course.prereq_video_urls.length > 0) ||
             course.prereq_pdf_url) && (
-            <div className="bg-white border border-slate-200 p-6 shadow-sm rounded-2xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                  <Info className="text-amber-600" size={16} />
+              <div className="bg-white border border-slate-200 p-6 shadow-sm rounded-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                    <Info className="text-amber-600" size={16} />
+                  </div>
+                  <h3 className="text-lg font-bold text-amber-900">
+                    Pre-requirements
+                  </h3>
                 </div>
-                <h3 className="text-lg font-bold text-amber-900">
-                  Pre-requirements
-                </h3>
-              </div>
 
-              {course.prereq_description && (
-                <p className=" mb-4 leading-relaxed">
-                  {course.prereq_description}
-                </p>
-              )}
+                {course.prereq_description && (
+                  <p className=" mb-4 leading-relaxed">
+                    {course.prereq_description}
+                  </p>
+                )}
 
-              <div className="flex flex-wrap gap-3">
-                {Array.isArray(course.prereq_video_urls) &&
-                  course.prereq_video_urls.map((videoUrl, index) => (
+                <div className="flex flex-wrap gap-3">
+                  {Array.isArray(course.prereq_video_urls) &&
+                    course.prereq_video_urls.map((videoUrl, index) => (
+                      <a
+                        key={index}
+                        href={videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-amber-100 font-semibold rounded-lg transition-colors text-sm"
+                      >
+                        <Play size={14} />
+                        Watch Video {index + 1}
+                      </a>
+                    ))}
+
+                  {course.prereq_pdf_url && (
                     <a
-                      key={index}
-                      href={videoUrl}
+                      href={course.prereq_pdf_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-amber-100 font-semibold rounded-lg transition-colors text-sm"
                     >
-                      <Play size={14} />
-                      Watch Video {index + 1}
+                      <FileText size={14} />
+                      Download PDF
                     </a>
-                  ))}
-
-                {course.prereq_pdf_url && (
-                  <a
-                    href={course.prereq_pdf_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-amber-100 font-semibold rounded-lg transition-colors text-sm"
-                  >
-                    <FileText size={14} />
-                    Download PDF
-                  </a>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
           <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-xl font-bold text-primary-900 mb-6">
               What you'll learn
@@ -186,10 +226,67 @@ const CourseDetailView = ({
             </div>
           </div>
 
+          {/* Course Progress Tracking */}
+          {isEnrolled && course.modules && course.modules.length > 0 && (
+            <div className="bg-white p-8 rounded-2xl border border-indigo-100 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500 rounded-l-2xl"></div>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-xl font-bold text-primary-900">
+                    Your Learning Progress
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">Track your time spent across the course modules</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-bold text-slate-500 mb-1 uppercase tracking-wider">Total Time Spent</div>
+                  <div className="text-2xl font-extrabold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl inline-block shadow-sm">
+                    {formatTime(totalCourseTime)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full text-left text-sm whitespace-nowrap">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="px-6 py-4 font-bold text-slate-600">Module</th>
+                      <th className="px-6 py-4 font-bold text-slate-600">Type</th>
+                      <th className="px-6 py-4 font-bold text-slate-600 text-right">Time Spent</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {course.modules.map((module, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${parseInt(module.time_spent_seconds) > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                              {parseInt(module.time_spent_seconds) > 0 ? <CheckCircle size={14} /> : <Clock size={14} />}
+                            </div>
+                            <span className="font-semibold text-slate-700 max-w-[200px] truncate" title={module.title}>
+                              Lesson {idx + 1}: {module.title}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full ${getModuleTypeMeta(module.type).className}`}>
+                            {getModuleTypeMeta(module.type).label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">
+                          {formatTime(module.time_spent_seconds)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* Course Content */}
           <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-xl font-bold text-primary-900 mb-6">
-              Course Content
+              Syllabus Overview
             </h3>
             <div className="space-y-4">
               {course.modules?.map((module, idx) => (
@@ -249,7 +346,7 @@ const CourseDetailView = ({
             </div>
           </div>
           <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <CourseComments courseId={course.courses_id} />
+            <CourseComments courseId={course.courses_id || course.id} />
           </div>
         </div>
 
