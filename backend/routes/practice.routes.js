@@ -10,6 +10,8 @@ import {
   createChallenge,
   deleteChallenge,
   bulkUploadChallenges,
+  runPracticeCode,
+  submitPracticeCode,
 } from "../controllers/practice.controller.js";
 import multer from "multer";
 
@@ -35,6 +37,8 @@ router.use(attachUser);
 
 // 📖 All authenticated users
 router.get("/", getChallenges);
+router.post("/run", runPracticeCode);
+router.post("/submit", submitPracticeCode);
 router.get("/:id", getChallengeById);
 
 // ✍️ Only instructor & admin

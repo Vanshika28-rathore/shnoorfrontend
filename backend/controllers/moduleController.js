@@ -63,23 +63,53 @@ export const addModules = async (req, res) => {
         ]
       );
 
-      // Handle text_stream chunking for batch upload
-      if (m.type === "text_stream" && m.notes) {
+      // Handle text_stream chunking for batch upload or file upload
+      if (m.type === "text_stream") {
         const moduleId = result.rows[0].module_id;
-        const chunks = m.notes.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
-        if (chunks.length > 0) {
-          const chunkVals = [];
-          const chunkPlaceholders = [];
-          for (let k = 0; k < chunks.length; k++) {
-            chunkVals.push(moduleId, chunks[k], k, 1);
-            const o = k * 4;
-            chunkPlaceholders.push(`($${o + 1}, $${o + 2}, $${o + 3}, $${o + 4})`);
+        let textToChunk = m.notes || "";
+
+        // If no notes but we have a content_url that might be a local text file
+        if (!textToChunk && m.content_url && m.content_url.includes("/uploads/")) {
+          try {
+            const filename = m.content_url.split("/uploads/").pop();
+            const filePath = path.join(process.cwd(), "uploads", filename);
+            if (fs.existsSync(filePath) && (filename.endsWith(".txt") || filename.endsWith(".md"))) {
+              textToChunk = fs.readFileSync(filePath, "utf-8");
+            }
+          } catch (readError) {
+            console.error("Error reading text stream file:", readError);
           }
-          await pool.query(
-            `INSERT INTO module_text_chunks (module_id, content, chunk_order, duration_seconds)
-             VALUES ${chunkPlaceholders.join(", ")}`,
-            chunkVals
-          );
+        }
+
+        if (textToChunk) {
+          const chunks = textToChunk.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
+          if (chunks.length > 0) {
+            const chunkVals = [];
+            const chunkPlaceholders = [];
+            for (let k = 0; k < chunks.length; k++) {
+              chunkVals.push(moduleId, chunks[k], k, 1);
+              const o = k * 4;
+              chunkPlaceholders.push(`($${o + 1}, $${o + 2}, $${o + 3}, $${o + 4})`);
+            }
+            // Batch inserts to avoid too many parameters in a single query if file is large
+            const batchSize = 100; // 100 chunks * 4 params = 400 params (safe)
+            for (let i = 0; i < chunkPlaceholders.length; i += batchSize) {
+              const pBatch = chunkPlaceholders.slice(i, i + batchSize);
+              const vBatch = chunkVals.slice(i * 4, (i + batchSize) * 4);
+
+              // We need to re-index the placeholders for each batch
+              const rebindexedPlaceholders = pBatch.map((_, idx) => {
+                const base = idx * 4;
+                return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
+              });
+
+              await pool.query(
+                `INSERT INTO module_text_chunks (module_id, content, chunk_order, duration_seconds)
+                 VALUES ${rebindexedPlaceholders.join(", ")}`,
+                vBatch
+              );
+            }
+          }
         }
       }
     }
@@ -175,7 +205,15 @@ export const getModulePdf = async (req, res) => {
       }
 
       if (filePath && fs.existsSync(filePath)) {
-        res.setHeader("Content-Type", "application/pdf");
+        const ext = path.extname(filePath).toLowerCase();
+        const mimeByExt = {
+          ".pdf": "application/pdf",
+          ".txt": "text/plain; charset=utf-8",
+          ".md": "text/plain; charset=utf-8",
+          ".html": "text/html; charset=utf-8",
+          ".htm": "text/html; charset=utf-8",
+        };
+        res.setHeader("Content-Type", mimeByExt[ext] || "application/octet-stream");
         return res.sendFile(filePath);
       }
 

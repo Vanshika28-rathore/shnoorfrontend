@@ -5,45 +5,6 @@ import { validateBulkInstructors } from "../utils/csvValidator.js";
 import csvParser from "csv-parser";
 import { Readable } from "stream";
 const baseUrl = process.env.BACKEND_URL;
-const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
-
-const normalizeOptionalPassword = (password) => {
-  if (typeof password !== "string") {
-    return undefined;
-  }
-
-  const trimmed = password.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-};
-
-const validateOptionalPassword = (password) => {
-  if (!password) {
-    return null;
-  }
-
-  if (password.length < 6) {
-    return "Password must be at least 6 characters long";
-  }
-
-  return null;
-};
-
-const buildCreatePasswordUrl = async (email) => {
-  const resetLink = await admin.auth().generatePasswordResetLink(email);
-  const resetUrl = new URL(resetLink);
-  const params = new URLSearchParams(resetUrl.search);
-  params.set("email", email);
-  return `${frontendUrl}/create-password?${params.toString()}`;
-};
-
-const buildInvitePayload = async ({ email, fullName, hasPassword, temporaryPassword }) => ({
-  email,
-  name: fullName,
-  loginUrl: `${frontendUrl}/login`,
-  createPasswordUrl: await buildCreatePasswordUrl(email),
-  hasPredefinedPassword: hasPassword,
-  temporaryPassword: temporaryPassword || null,
-});
 
 export const getMyProfile = async (req, res) => {
   try {
@@ -91,40 +52,64 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const addInstructor = async (req, res) => {
-  const { fullName, email, subject, phone, bio } = req.body;
-  const password = normalizeOptionalPassword(req.body.password);
-
-  const passwordError = validateOptionalPassword(password);
-  if (passwordError) {
-    return res.status(400).json({ message: passwordError });
-  }
+  const fullName = req.body?.fullName?.trim();
+  const email = req.body?.email?.trim()?.toLowerCase();
+  const subject = req.body?.subject?.trim();
+  const phone = req.body?.phone?.trim() || null;
+  const bio = req.body?.bio?.trim() || null;
+  let firebaseUid = null;
+  const client = await pool.connect();
 
   try {
-    console.log(`📝 Attempting to add instructor: ${email}`);
+    // Basic payload validation to avoid DB/Firebase hard failures.
+    if (!fullName || !email || !subject) {
+      return res.status(400).json({
+        message: "fullName, email, and subject are required",
+      });
+    }
 
-    // 1️⃣ Check duplicate email
-    const existing = await pool.query("SELECT 1 FROM users WHERE email = $1", [
-      email,
-    ]);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
+    }
+
+    // 1) Check duplicate email in DB (case-insensitive)
+    const existing = await client.query(
+      "SELECT 1 FROM users WHERE LOWER(email) = LOWER($1)",
+      [email],
+    );
 
     if (existing.rows.length > 0) {
-      console.log(`⚠️ Duplicate email detected: ${email}`);
       return res.status(409).json({
         message: "An account with this email already exists",
       });
     }
 
-    // 2️⃣ Create Firebase user
+    // 2) Check duplicate email in Firebase Auth
+    try {
+      await admin.auth().getUserByEmail(email);
+      return res.status(409).json({
+        message: "An account with this email already exists",
+      });
+    } catch (firebaseCheckError) {
+      if (firebaseCheckError.code !== "auth/user-not-found") {
+        throw firebaseCheckError;
+      }
+    }
+
+    // 3) Create Firebase user
     const firebaseUser = await admin.auth().createUser({
       email,
       displayName: fullName,
-      ...(password ? { password } : {}),
     });
+    firebaseUid = firebaseUser.uid;
 
-    console.log(`✅ Firebase user created: ${firebaseUser.uid}`);
+    // 4) Insert user/profile in one DB transaction
+    await client.query("BEGIN");
 
-    // 3️⃣ Insert user
-    const userResult = await pool.query(
+    const userResult = await client.query(
       `INSERT INTO users (firebase_uid, full_name, email, role, status)
        VALUES ($1, $2, $3, 'instructor', 'active')
        RETURNING user_id`,
@@ -133,49 +118,80 @@ export const addInstructor = async (req, res) => {
 
     const instructorId = userResult.rows[0].user_id;
 
-    console.log(`✅ Instructor record created with ID: ${instructorId}`);
-
-    // 4️⃣ Insert instructor profile
-    await pool.query(
+    await client.query(
       `INSERT INTO instructor_profiles (instructor_id, subject, phone, bio)
        VALUES ($1, $2, $3, $4)`,
-      [instructorId, subject, phone || null, bio || null],
+      [instructorId, subject, phone, bio],
     );
 
-    // ✅ 5️⃣ SEND SUCCESS RESPONSE FIRST
+    await client.query("COMMIT");
+
+    // 5) Send success response first
     res.status(201).json({
       message: "Instructor created successfully",
     });
 
-    // 🔵 6️⃣ SEND EMAIL (DO NOT BREAK API IF IT FAILS)
+    // 6) Send invite (do not break API if email fails)
     try {
-      console.log(`📧 Attempting to send instructor invite to: ${email}`);
-      await sendInstructorInvite(
-        await buildInvitePayload({
-          email,
-          fullName,
-          hasPassword: Boolean(password),
-          temporaryPassword: password,
-        }),
-      );
-      console.log(`✅ Instructor invite sent successfully to: ${email}`);
+      await sendInstructorInvite(email, fullName);
     } catch (mailError) {
-      console.error(`❌ Instructor invite failed for ${email}:`, mailError?.message || mailError);
+      console.error("SMTP failed:", mailError);
     }
   } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("addInstructor rollback error:", rollbackError);
+    }
+
+    // Avoid orphan Firebase users when DB insert fails after Firebase creation.
+    if (firebaseUid) {
+      try {
+        await admin.auth().deleteUser(firebaseUid);
+      } catch (cleanupError) {
+        console.error("addInstructor Firebase cleanup failed:", cleanupError);
+      }
+    }
+
+    if (error.code === "auth/email-already-exists" || error.code === "23505") {
+      return res.status(409).json({
+        message: "An account with this email already exists",
+      });
+    }
+
+    if (error.code === "auth/invalid-email") {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
+    }
+
+    if (error.code === "22001") {
+      return res.status(400).json({
+        message: "One or more fields are too long (subject max length is 100)",
+      });
+    }
+
+    if (error.code === "23503") {
+      return res.status(400).json({
+        message: "Failed to create instructor profile due to invalid reference data",
+      });
+    }
+
     console.error("addInstructor error:", error);
-    res.status(500).json({ message: "Failed to create instructor" });
+    res.status(500).json({
+      message: "Failed to create instructor",
+      details:
+        process.env.NODE_ENV === "production"
+          ? undefined
+          : error.message || "Unknown server error",
+    });
+  } finally {
+    client.release();
   }
 };
 
 export const addStudent = async (req, res) => {
   const { fullName, email, phone, bio } = req.body;
-  const password = normalizeOptionalPassword(req.body.password);
-
-  const passwordError = validateOptionalPassword(password);
-  if (passwordError) {
-    return res.status(400).json({ message: passwordError });
-  }
 
   try {
     console.log(`📝 Attempting to add student: ${email}`);
@@ -196,7 +212,6 @@ export const addStudent = async (req, res) => {
     const firebaseUser = await admin.auth().createUser({
       email,
       displayName: fullName,
-      ...(password ? { password } : {}),
     });
 
     console.log(`✅ Firebase user created: ${firebaseUser.uid}`);
@@ -221,14 +236,7 @@ export const addStudent = async (req, res) => {
     // 🔵 5️⃣ SEND EMAIL (DO NOT BREAK API IF IT FAILS)
     try {
       console.log(`📧 Attempting to send email to: ${email}`);
-      await sendStudentInvite(
-        await buildInvitePayload({
-          email,
-          fullName,
-          hasPassword: Boolean(password),
-          temporaryPassword: password,
-        }),
-      );
+      await sendStudentInvite(email, fullName);
       console.log(`✅ Email sent successfully to: ${email}`);
     } catch (mailError) {
       console.error("SMTP failed:", mailError);
@@ -473,14 +481,7 @@ export const bulkUploadInstructors = async (req, res) => {
 
         // Send email (non-blocking, don't fail transaction if email fails)
         try {
-          await sendInstructorInvite(
-            await buildInvitePayload({
-              email,
-              fullName,
-              hasPassword: false,
-              temporaryPassword: null,
-            }),
-          );
+          await sendInstructorInvite(email, fullName);
           console.log(`  📧 Email sent to: ${email}`);
         } catch (emailError) {
           console.error(`  ⚠️ Email failed for ${email}:`, emailError.message);
@@ -717,14 +718,7 @@ export const bulkUploadStudents = async (req, res) => {
 
         // Send email (non-blocking)
         try {
-          await sendStudentInvite(
-            await buildInvitePayload({
-              email,
-              fullName,
-              hasPassword: false,
-              temporaryPassword: null,
-            }),
-          );
+          await sendStudentInvite(email, fullName);
           console.log(`  📧 Email sent to: ${email}`);
         } catch (emailError) {
           console.error(`  ⚠️ Email failed for ${email}:`, emailError.message);

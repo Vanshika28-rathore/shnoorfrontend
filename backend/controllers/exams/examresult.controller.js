@@ -13,21 +13,19 @@ export const getMyExamResults = async (req, res) => {
     const { rows } = await pool.query(
       `
       SELECT
-        es.exam_submission_id,
-        e.exam_id,
+        er.exam_id,
         e.title AS exam_title,
         e.duration,
         e.pass_percentage,
-        es.total_marks,
-        es.scored_marks,
-        es.percentage,
-        es.is_passed,
-        es.evaluated_at,
-        es.created_at
-      FROM exam_submissions es
-      JOIN exams e ON e.exam_id = es.exam_id
-      WHERE es.student_id = $1
-      ORDER BY es.created_at DESC
+        er.total_marks,
+        er.obtained_marks,
+        er.percentage,
+        er.passed,
+        er.evaluated_at
+      FROM exam_results er
+      JOIN exams e ON e.exam_id = er.exam_id
+      WHERE er.student_id = $1
+      ORDER BY er.evaluated_at DESC
       `,
       [studentId]
     );
@@ -47,25 +45,42 @@ export const getMyExamResults = async (req, res) => {
 export const getMyExamResultByExam = async (req, res) => {
   try {
     const studentId = req.user.id;
-    const { examId } = req.params;
+    let { examId } = req.params;
+
+    if (examId && examId.startsWith("final_")) {
+      const courseId = examId.replace("final_", "");
+      const { rows: resolvedExams } = await pool.query(
+        `
+        SELECT e.exam_id 
+        FROM exams e
+        LEFT JOIN exam_attempts ea ON ea.exam_id = e.exam_id AND ea.student_id = $2
+        WHERE e.course_id = $1
+        ORDER BY (ea.exam_id IS NOT NULL) DESC, e.created_at DESC
+        LIMIT 1
+        `,
+        [courseId, studentId]
+      );
+      if (resolvedExams.length) {
+        console.log(`🔍 RESOLVED getMyExamResultByExam ID from ${examId} to ${resolvedExams[0].exam_id}`);
+        examId = resolvedExams[0].exam_id;
+      }
+    }
 
     const { rows } = await pool.query(
       `
       SELECT
-        es.exam_submission_id,
-        e.exam_id,
+        er.exam_id,
         e.title AS exam_title,
         e.pass_percentage,
-        es.total_marks,
-        es.scored_marks,
-        es.percentage,
-        es.is_passed,
-        es.evaluated_at,
-        es.created_at
-      FROM exam_submissions es
-      JOIN exams e ON e.exam_id = es.exam_id
-      WHERE es.student_id = $1
-        AND es.exam_id = $2
+        er.total_marks,
+        er.obtained_marks,
+        er.percentage,
+        er.passed,
+        er.evaluated_at
+      FROM exam_results er
+      JOIN exams e ON e.exam_id = er.exam_id
+      WHERE er.student_id = $1
+        AND er.exam_id = $2
       LIMIT 1
       `,
       [studentId, examId]
@@ -109,20 +124,18 @@ export const getExamResultsForInstructor = async (req, res) => {
     const { rows } = await pool.query(
       `
       SELECT
-        es.exam_submission_id,
         u.user_id AS student_id,
         u.full_name AS student_name,
         u.email,
-        es.total_marks,
-        es.scored_marks,
-        es.percentage,
-        es.is_passed,
-        es.evaluated_at,
-        es.created_at
-      FROM exam_submissions es
-      JOIN users u ON u.user_id = es.student_id
-      WHERE es.exam_id = $1
-      ORDER BY es.created_at DESC
+        er.total_marks,
+        er.obtained_marks,
+        er.percentage,
+        er.passed,
+        er.evaluated_at
+      FROM exam_results er
+      JOIN users u ON u.user_id = er.student_id
+      WHERE er.exam_id = $1
+      ORDER BY er.evaluated_at DESC
       `,
       [examId]
     );
@@ -130,6 +143,54 @@ export const getExamResultsForInstructor = async (req, res) => {
     res.status(200).json(rows);
   } catch (err) {
     console.error("getExamResultsForInstructor error:", err);
+    res.status(500).json({ message: "Failed to fetch exam results" });
+  }
+};
+
+/**
+ * ======================================
+ * ADMIN: Get results for an exam
+ * ======================================
+ */
+export const getExamResultsForAdmin = async (req, res) => {
+  try {
+    const { examId } = req.params;
+
+    const examCheck = await pool.query(
+      `
+      SELECT exam_id
+      FROM exams
+      WHERE exam_id = $1
+      `,
+      [examId]
+    );
+
+    if (examCheck.rows.length === 0) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    const { rows } = await pool.query(
+      `
+      SELECT
+        u.user_id AS student_id,
+        u.full_name AS student_name,
+        u.email,
+        er.total_marks,
+        er.obtained_marks,
+        er.percentage,
+        er.passed,
+        er.evaluated_at
+      FROM exam_results er
+      JOIN users u ON u.user_id = er.student_id
+      WHERE er.exam_id = $1
+      ORDER BY er.evaluated_at DESC
+      `,
+      [examId]
+    );
+
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error("getExamResultsForAdmin error:", err);
     res.status(500).json({ message: "Failed to fetch exam results" });
   }
 };

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProblemDescription from '../../components/exam/ProblemDescription';
 import CodeEditorPanel from '../../components/exam/CodeEditorPanel';
@@ -14,11 +13,20 @@ const PracticeSession = ({ question: propQuestion, value, onChange }) => {
     const [fetchedQuestion, setFetchedQuestion] = useState(null);
     const [loading, setLoading] = useState(!isEmbedded);
     const [consoleOutput, setConsoleOutput] = useState([]);
+    const [testResults, setTestResults] = useState(null);
     const [isRunning, setIsRunning] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState('javascript');
     const [code, setCode] = useState('');
+    const [submitMessage, setSubmitMessage] = useState(null);
+
+    // Ref to let CodeEditorPanel switch tabs
+    const switchTabRef = useRef(null);
 
     const question = isEmbedded ? propQuestion : fetchedQuestion;
+    const embeddedTestCases = isEmbedded
+        ? (propQuestion?.testCases || propQuestion?.test_cases || [])
+        : [];
 
     const languageTemplates = {
         javascript: '// Write your JavaScript code here\n',
@@ -29,40 +37,36 @@ const PracticeSession = ({ question: propQuestion, value, onChange }) => {
     };
 
     // ✅ Fetch question from backend
-useEffect(() => {
-    if (isEmbedded) {
-        setCode(value || propQuestion.starterCode || languageTemplates.javascript);
-        setLoading(false);
-        return;
-    }
-
-    const fetchQuestion = async () => {
-        try {
-            const res = await api.get(`/api/practice/${challengeId}`);
-
-            const data = res.data;
-
-            // 🔥 map DB → frontend
-            const mapped = {
-                id: data.challenge_id,
-                title: data.title,
-                description: data.description,
-                starterCode: data.starter_code,
-                testCases: data.test_cases
-            };
-
-            setFetchedQuestion(mapped);
-            setCode(mapped.starterCode || languageTemplates.javascript);
-
-        } catch (err) {
-            console.error("Failed to fetch challenge:", err);
+    useEffect(() => {
+        if (isEmbedded) {
+            setCode(value || propQuestion.starterCode || languageTemplates.javascript);
+            setLoading(false);
+            return;
         }
-        setLoading(false);
-    };
 
-    fetchQuestion();
-}, [challengeId, isEmbedded, propQuestion, value]);
+        const fetchQuestion = async () => {
+            try {
+                const res = await api.get(`/api/practice/${challengeId}`);
+                const data = res.data;
 
+                const mapped = {
+                    id: data.challenge_id,
+                    title: data.title,
+                    description: data.description,
+                    starterCode: data.starter_code,
+                    testCases: data.test_cases
+                };
+
+                setFetchedQuestion(mapped);
+                setCode(mapped.starterCode || languageTemplates.javascript);
+            } catch (err) {
+                console.error("Failed to fetch challenge:", err);
+            }
+            setLoading(false);
+        };
+
+        fetchQuestion();
+    }, [challengeId, isEmbedded, propQuestion, value]);
 
     const handleLanguageChange = (lang) => {
         setSelectedLanguage(lang);
@@ -76,28 +80,133 @@ useEffect(() => {
         if (isEmbedded && onChange) onChange(newCode);
     };
 
-    // ✅ Send code to backend instead of Piston
- const handleRun = async () => {
-    setIsRunning(true);
-    setConsoleOutput([]);
+    // ✅ RUN — execute code and show test results
+    const handleRun = async () => {
+        setIsRunning(true);
+        setConsoleOutput([]);
+        setTestResults(null);
+        setSubmitMessage(null);
 
-    try {
-        const res = await api.post('/api/practice/run', {
-            code,
-            language: selectedLanguage,
-            challengeId
-        });
+        try {
+            const qId = isEmbedded ? (propQuestion?.id ?? propQuestion?.question_id) : challengeId;
+            const res = await api.post('/api/practice/run', {
+                code,
+                language: selectedLanguage,
+                challengeId: qId,
+                testCases: isEmbedded ? embeddedTestCases : undefined,
+                isExamMode: isEmbedded
+            });
 
-        setConsoleOutput(res.data.results);
-    } catch (err) {
-        setConsoleOutput([
-            { type: 'error', msg: err.response?.data?.message || err.message }
-        ]);
-    }
+            const data = res.data;
+            const runResults = Array.isArray(data.results) ? data.results : [];
+            const normalizedResults = runResults.length > 0
+                ? runResults
+                : [{
+                    testCaseNumber: 1,
+                    passed: false,
+                    isPublic: true,
+                    input: '',
+                    expectedOutput: '',
+                    actualOutput: '',
+                    error: data?.message || 'Run failed: No test results returned',
+                }];
 
-    setIsRunning(false);
-};
+            // Store structured test results
+            setTestResults({
+                results: normalizedResults,
+                summary: data.summary || {
+                    total: normalizedResults.length,
+                    passed: normalizedResults.filter(r => r.passed).length,
+                    failed: normalizedResults.filter(r => !r.passed).length
+                },
+                passed: data.passed
+            });
 
+            // Also populate console with any errors
+            const errorLogs = (data.results || [])
+                .filter(r => r.error)
+                .map(r => ({ type: 'error', msg: `Test ${r.testCaseNumber}: ${r.error}` }));
+
+            if (errorLogs.length > 0) {
+                setConsoleOutput(errorLogs);
+            }
+
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message || 'Run failed';
+            setConsoleOutput([
+                { type: 'error', msg: errorMsg }
+            ]);
+            setTestResults({
+                results: [{
+                    testCaseNumber: 1,
+                    passed: false,
+                    isPublic: true,
+                    input: '',
+                    expectedOutput: '',
+                    actualOutput: '',
+                    error: errorMsg,
+                }],
+                summary: { total: 1, passed: 0, failed: 1 },
+                passed: false,
+            });
+        }
+
+        setIsRunning(false);
+    };
+
+    // ✅ SUBMIT — run all test cases and save the submission
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        setSubmitMessage(null);
+
+        try {
+            const qId = isEmbedded ? (propQuestion?.id ?? propQuestion?.question_id) : challengeId;
+
+            const res = await api.post('/api/practice/submit', {
+                code,
+                language: selectedLanguage,
+                challengeId: qId,
+                testCases: isEmbedded ? embeddedTestCases : undefined,
+                isExamMode: isEmbedded
+            });
+
+            const data = res.data;
+
+            // Show test results from submission
+            setTestResults({
+                results: data.results || [],
+                summary: data.summary || {
+                    total: (data.results || []).length,
+                    passed: (data.results || []).filter(r => r.passed).length,
+                    failed: (data.results || []).filter(r => !r.passed).length
+                },
+                passed: data.passed
+            });
+
+            // Show submission success message
+            const totalPassed = data.summary?.passed || 0;
+            const totalTests = data.summary?.total || 0;
+
+            if (data.passed) {
+                setSubmitMessage({
+                    type: 'success',
+                    text: `🎉 All ${totalTests} test cases passed! Solution submitted successfully.`
+                });
+            } else {
+                setSubmitMessage({
+                    type: 'partial',
+                    text: `Submitted! ${totalPassed}/${totalTests} test cases passed.`
+                });
+            }
+        } catch (err) {
+            setSubmitMessage({
+                type: 'error',
+                text: err.response?.data?.message || 'Submission failed. Please try again.'
+            });
+        }
+
+        setIsSubmitting(false);
+    };
 
     if (loading) {
         return <div className="p-8 text-center text-slate-500">Loading challenge...</div>;
@@ -113,19 +222,40 @@ useEffect(() => {
                 <ProblemDescription question={question} />
             </div>
 
-            <div className="w-[60%] h-full relative">
-                <CodeEditorPanel
-                    question={question}
-                    startCode={code}
-                    language={selectedLanguage}
-                    onLanguageChange={handleLanguageChange}
-                    onCodeChange={handleCodeChange}
-                    onRun={handleRun}
-                    onSubmit={isEmbedded ? null : () => {}}
-                    isRunning={isRunning}
-                    consoleOutput={consoleOutput}
-                    isEmbedded={isEmbedded}
-                />
+            <div className="w-[60%] h-full relative flex flex-col">
+                {/* Submit message banner */}
+                {submitMessage && (
+                    <div className={`px-4 py-2 text-sm font-semibold flex items-center justify-between ${submitMessage.type === 'success'
+                            ? 'bg-emerald-600 text-white'
+                            : submitMessage.type === 'partial'
+                                ? 'bg-amber-500 text-white'
+                                : 'bg-red-600 text-white'
+                        }`}>
+                        <span>{submitMessage.text}</span>
+                        <button
+                            onClick={() => setSubmitMessage(null)}
+                            className="ml-2 text-white/80 hover:text-white text-lg leading-none"
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
+                <div className="flex-1 min-h-0">
+                    <CodeEditorPanel
+                        question={question}
+                        startCode={code}
+                        language={selectedLanguage}
+                        onLanguageChange={handleLanguageChange}
+                        onCodeChange={handleCodeChange}
+                        onRun={handleRun}
+                        onSubmit={isEmbedded ? null : handleSubmit}
+                        isRunning={isRunning}
+                        isSubmitting={isSubmitting}
+                        consoleOutput={consoleOutput}
+                        testResults={testResults}
+                        isEmbedded={isEmbedded}
+                    />
+                </div>
             </div>
         </div>
     );

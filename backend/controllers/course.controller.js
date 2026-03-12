@@ -117,7 +117,6 @@ export const getInstructorCourses = async (req, res) => {
           'type', m.type,
           'duration', m.duration_mins,
           'order', m.module_order,
-          'notes', m.notes,
           'content_url', CASE 
             WHEN m.pdf_filename IS NOT NULL THEN '${baseUrl}/api/modules/' || m.module_id || '/pdf'
             ELSE m.content_url 
@@ -287,7 +286,8 @@ export const getInstructorCourseStats = async (req, res) => {
       const { rows } = await pool.query(
         `
         SELECT 
-          COUNT(*) AS total_courses
+          COUNT(*) AS total_courses,
+          (SELECT AVG(rating) FROM instructor_reviews WHERE instructor_id = $1) AS avg_rating
         FROM courses
         WHERE instructor_id = $1
         `,
@@ -296,7 +296,7 @@ export const getInstructorCourseStats = async (req, res) => {
 
       return res.json({
         total_courses: rows[0].total_courses || 0,
-        avg_rating: 4.8, // Static rating
+        avg_rating: Number(rows[0].avg_rating || 5.0).toFixed(1),
         coursesChange: 0
       });
     }
@@ -309,36 +309,42 @@ export const getInstructorCourseStats = async (req, res) => {
     const prevStart = new Date(prevEnd.getTime() - durationMs);
     const prevStartDate = prevStart.toISOString().slice(0, 10);
     const prevEndDate = prevEnd.toISOString().slice(0, 10);
+    
+    // Add AVG rating to the filtered query as well
+    const ratingRes = await pool.query(
+      `SELECT AVG(rating) as avg_rating FROM instructor_reviews WHERE instructor_id = $1`,
+      [instructorId]
+    );
 
-    // Current period - Courses created in this period
-    const currentResult = await pool.query(
-      `
-      SELECT 
-        COUNT(*) AS total_courses
-      FROM courses
-      WHERE instructor_id = $1 AND created_at::date BETWEEN $2 AND $3
-      `,
+    const { rows: currentStats } = await pool.query(
+      `SELECT COUNT(*) AS total_courses FROM courses WHERE instructor_id = $1 AND created_at::date BETWEEN $2 AND $3`,
       [instructorId, startDate, endDate]
     );
 
-    // Previous period - Courses created in previous period
-    const prevResult = await pool.query(
-      `
-      SELECT COUNT(*) AS total_courses
-      FROM courses
-      WHERE instructor_id = $1 AND created_at::date BETWEEN $2 AND $3
-      `,
+    const { rows: prevStats } = await pool.query(
+      `SELECT COUNT(*) AS total_courses FROM courses WHERE instructor_id = $1 AND created_at::date BETWEEN $2 AND $3`,
       [instructorId, prevStartDate, prevEndDate]
     );
 
-    const currentCourses = Number(currentResult.rows[0].total_courses) || 0;
-    const prevCourses = Number(prevResult.rows[0].total_courses) || 0;
+    const currentCourses = Number(currentStats[0].total_courses) || 0;
+    const prevCourses = Number(prevStats[0].total_courses) || 0;
     const coursesChange = prevCourses > 0 ? ((currentCourses - prevCourses) / prevCourses * 100).toFixed(2) : 0;
 
-    res.json({
+    const performanceDataRes = await pool.query(
+      `SELECT TO_CHAR(CURRENT_DATE - gs.day, 'Mon DD') as name, COUNT(DISTINCT mp.student_id) as students 
+       FROM generate_series(6, 0, -1) as gs(day) 
+       LEFT JOIN module_progress mp ON DATE(COALESCE(mp.last_accessed_at, mp.completed_at)) = (CURRENT_DATE - gs.day) 
+         AND mp.course_id IN (SELECT courses_id FROM courses WHERE instructor_id = $1) 
+       GROUP BY gs.day 
+       ORDER BY gs.day DESC`,
+      [instructorId]
+    );
+
+    return res.json({
       total_courses: currentCourses,
-      avg_rating: 4.8, // Static rating
-      coursesChange
+      avg_rating: Number(ratingRes.rows[0].avg_rating || 5.0).toFixed(1),
+      coursesChange,
+      performanceData: performanceDataRes.rows
     });
   } catch (err) {
     console.error("Instructor course stats error:", err);
@@ -405,7 +411,11 @@ export const exploreCourses = async (req, res) => {
         c.schedule_start_at,
         c.thumbnail_url,
         c.instructor_id,
-        u.full_name AS instructor_name
+        u.full_name AS instructor_name,
+        true AS is_assigned,
+        false AS is_enrolled,
+        CASE WHEN c.price_type = 'paid' THEN true ELSE false END AS is_paid,
+        false AS is_completed
       FROM courses c
       LEFT JOIN users u ON u.user_id = c.instructor_id
       WHERE c.status = 'approved'
@@ -965,7 +975,7 @@ export const editModule = async (req, res) => {
     const instructorId = req.user.id;
 
     const ownerCheck = await pool.query(
-      `SELECT m.module_id, m.course_id, m.type
+      `SELECT m.module_id, m.course_id
        FROM modules m
        JOIN courses c ON c.courses_id = m.course_id
        WHERE m.module_id = $1 AND c.instructor_id = $2`,
@@ -978,73 +988,39 @@ export const editModule = async (req, res) => {
 
     const { title, type, content_url, notes, duration_mins } = req.body;
 
-    const hasField = (key) => Object.prototype.hasOwnProperty.call(req.body, key);
-    const hasTitle = hasField("title");
-    const hasType = hasField("type");
-    const hasContentUrl = hasField("content_url");
-    const hasNotes = hasField("notes");
-    const hasDuration = hasField("duration_mins");
-
-    if (hasTitle && !String(title || "").trim()) {
-      return res.status(400).json({ message: "Title cannot be empty" });
+    if (!title || !type) {
+      return res.status(400).json({ message: "Title and type are required" });
     }
 
     const fields = [];
     const values = [];
     let idx = 1;
 
-    if (hasTitle) {
-      fields.push(`title = $${idx++}`);
-      values.push(String(title).trim());
-    }
+    fields.push(`title = $${idx++}`); values.push(title);
+    fields.push(`type = $${idx++}`); values.push(type);
+    fields.push(`notes = $${idx++}`); values.push(notes || null);
 
-    if (hasType) {
-      fields.push(`type = $${idx++}`);
-      values.push(type);
-    }
-
-    if (hasNotes) {
-      fields.push(`notes = $${idx++}`);
-      values.push(notes || null);
-    }
-
-    if (hasDuration && duration_mins !== "") {
+    if (duration_mins !== undefined && duration_mins !== "") {
       fields.push(`duration_mins = $${idx++}`);
       values.push(Number(duration_mins));
-    } else if (hasDuration && duration_mins === "") {
-      fields.push(`duration_mins = $${idx++}`);
-      values.push(null);
     }
 
-    if (req.file) {
+    if (content_url) {
+      // Link / URL mode — clear any stored file data
+      fields.push(`content_url = $${idx++}`); values.push(content_url);
+      fields.push(`pdf_data = $${idx++}`); values.push(null);
+      fields.push(`pdf_filename = $${idx++}`); values.push(null);
+      fields.push(`pdf_mime = $${idx++}`); values.push(null);
+    } else if (req.file) {
       // Upload mode — store binary, clear URL
       fields.push(`pdf_data = $${idx++}`); values.push(req.file.buffer);
       fields.push(`pdf_filename = $${idx++}`); values.push(req.file.originalname);
       fields.push(`pdf_mime = $${idx++}`); values.push(req.file.mimetype);
       fields.push(`content_url = $${idx++}`); values.push(null);
-    } else if (hasContentUrl) {
-      // Link / URL mode — clear any stored file data when URL is provided/changed.
-      const nextContentUrl = String(content_url || "").trim();
-      fields.push(`content_url = $${idx++}`);
-      values.push(nextContentUrl || null);
-      if (nextContentUrl) {
-        fields.push(`pdf_data = $${idx++}`); values.push(null);
-        fields.push(`pdf_filename = $${idx++}`); values.push(null);
-        fields.push(`pdf_mime = $${idx++}`); values.push(null);
-      }
     }
 
-    if (fields.length === 0) {
-      return res.status(400).json({ message: "No changes provided" });
-    }
-
-    const effectiveType = hasType ? type : ownerCheck.rows[0].type;
-    const isNotesPdfUrl =
-      typeof notes === "string" &&
-      (/^https?:\/\//i.test(notes) || notes.includes("/uploads/") || /\.pdf($|\?)/i.test(notes));
-
-    // Re-chunk text_stream content only when notes is being updated with inline text content.
-    if (hasNotes && effectiveType === "text_stream" && notes && !isNotesPdfUrl) {
+    // Re-chunk text_stream content when notes change
+    if (type === "text_stream" && notes) {
       const chunks = notes.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
       await pool.query(`DELETE FROM module_text_chunks WHERE module_id = $1`, [moduleId]);
       if (chunks.length > 0) {
@@ -1148,12 +1124,8 @@ export const addModule = async (req, res) => {
       newModule.content_url = newModule.resolved_url;
     }
 
-    const isNotesPdfUrl =
-      typeof notes === "string" &&
-      (/^https?:\/\//i.test(notes) || notes.includes("/uploads/") || /\.pdf($|\?)/i.test(notes));
-
-    // text_stream chunking only when notes contains inline text content.
-    if (type === "text_stream" && notes && !isNotesPdfUrl) {
+    // text_stream chunking
+    if (type === "text_stream" && notes) {
       const moduleId = result.rows[0].module_id;
       const chunks = notes.split(/\s+/).filter((c) => c.length > 0).map((c) => c + " ");
       if (chunks.length > 0) {

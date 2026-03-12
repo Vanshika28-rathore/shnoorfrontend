@@ -1,5 +1,7 @@
 import pool from "../db/postgres.js";
 import { autoGradeDescriptive } from "./exams/examdescriptive.controller.js";
+import { submitExam as submitExamUnified } from "./exams/examSubmission.controller.js";
+import { issueExamCertificate } from "./certificate.controller.js";
 
 export const getStudentExams = async (req, res) => {
   const studentId = req.user.id;
@@ -13,7 +15,10 @@ export const getStudentExams = async (req, res) => {
       e.pass_percentage,
       c.title AS course_title,
       er.exam_id IS NOT NULL AS attempted,
-      ea.status AS attempt_status
+      ea.status AS attempt_status,
+      (ea.status = 'submitted' OR er.exam_id IS NOT NULL) AS is_completed,
+      er.percentage,
+      er.passed
     FROM exams e
     JOIN courses c ON c.courses_id = e.course_id
     JOIN student_courses sc ON sc.course_id = c.courses_id
@@ -22,7 +27,6 @@ export const getStudentExams = async (req, res) => {
     LEFT JOIN exam_attempts ea
       ON ea.exam_id = e.exam_id AND ea.student_id = $1
     WHERE sc.student_id = $1
-      AND (ea.status IS NULL OR ea.status != 'submitted')
     ORDER BY e.created_at DESC
     `,
     [studentId],
@@ -33,23 +37,41 @@ export const getStudentExams = async (req, res) => {
 
 export const getExamForAttempt = async (req, res) => {
   try {
-    const { examId } = req.params;
+    let { examId } = req.params;
     const studentId = req.user.id;
+    let isFinalExamLookup = false;
+
+    if (examId && examId.startsWith("final_")) {
+      const courseId = examId.replace("final_", "");
+      const { rows: resolvedExams } = await pool.query(
+        `
+        SELECT e.exam_id 
+        FROM exams e
+        LEFT JOIN exam_attempts ea ON ea.exam_id = e.exam_id AND ea.student_id = $2
+        WHERE e.course_id = $1
+        ORDER BY (ea.exam_id IS NOT NULL) DESC, e.created_at DESC
+        LIMIT 1
+        `,
+        [courseId, studentId]
+      );
+      if (resolvedExams.length) {
+        console.log(`🔍 RESOLVED getExamForAttempt ID from ${examId} to ${resolvedExams[0].exam_id}`);
+        examId = resolvedExams[0].exam_id;
+        isFinalExamLookup = true;
+      } else {
+        // Fallback or leave as is if not found
+        examId = courseId;
+        isFinalExamLookup = true;
+      }
+    }
 
     /* =========================
        1️⃣ FETCH EXAM META
     ========================= */
     const examRes = await pool.query(
-      `
-      SELECT
-        exam_id,
-        title,
-        duration,
-        pass_percentage,
-        course_id
-      FROM exams
-      WHERE exam_id = $1
-      `,
+      isFinalExamLookup
+        ? `SELECT exam_id, title, duration, pass_percentage, course_id FROM exams WHERE course_id = $1 AND (exam_type = 'final' OR 1=1) LIMIT 1`
+        : `SELECT exam_id, title, duration, pass_percentage, course_id FROM exams WHERE exam_id = $1`,
       [examId],
     );
 
@@ -58,6 +80,8 @@ export const getExamForAttempt = async (req, res) => {
     }
 
     const exam = examRes.rows[0];
+    // Sync the local examId to the actual database ID for subsequent queries
+    examId = exam.exam_id;
 
     /* =========================
        2️⃣ ENROLLMENT CHECK
@@ -172,7 +196,7 @@ export const getExamForAttempt = async (req, res) => {
       LEFT JOIN exam_questions q ON q.exam_id = e.exam_id
       LEFT JOIN exam_coding_questions cq ON q.question_id = cq.question_id
       WHERE e.exam_id = $1
-      GROUP BY e.exam_id
+      GROUP BY e.exam_id, e.title, e.duration, e.pass_percentage
       `,
       [examId],
     );
@@ -221,15 +245,27 @@ export const getExamForAttempt = async (req, res) => {
     res.json(examPayload);
   } catch (err) {
     console.error("getExamForAttempt error:", err);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error: err.message });
   }
 };
 
 export const submitExam = async (req, res) => {
+  // Delegate to the unified submit+grading pipeline to ensure
+  // MCQ, descriptive, and coding scoring stays consistent.
+  return submitExamUnified(req, res);
+
   const client = await pool.connect();
 
   try {
-    const { examId } = req.params;
+    let { examId } = req.params;
+    if (examId && examId.startsWith("final_")) {
+      const courseId = examId.replace("final_", "");
+      const { rows: resolvedExams } = await client.query(
+        "SELECT exam_id FROM exams WHERE course_id = $1 LIMIT 1",
+        [courseId]
+      );
+      if (resolvedExams.length) examId = resolvedExams[0].exam_id;
+    }
     const studentId = req.user.id;
     const { answers } = req.body;
 
@@ -350,11 +386,11 @@ export const submitExam = async (req, res) => {
         const q = questionDetails[0];
         const calculatedMarks = q
           ? autoGradeDescriptive(
-              answerText,
-              q.keywords,
-              q.min_word_count || 30,
-              q.marks
-            )
+            answerText,
+            q.keywords,
+            q.min_word_count || 30,
+            q.marks
+          )
           : 0;
 
         obtainedMarks += calculatedMarks;
@@ -417,12 +453,27 @@ export const submitExam = async (req, res) => {
 
     await client.query("COMMIT");
 
+    let certificateIssued = false;
+    if (passed) {
+      try {
+        const cert = await issueExamCertificate({
+          userId: studentId,
+          examId,
+          score: percentage
+        });
+        certificateIssued = Boolean(cert?.issued);
+      } catch (certErr) {
+        console.error("Certificate issuance error:", certErr);
+      }
+    }
+
     res.status(200).json({
       message: "Exam submitted successfully",
       totalMarks,
       obtainedMarks,
       percentage,
       passed,
+      certificateIssued
     });
   } catch (err) {
     await client.query("ROLLBACK");

@@ -6,7 +6,7 @@ export const getStudentCourseById = async (req, res) => {
     const studentId = req.user.id;
     const { courseId } = req.params;
 
-    // 1️⃣ Check assignment
+    // Student must be enrolled to access the learning player/progress.
     const assigned = await pool.query(
       `SELECT 1
        FROM student_courses
@@ -15,7 +15,7 @@ export const getStudentCourseById = async (req, res) => {
     );
 
     if (assigned.rowCount === 0) {
-      return res.status(403).json({ message: "Not assigned to this course" });
+      return res.status(403).json({ message: "Not enrolled in this course" });
     }
 
     // 2️⃣ Fetch course
@@ -48,7 +48,8 @@ export const getStudentCourseById = async (req, res) => {
            ELSE m.content_url 
          END AS url,
          m.duration_mins AS duration,
-         COALESCE(mp.time_spent_seconds, 0) AS time_spent_seconds
+         COALESCE(mp.time_spent_seconds, 0) AS time_spent_seconds,
+         COALESCE(mp.last_position_seconds, 0) AS last_position_seconds
        FROM modules m
        LEFT JOIN module_progress mp ON m.module_id = mp.module_id AND mp.student_id = $1
        WHERE m.course_id = $2
@@ -70,7 +71,7 @@ export const getStudentCourseById = async (req, res) => {
     const progressResult = await pool.query(
       `SELECT module_id
        FROM module_progress
-       WHERE student_id = $1 AND course_id = $2`,
+       WHERE student_id = $1 AND course_id = $2 AND completed_at IS NOT NULL`,
       [studentId, courseId],
     );
 
@@ -148,13 +149,15 @@ export const enrollStudent = async (req, res) => {
       });
     }
 
-    // 4️⃣ Paid course → redirect to payment
+    // 4️⃣ Paid course → bypass stripe for now and enroll directly based on user request
+    /*
     if (course.price_type === "paid") {
       return res.status(402).json({
         redirectToPayment: true,
         message: "Payment required to enroll",
       });
     }
+    */
 
     await pool.query(
       `INSERT INTO student_courses (student_id, course_id)
@@ -162,6 +165,14 @@ export const enrollStudent = async (req, res) => {
      ON CONFLICT DO NOTHING`,
       [studentId, courseId],
     );
+
+    // Emit real-time update
+    if (global.io) {
+      global.io.to(`user_${studentId}`).emit("dashboard_update", {
+        type: "enrollment",
+        courseId,
+      });
+    }
 
     res.json({
       success: true,
@@ -177,13 +188,20 @@ export const checkEnrollmentStatus = async (req, res) => {
   const studentId = req.user.id;
   const { courseId } = req.params;
 
-  const { rowCount } = await pool.query(
-    `SELECT 1 FROM student_courses
-     WHERE student_id = $1 AND course_id = $2`,
+  const enrolledRes = await pool.query(
+    `SELECT 1 FROM student_courses WHERE student_id = $1 AND course_id = $2`,
     [studentId, courseId],
   );
 
-  res.json({ enrolled: rowCount > 0 });
+  const assignedRes = await pool.query(
+    `SELECT 1 FROM course_assignments WHERE student_id = $1 AND course_id = $2`,
+    [studentId, courseId],
+  );
+
+  const enrolled = enrolledRes.rowCount > 0;
+  const assigned = assignedRes.rowCount > 0;
+
+  res.json({ enrolled, assigned: assigned || enrolled });
 };
 
 export const getMyCourses = async (req, res) => {
@@ -199,12 +217,28 @@ export const getMyCourses = async (req, res) => {
       c.difficulty,
       c.thumbnail_url,
       c.status,
-      c.created_at,
+      sc.enrolled_at AS created_at,
       c.price_type,
       c.price_amount,
       c.instructor_id,
       u.full_name AS instructor_name,
-      CASE WHEN ir.course_id IS NULL THEN false ELSE true END AS has_reviewed
+      CASE WHEN ir.course_id IS NULL THEN false ELSE true END AS has_reviewed,
+      true AS is_enrolled,
+      EXISTS (
+        SELECT 1
+        FROM course_assignments ca
+        WHERE ca.course_id = c.courses_id
+          AND ca.student_id = sc.student_id
+      ) AS is_assigned,
+      CASE WHEN c.price_type = 'paid' THEN true ELSE false END AS is_paid,
+      CASE
+        WHEN (SELECT COUNT(*) FROM modules m WHERE m.course_id = c.courses_id) > 0
+          AND (SELECT COUNT(*) FROM modules m WHERE m.course_id = c.courses_id)
+              = (SELECT COUNT(*) FROM module_progress mp
+                 WHERE mp.course_id = c.courses_id
+                   AND mp.student_id = sc.student_id
+                   AND mp.completed_at IS NOT NULL)
+        THEN true ELSE false END AS is_completed
     FROM student_courses sc
     JOIN courses c ON c.courses_id = sc.course_id
     LEFT JOIN users u ON u.user_id = c.instructor_id
@@ -212,6 +246,7 @@ export const getMyCourses = async (req, res) => {
       ON ir.course_id = c.courses_id AND ir.student_id = sc.student_id
     WHERE sc.student_id = $1
       AND c.status = 'approved'
+    ORDER BY sc.enrolled_at DESC
     `,
     [studentId],
   );
@@ -225,6 +260,24 @@ export const getRecommendedCourses = async (req, res) => {
   try {
     const result = await pool.query(
       `
+      WITH learner_categories AS (
+        SELECT DISTINCT c.category
+        FROM student_courses sc
+        JOIN courses c ON c.courses_id = sc.course_id
+        WHERE sc.student_id = $1
+          AND c.category IS NOT NULL
+      ),
+      eligible_courses AS (
+        SELECT DISTINCT c.courses_id
+        FROM courses c
+        LEFT JOIN student_courses sc
+          ON sc.course_id = c.courses_id AND sc.student_id = $1
+        LEFT JOIN course_assignments ca
+          ON ca.course_id = c.courses_id AND ca.student_id = $1
+        WHERE c.status = 'approved'
+          AND (c.schedule_start_at IS NULL OR c.schedule_start_at <= NOW())
+          AND (sc.student_id IS NOT NULL OR ca.student_id IS NOT NULL)
+      )
       SELECT 
         c.courses_id,
         c.title,
@@ -235,16 +288,30 @@ export const getRecommendedCourses = async (req, res) => {
         c.status,
         c.created_at,
         c.price_type,
-        c.price_amount
+        c.price_amount,
+        CASE WHEN sc.course_id IS NOT NULL THEN true ELSE false END AS is_enrolled,
+        CASE WHEN ca.course_id IS NOT NULL THEN true ELSE false END AS is_assigned,
+        CASE WHEN c.price_type = 'paid' THEN true ELSE false END AS is_paid,
+        CASE
+          WHEN (SELECT COUNT(*) FROM modules m WHERE m.course_id = c.courses_id) > 0
+            AND (SELECT COUNT(*) FROM modules m WHERE m.course_id = c.courses_id)
+                = (SELECT COUNT(*) FROM module_progress mp
+                   WHERE mp.course_id = c.courses_id
+                     AND mp.student_id = $1
+                     AND mp.completed_at IS NOT NULL)
+          THEN true ELSE false END AS is_completed
       FROM courses c
-      WHERE c.status = 'approved'
-      AND (c.schedule_start_at IS NULL OR c.schedule_start_at <= NOW())
-      AND c.courses_id NOT IN (
-        SELECT sc.course_id
-        FROM student_courses sc
-        WHERE sc.student_id = $1
-      )
-      ORDER BY c.created_at DESC
+      JOIN eligible_courses ec ON ec.courses_id = c.courses_id
+      LEFT JOIN student_courses sc
+        ON sc.course_id = c.courses_id AND sc.student_id = $1
+      LEFT JOIN course_assignments ca
+        ON ca.course_id = c.courses_id AND ca.student_id = $1
+      ORDER BY
+        CASE
+          WHEN c.category IN (SELECT category FROM learner_categories) THEN 0
+          ELSE 1
+        END,
+        c.created_at DESC
       `,
       [studentId],
     );

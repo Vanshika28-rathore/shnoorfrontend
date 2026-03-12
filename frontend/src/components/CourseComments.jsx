@@ -16,10 +16,16 @@ const CourseComments = ({ courseId }) => {
 
   // Fetch comments
   useEffect(() => {
+    if (!courseId || courseId === "undefined" || courseId === "null") {
+      setComments([]);
+      setLoading(false);
+      return;
+    }
     fetchComments();
   }, [courseId]);
 
   const fetchComments = async () => {
+    if (!courseId || courseId === "undefined" || courseId === "null") return;
     try {
       setLoading(true);
       const res = await api.get(`/api/courses/${courseId}/comments`);

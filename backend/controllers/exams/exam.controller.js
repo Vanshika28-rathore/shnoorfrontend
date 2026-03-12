@@ -2,14 +2,14 @@ import pool from "../../db/postgres.js";
 import { autoSubmitExam as autoSubmitExamInternal } from "./examSubmission.controller.js";
 
 export const createExam = async (req, res) => {
-    try {
-      const { title, description, duration, passPercentage, courseId, validity_value, validity_unit } = req.body;
-      const instructorId = req.user.id;
+  try {
+    const { title, description, duration, passPercentage, courseId, validity_value, validity_unit } = req.body;
+    const instructorId = req.user.id;
 
-      if (!title || !duration || !passPercentage) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-          // 🔥 RULE ENFORCEMENT
+    if (!title || !duration || !passPercentage) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+    // 🔥 RULE ENFORCEMENT
     if (!courseId) {
       // Standalone exam
       if (!validity_value || !validity_unit) {
@@ -26,64 +26,98 @@ export const createExam = async (req, res) => {
       }
     }
 
-      const { rows } = await pool.query(
-        `
+    const { rows } = await pool.query(
+      `
         INSERT INTO exams
           (title, description, duration, pass_percentage, instructor_id, course_id, validity_value, validity_unit)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING exam_id, title, duration, pass_percentage
         `,
-        [title, description, duration, passPercentage, instructorId, courseId || null, validity_value || null, validity_unit || null]
-      );
+      [title, description, duration, passPercentage, instructorId, courseId || null, validity_value || null, validity_unit || null]
+    );
 
-      res.status(201).json(rows[0]);
-    } catch (err) {
-      console.error("Create exam error:", err);
-      res.status(500).json({ message: "Failed to create exam" });
-    }
-  };
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error("Create exam error:", err);
+    res.status(500).json({ message: "Failed to create exam", error: err.message });
+  }
+};
 
 export const getInstructorExams = async (req, res) => {
-    try {
-      const instructorId = req.user.id;
+  try {
+    const instructorId = req.user.id;
 
-      const { rows } = await pool.query(
-        `
+    const { rows } = await pool.query(
+      `
         SELECT exam_id, title, duration, pass_percentage, created_at
         FROM exams
         WHERE instructor_id = $1
         ORDER BY created_at DESC
         `,
-        [instructorId]
-      );
+      [instructorId]
+    );
 
-      res.json(rows);
-    } catch (err) {
-      console.error("Fetch instructor exams error:", err);
-      res.status(500).json({ message: "Failed to fetch exams" });
-    }
+    res.json(rows);
+  } catch (err) {
+    console.error("Fetch instructor exams error:", err);
+    res.status(500).json({ message: "Failed to fetch exams" });
+  }
 };
 
 export const getAllExamsForStudents = async (req, res) => {
-    try {
-      const { rows } = await pool.query(
-        `
-        SELECT exam_id, title, duration, pass_percentage
-        FROM exams
-        ORDER BY created_at DESC
-        `
-      );
+  try {
+    const studentId = req.user.id;
 
-      res.json(rows);
-    } catch (err) {
-      console.error("Fetch exams error:", err);
-      res.status(500).json({ message: "Failed to fetch exams" });
-    }
-  };
+    const { rows } = await pool.query(
+      `
+        SELECT
+          e.exam_id,
+          e.title,
+          e.duration,
+          e.pass_percentage,
+          (ea.status = 'submitted' OR er.exam_id IS NOT NULL) AS is_completed,
+          ea.status AS attempt_status,
+          er.percentage,
+          er.passed
+        FROM exams e
+        LEFT JOIN student_courses sc
+          ON sc.course_id = e.course_id
+          AND sc.student_id = $1
+        LEFT JOIN course_assignments ca
+          ON ca.course_id = e.course_id
+          AND ca.student_id = $1
+        LEFT JOIN exam_attempts ea
+          ON ea.exam_id = e.exam_id
+          AND ea.student_id = $1
+        LEFT JOIN exam_results er
+          ON er.exam_id = e.exam_id
+          AND er.student_id = $1
+        WHERE e.course_id IS NULL
+           OR sc.student_id IS NOT NULL
+           OR ca.student_id IS NOT NULL
+        ORDER BY created_at DESC
+        `,
+      [studentId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Fetch exams error:", err);
+    res.status(500).json({ message: "Failed to fetch exams" });
+  }
+};
 
 export const setExamGraceTimer = async (req, res) => {
   try {
-    const { examId } = req.params;
+    let { examId } = req.params;
+    if (examId && examId.startsWith("final_")) {
+      const courseId = examId.replace("final_", "");
+      const { rows: resolvedExams } = await pool.query(
+        "SELECT exam_id FROM exams WHERE course_id = $1 LIMIT 1",
+        [courseId]
+      );
+      if (resolvedExams.length) examId = resolvedExams[0].exam_id;
+    }
     const { disconnect_grace_time } = req.body;
 
     // Role check
@@ -136,8 +170,28 @@ export const getAllExamsAdmin = async (req, res) => {
 
 export const saveAnswer = async (req, res) => {
   try {
-    const { examId } = req.params;
     const studentId = req.user.id;
+    let { examId } = req.params;
+    if (examId && examId.startsWith("final_")) {
+      const courseId = examId.replace("final_", "");
+      const { rows: resolvedExams } = await pool.query(
+        `
+        SELECT e.exam_id 
+        FROM exams e
+        LEFT JOIN exam_attempts ea ON ea.exam_id = e.exam_id AND ea.student_id = $2
+        WHERE e.course_id = $1
+        ORDER BY (ea.exam_id IS NOT NULL) DESC, e.created_at DESC
+        LIMIT 1
+        `,
+        [courseId, studentId]
+      );
+      if (resolvedExams.length) {
+        console.log(`🔍 RESOLVED saveAnswer ID from ${examId} to ${resolvedExams[0].exam_id}`);
+        examId = resolvedExams[0].exam_id;
+      } else {
+        examId = courseId;
+      }
+    }
     const { questionId, selectedOptionId, answerText } = req.body;
 
     if (!questionId) {
@@ -217,7 +271,7 @@ export const saveAnswer = async (req, res) => {
         [examId, questionId, studentId, selectedOptionId, marksObtained]
       );
 
-    } else if (question.question_type === "descriptive") {
+    } else if (question.question_type === "descriptive" || question.question_type === "coding") {
 
       if (!answerText) {
         return res.status(400).json({ message: "Answer required" });
@@ -253,8 +307,28 @@ export const createRewriteAttempt = async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const { examId } = req.params;
     const studentId = req.user.id;
+    let { examId } = req.params;
+    if (examId && examId.startsWith("final_")) {
+      const courseId = examId.replace("final_", "");
+      const { rows: resolvedExams } = await pool.query(
+        `
+        SELECT e.exam_id 
+        FROM exams e
+        LEFT JOIN exam_attempts ea ON ea.exam_id = e.exam_id AND ea.student_id = $2
+        WHERE e.course_id = $1
+        ORDER BY (ea.exam_id IS NOT NULL) DESC, e.created_at DESC
+        LIMIT 1
+        `,
+        [courseId, studentId]
+      );
+      if (resolvedExams.length) {
+        console.log(`🔍 RESOLVED createRewriteAttempt ID from ${examId} to ${resolvedExams[0].exam_id}`);
+        examId = resolvedExams[0].exam_id;
+      } else {
+        examId = courseId;
+      }
+    }
 
     const { rows: examRows } = await client.query(
       `SELECT duration FROM exams WHERE exam_id = $1`,
@@ -309,8 +383,28 @@ export const createRewriteAttempt = async (req, res) => {
 
 export const getExamStatus = async (req, res) => {
   try {
-    const { examId } = req.params;
     const studentId = req.user.id;
+    let { examId } = req.params;
+    if (examId && examId.startsWith("final_")) {
+      const courseId = examId.replace("final_", "");
+      const { rows: resolvedExams } = await pool.query(
+        `
+        SELECT e.exam_id 
+        FROM exams e
+        LEFT JOIN exam_attempts ea ON ea.exam_id = e.exam_id AND ea.student_id = $2
+        WHERE e.course_id = $1
+        ORDER BY (ea.exam_id IS NOT NULL) DESC, e.created_at DESC
+        LIMIT 1
+        `,
+        [courseId, studentId]
+      );
+      if (resolvedExams.length) {
+        console.log(`🔍 RESOLVED getExamStatus ID from ${examId} to ${resolvedExams[0].exam_id}`);
+        examId = resolvedExams[0].exam_id;
+      } else {
+        examId = courseId;
+      }
+    }
 
     const { rows } = await pool.query(
       `SELECT status, submitted_at FROM exam_attempts WHERE exam_id = $1 AND student_id = $2`,
@@ -333,8 +427,28 @@ export const getExamStatus = async (req, res) => {
 
 export const getExamAttempt = async (req, res) => {
   try {
-    const { examId } = req.params;
     const studentId = req.user.id;
+    let { examId } = req.params;
+    if (examId && examId.startsWith("final_")) {
+      const courseId = examId.replace("final_", "");
+      const { rows: resolvedExams } = await pool.query(
+        `
+        SELECT e.exam_id 
+        FROM exams e
+        LEFT JOIN exam_attempts ea ON ea.exam_id = e.exam_id AND ea.student_id = $2
+        WHERE e.course_id = $1
+        ORDER BY (ea.exam_id IS NOT NULL) DESC, e.created_at DESC
+        LIMIT 1
+        `,
+        [courseId, studentId]
+      );
+      if (resolvedExams.length) {
+        console.log(`🔍 RESOLVED getExamAttempt ID from ${examId} to ${resolvedExams[0].exam_id}`);
+        examId = resolvedExams[0].exam_id;
+      } else {
+        examId = courseId;
+      }
+    }
 
     const { rows } = await pool.query(
       `

@@ -1,10 +1,21 @@
 import pool from "../db/postgres.js";
 
+const isValidVoteType = (voteType) => [1, -1, 0].includes(Number(voteType));
+const isUuid = (value) =>
+  typeof value === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
 // Get all comments for a course
 export const getCourseComments = async (req, res) => {
   try {
     const { courseId } = req.params;
     const userId = req.user?.id;
+    if (!courseId || !isUuid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid courseId",
+      });
+    }
 
     const { rows } = await pool.query(
       `
@@ -52,6 +63,18 @@ export const addCourseComment = async (req, res) => {
     const { courseId } = req.params;
     const { comment_text, parent_comment_id } = req.body;
     const user_id = req.user.id;
+    if (!courseId || !isUuid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid courseId",
+      });
+    }
+    if (parent_comment_id && !isUuid(parent_comment_id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid parent_comment_id",
+      });
+    }
 
     if (!comment_text || comment_text.trim().length === 0) {
       return res.status(400).json({ 
@@ -112,6 +135,12 @@ export const updateCourseComment = async (req, res) => {
     const { commentId } = req.params;
     const { comment_text } = req.body;
     const user_id = req.user.id;
+    if (!commentId || !isUuid(commentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid commentId",
+      });
+    }
 
     if (!comment_text || comment_text.trim().length === 0) {
       return res.status(400).json({ 
@@ -186,6 +215,12 @@ export const deleteCourseComment = async (req, res) => {
   try {
     const { commentId } = req.params;
     const user_id = req.user.id;
+    if (!commentId || !isUuid(commentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid commentId",
+      });
+    }
 
     // Check if user owns the comment
     const { rows: checkRows } = await pool.query(
@@ -232,9 +267,15 @@ export const voteComment = async (req, res) => {
     const { commentId } = req.params;
     const { vote_type } = req.body; // 1 for upvote, -1 for downvote, 0 to remove vote
     const user_id = req.user.id;
+    if (!commentId || !isUuid(commentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid commentId",
+      });
+    }
 
     // Validate vote_type
-    if (![1, -1, 0].includes(vote_type)) {
+    if (!isValidVoteType(vote_type)) {
       return res.status(400).json({
         success: false,
         message: "Invalid vote type. Use 1 for upvote, -1 for downvote, 0 to remove"
@@ -276,7 +317,7 @@ export const voteComment = async (req, res) => {
         ON CONFLICT (comment_id, user_id)
         DO UPDATE SET vote_type = $3, created_at = NOW()
         `,
-        [commentId, user_id, vote_type]
+        [commentId, user_id, Number(vote_type)]
       );
     }
 
@@ -297,7 +338,7 @@ export const voteComment = async (req, res) => {
       success: true,
       vote_data: {
         ...rows[0],
-        user_vote: vote_type === 0 ? null : vote_type
+        user_vote: Number(vote_type) === 0 ? null : Number(vote_type)
       }
     });
   } catch (err) {

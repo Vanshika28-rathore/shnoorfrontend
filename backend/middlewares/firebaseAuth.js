@@ -2,12 +2,20 @@ import admin from "../services/firebaseAdmin.js";
 const firebaseAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    let token;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } else if (req.query.token) {
+      token = req.query.token;
+    }
+
+    if (!token) {
       return res
         .status(401)
         .json({ message: "Authorization token missing or invalid" });
     }
-    const token = authHeader.split(" ")[1];
+
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.firebase = {
       uid: decodedToken.uid,

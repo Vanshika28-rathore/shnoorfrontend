@@ -39,8 +39,74 @@ export const getDashboardStats = async (req, res) => {
         `SELECT COUNT(*) FROM courses WHERE status = 'review'`
       );
       
-      // Count certificates - Always 0 for now as certificates aren't issued yet
-      const certificates = 0;
+      const certificatesRes = await pool.query(
+        `SELECT COUNT(*) FROM certificates`
+      );
+      const certificates = Number(certificatesRes.rows[0].count || 0);
+
+      // --- RECENT ACTIVITY ---
+      // 1. New students
+      const newStudents = await pool.query(`
+          SELECT full_name as user, 'New student joined' as action, created_at, 'student' as type 
+          FROM users 
+          WHERE role IN ('student', 'user', 'learner') 
+          ORDER BY created_at DESC LIMIT 5
+      `);
+      
+      // 2. New instructors
+      const newInstructors = await pool.query(`
+          SELECT full_name as user, 'New instructor joined' as action, created_at, 'instructor' as type 
+          FROM users 
+          WHERE role IN ('instructor', 'company') 
+          ORDER BY created_at DESC LIMIT 5
+      `);
+      
+      // 3. Courses pending review
+      const pendingCoursesAct = await pool.query(`
+          SELECT u.full_name as user, 'Course submitted: ' || c.title as action, c.created_at, 'course_pending' as type 
+          FROM courses c
+          JOIN users u ON c.instructor_id = u.user_id
+          WHERE c.status = 'review' OR c.status = 'pending'
+          ORDER BY c.created_at DESC LIMIT 5
+      `);
+      
+      // 4. Courses approved
+      const approvedCoursesAct = await pool.query(`
+          SELECT u.full_name as user, 'Course approved: ' || c.title as action, c.created_at, 'course_approved' as type 
+          FROM courses c
+          JOIN users u ON c.instructor_id = u.user_id
+          WHERE c.status = 'approved'
+          ORDER BY c.created_at DESC LIMIT 5
+      `);
+
+      let recentActivity = [
+          ...newStudents.rows, 
+          ...newInstructors.rows, 
+          ...pendingCoursesAct.rows, 
+          ...approvedCoursesAct.rows
+      ];
+      
+      recentActivity.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      recentActivity = recentActivity.slice(0, 10);
+
+      // --- CHART DATA (Last 7 Days Assignments/Lessons) ---
+      const chartQuery = `
+          SELECT 
+              TO_CHAR(d.date, 'Dy') as name,
+              COUNT(ca.assigned_at) as lessons
+          FROM (
+              SELECT current_date - i as date
+              FROM generate_series(6, 0, -1) i
+          ) d
+          LEFT JOIN course_assignments ca ON DATE(ca.assigned_at) = d.date
+          GROUP BY d.date
+          ORDER BY d.date ASC;
+      `;
+      const chartDataRes = await pool.query(chartQuery);
+      const chartData = chartDataRes.rows.map(row => ({
+          name: row.name,
+          lessons: Number(row.lessons)
+      }));
 
       return res.status(200).json({
         totalStudents: Number(studentsResult.rows[0].count),
@@ -51,7 +117,9 @@ export const getDashboardStats = async (req, res) => {
         instructorsChange: 0,
         pendingCoursesChange: 0,
         startDate: null,
-        endDate: null
+        endDate: null,
+        recentActivity,
+        chartData
       });
     }
 
@@ -110,8 +178,68 @@ export const getDashboardStats = async (req, res) => {
     const pendingCourses = Number(pendingCoursesResult.rows[0].count);
     const prevPendingCourses = Number(prevPendingCoursesResult.rows[0].count);
 
-    // Certificates - Always 0 for now as certificates aren't issued yet
-    const certificates = 0;
+    const certificatesRes = await pool.query(
+      `SELECT COUNT(*) FROM certificates WHERE issued_at::date BETWEEN $1 AND $2`,
+      [startDate, endDate]
+    );
+    const certificates = Number(certificatesRes.rows[0].count || 0);
+
+    // --- RECENT ACTIVITY ---
+    const newStudentsAct = await pool.query(`
+        SELECT full_name as user, 'New student joined' as action, created_at, 'student' as type 
+        FROM users 
+        WHERE role IN ('student', 'user', 'learner') 
+        ORDER BY created_at DESC LIMIT 5
+    `);
+    const newInstructorsAct = await pool.query(`
+        SELECT full_name as user, 'New instructor joined' as action, created_at, 'instructor' as type 
+        FROM users 
+        WHERE role IN ('instructor', 'company') 
+        ORDER BY created_at DESC LIMIT 5
+    `);
+    const pendingCoursesActFiltered = await pool.query(`
+        SELECT u.full_name as user, 'Course submitted: ' || c.title as action, c.created_at, 'course_pending' as type 
+        FROM courses c
+        JOIN users u ON c.instructor_id = u.user_id
+        WHERE c.status = 'review' OR c.status = 'pending'
+        ORDER BY c.created_at DESC LIMIT 5
+    `);
+    const approvedCoursesActFiltered = await pool.query(`
+        SELECT u.full_name as user, 'Course approved: ' || c.title as action, c.created_at, 'course_approved' as type 
+        FROM courses c
+        JOIN users u ON c.instructor_id = u.user_id
+        WHERE c.status = 'approved'
+        ORDER BY c.created_at DESC LIMIT 5
+    `);
+
+    let recentActivityFiltered = [
+        ...newStudentsAct.rows, 
+        ...newInstructorsAct.rows, 
+        ...pendingCoursesActFiltered.rows, 
+        ...approvedCoursesActFiltered.rows
+    ];
+    
+    recentActivityFiltered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    recentActivityFiltered = recentActivityFiltered.slice(0, 10);
+
+    // --- CHART DATA (Last 7 Days Assignments/Lessons) ---
+    const chartQuery = `
+        SELECT 
+            TO_CHAR(d.date, 'Dy') as name,
+            COUNT(ca.assigned_at) as lessons
+        FROM (
+            SELECT current_date - i as date
+            FROM generate_series(6, 0, -1) i
+        ) d
+        LEFT JOIN course_assignments ca ON DATE(ca.assigned_at) = d.date
+        GROUP BY d.date
+        ORDER BY d.date ASC;
+    `;
+    const chartDataRes = await pool.query(chartQuery);
+    const chartData = chartDataRes.rows.map(row => ({
+        name: row.name,
+        lessons: Number(row.lessons)
+    }));
 
     res.status(200).json({
       totalStudents,
@@ -122,7 +250,9 @@ export const getDashboardStats = async (req, res) => {
       instructorsChange: calculateChange(totalInstructors, prevInstructors),
       pendingCoursesChange: calculateChange(pendingCourses, prevPendingCourses),
       startDate,
-      endDate
+      endDate,
+      recentActivity: recentActivityFiltered,
+      chartData
     });
   } catch (error) {
     console.error("Admin dashboard stats error:", error);
@@ -168,20 +298,49 @@ export const assignCourses = async (req, res) => {
     let allStudentIds = [...studentIds];
 
     if (groupIds.length > 0) {
-      const groupStudentsResult = await pool.query(
-        `SELECT DISTINCT gu.user_id
-         FROM group_users gu
-         JOIN users u ON gu.user_id = u.user_id
-         WHERE gu.group_id = ANY($1::uuid[])
-           AND u.role = 'student'
-           AND u.status = 'active'`,
-        [groupIds],
+      const groupsRes = await pool.query(
+        `SELECT group_id, group_name, start_date, end_date, created_by 
+         FROM groups WHERE group_id = ANY($1::uuid[])`,
+        [groupIds]
       );
 
-      const groupStudentIds = groupStudentsResult.rows.map(
-        (row) => row.user_id,
-      );
-      allStudentIds = [...new Set([...allStudentIds, ...groupStudentIds])]; // Remove duplicates
+      for (const group of groupsRes.rows) {
+        if (group.created_by) {
+          // Manual group
+          const res = await pool.query(
+            `SELECT DISTINCT gu.user_id
+             FROM group_users gu
+             JOIN users u ON gu.user_id = u.user_id
+             WHERE gu.group_id = $1
+               AND u.role IN ('student', 'user', 'learner')
+               AND u.status = 'active'`,
+            [group.group_id]
+          );
+          res.rows.forEach(r => allStudentIds.push(r.user_id));
+        } else if (group.start_date && group.end_date) {
+          // Timestamp group
+          const res = await pool.query(
+            `SELECT user_id FROM users u
+             WHERE u.created_at >= $1 AND u.created_at <= $2
+               AND u.role IN ('student', 'user', 'learner') AND u.status = 'active'`,
+            [group.start_date, group.end_date]
+          );
+          res.rows.forEach(r => allStudentIds.push(r.user_id));
+        } else {
+          // College group
+          const res = await pool.query(
+            `SELECT user_id FROM users u
+             WHERE u."college" IS NOT NULL
+               AND REGEXP_REPLACE(UPPER(TRIM(u."college")), '[,.\\-_() ]+', ' ', 'g') = 
+                   REGEXP_REPLACE(UPPER(TRIM($1)), '[,.\\-_() ]+', ' ', 'g')
+               AND u.role IN ('student', 'user', 'learner') AND u.status = 'active'`,
+             [group.group_name]
+          );
+          res.rows.forEach(r => allStudentIds.push(r.user_id));
+        }
+      }
+
+      allStudentIds = [...new Set(allStudentIds)]; // Remove duplicates
     }
 
     if (allStudentIds.length === 0) {
@@ -251,6 +410,14 @@ export const assignCourses = async (req, res) => {
                 is_read: false,
                 created_at: notifRes.rows[0].created_at,
               });
+
+              // 🚀 EMIT DASHBOARD UPDATE
+              if (global.io) {
+                global.io.to(`user_${studentId}`).emit("dashboard_update", {
+                  type: "course_assigned",
+                  courseId,
+                });
+              }
             } catch (insertErr) {
               console.error(
                 `Failed to insert notification for ${studentId} (course ${courseId}):`,

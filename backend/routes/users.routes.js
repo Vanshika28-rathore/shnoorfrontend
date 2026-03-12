@@ -33,7 +33,8 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const uploadProfilePictureFile = multer({ storage });
+const uploadCsv = multer({ storage: multer.memoryStorage() });
 
 router.get(
   "/me",
@@ -71,7 +72,7 @@ router.post(
   firebaseAuth,
   attachUser,
   roleGuard("admin"),
-  upload.single("csv"),
+  uploadCsv.single("csv"),
   bulkUploadInstructors
 );
 
@@ -80,7 +81,7 @@ router.post(
   firebaseAuth,
   attachUser,
   roleGuard("admin"),
-  upload.single("csv"),
+  uploadCsv.single("csv"),
   bulkUploadStudents
 );
 
@@ -103,7 +104,7 @@ router.post(
   "/upload-profile-picture",
   firebaseAuth,
   attachUser,
-  upload.single("file"),
+  uploadProfilePictureFile.single("file"),
   uploadProfilePicture
 );
 export default router;

@@ -17,7 +17,8 @@ import {
 import {
   getMyExamResults,
   getMyExamResultByExam,
-  getExamResultsForInstructor
+  getExamResultsForInstructor,
+  getExamResultsForAdmin
 } from "../controllers/exams/examresult.controller.js";
 
 import {
@@ -66,7 +67,7 @@ router.post(
   "/:examId/submit",
   firebaseAuth,
   attachUser,
-  roleGuard("student", "learner"),
+  roleGuard("student", "learner", "user"),
   submitExam
 );
 
@@ -108,7 +109,7 @@ router.get(
   "/results/my",
   firebaseAuth,
   attachUser,
-  roleGuard("student", "learner"),
+  roleGuard("student", "learner", "user"),
   getMyExamResults
 );
 
@@ -116,8 +117,16 @@ router.get(
   "/results/:examId",
   firebaseAuth,
   attachUser,
-  roleGuard("student", "learner"),
+  roleGuard("student", "learner", "user"),
   getMyExamResultByExam
+);
+
+router.get(
+  "/admin/:examId/results",
+  firebaseAuth,
+  attachUser,
+  roleGuard("admin"),
+  getExamResultsForAdmin
 );
 
 router.get(
@@ -150,7 +159,7 @@ router.get(
   "/",
   firebaseAuth,
   attachUser,
-  roleGuard("student", "learner"),
+  roleGuard("student", "learner", "user"),
   getAllExamsForStudents
 );
 
@@ -174,7 +183,7 @@ router.post(
   "/:examId/save-answer",
   firebaseAuth,
   attachUser,
-  roleGuard("student", "learner"),
+  roleGuard("student", "learner", "user"),
   saveAnswer
 );
 
@@ -182,7 +191,7 @@ router.post(
   "/:examId/rewrite",
   firebaseAuth,
   attachUser,
-  roleGuard("student", "learner"),
+  roleGuard("student", "learner", "user"),
   createRewriteAttempt
 );
 
@@ -190,7 +199,7 @@ router.get(
   "/:examId/status",
   firebaseAuth,
   attachUser,
-  roleGuard("student", "learner"),
+  roleGuard("student", "learner", "user"),
   getExamStatus
 );
 
@@ -198,7 +207,7 @@ router.get(
   "/:examId/attempt",
   firebaseAuth,
   attachUser,
-  roleGuard("student", "learner"),
+  roleGuard("student", "learner", "user"),
   getExamAttempt
 );
 

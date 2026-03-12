@@ -337,22 +337,66 @@ export const getInstructorStudentCount = async (req, res) => {
     const instructorId = req.user.id;
     let { startDate, endDate } = req.query;
 
-    // Since course_assignments table doesn't have created_at column,
-    // we'll return all students for now regardless of date range
-    const { rows } = await pool.query(
+    if (!startDate || !endDate) {
+      const { rows } = await pool.query(
+        `
+        SELECT COUNT(DISTINCT student_id) AS total_students
+        FROM (
+          SELECT student_id, course_id FROM course_assignments
+          UNION
+          SELECT student_id, course_id FROM student_courses
+        ) combined
+        JOIN courses c ON combined.course_id = c.courses_id
+        WHERE c.instructor_id = $1
+        `,
+        [instructorId]
+      );
+
+      return res.json({
+        total_students: rows[0].total_students || 0,
+        studentsChange: 0
+      });
+    }
+
+    // Previous period
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const durationMs = end - start;
+    const prevEnd = new Date(start.getTime() - 86400000);
+    const prevStart = new Date(prevEnd.getTime() - durationMs);
+
+    const prevStartDate = prevStart.toISOString().slice(0, 10);
+    const prevEndDate = prevEnd.toISOString().slice(0, 10);
+
+    // Current period students
+    const currentResult = await pool.query(
       `
-      SELECT COUNT(DISTINCT ca.student_id) AS total_students
+      SELECT COUNT(DISTINCT student_id) AS total_students
       FROM course_assignments ca
       JOIN courses c ON ca.course_id = c.courses_id
-      WHERE c.instructor_id = $1
+      WHERE c.instructor_id = $1 AND ca.assigned_at::date BETWEEN $2 AND $3
       `,
-      [instructorId]
+      [instructorId, startDate, endDate]
     );
 
-    // Note: studentsChange is 0 because we can't track historical enrollment without timestamp
-    return res.json({
-      total_students: rows[0].total_students || 0,
-      studentsChange: 0
+    // Previous period students
+    const prevResult = await pool.query(
+      `
+      SELECT COUNT(DISTINCT student_id) AS total_students
+      FROM course_assignments ca
+      JOIN courses c ON ca.course_id = c.courses_id
+      WHERE c.instructor_id = $1 AND ca.assigned_at::date BETWEEN $2 AND $3
+      `,
+      [instructorId, prevStartDate, prevEndDate]
+    );
+
+    const currentStudents = Number(currentResult.rows[0].total_students) || 0;
+    const prevStudents = Number(prevResult.rows[0].total_students) || 0;
+    const studentsChange = prevStudents > 0 ? ((currentStudents - prevStudents) / prevStudents * 100).toFixed(2) : 0;
+
+    res.json({
+      total_students: currentStudents,
+      studentsChange
     });
   } catch (err) {
     console.error("Instructor student count error:", err);
@@ -385,4 +429,3 @@ export const getInstructorEnrolledStudents = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch enrolled students" });
   }
 };
-

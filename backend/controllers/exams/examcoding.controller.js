@@ -16,15 +16,14 @@ export const addCodingQuestion = async (req, res) => {
       testcases,
     } = req.body;
 
-    if (
-      !title ||
-      !description ||
-      !Array.isArray(testcases) ||
-      testcases.length === 0
-    ) {
-      return res.status(400).json({
-        message: "Invalid coding question payload",
-      });
+    if (!title) {
+      return res.status(400).json({ message: "Invalid coding question payload: Problem Title is required" });
+    }
+    if (!description) {
+      return res.status(400).json({ message: "Invalid coding question payload: Question Description is required" });
+    }
+    if (!Array.isArray(testcases) || testcases.length === 0) {
+      return res.status(400).json({ message: "Invalid coding question payload: At least one test case is required" });
     }
 
     for (const tc of testcases) {
