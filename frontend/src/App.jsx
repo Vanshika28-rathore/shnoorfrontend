@@ -24,7 +24,8 @@ import ApproveCourses from "./pages/admin/ApproveCourses";
 import AssignCourse from "./pages/admin/AssignCourse";
 import CertificateConfig from "./pages/admin/CertificateConfig";
 import AddInstructor from "./pages/admin/AddInstructor";
-
+import AdminLiveProctoring from "./pages/admin/AdminLiveProctoring";
+import AdminViolations from "./pages/admin/AdminViolations";
 import InstructorDashboard from "./pages/instructor/InstructorDashboard";
 import AddCourse from "./pages/instructor/AddCourse";
 import CourseList from "./pages/instructor/CourseList";
@@ -45,6 +46,7 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import Suspended from "./pages/auth/Suspended";
 import PracticeSession from "./pages/student/PracticeSession";
 import Landing from "./pages/Landing";
+import VerifyCertificate from "./pages/public/VerifyCertificate";
 import Contact from "./pages/Contact";
 import ProfileSettings from "./pages/shared/ProfileSettings";
 import StudentExams from "./pages/student/StudentExams";
@@ -125,6 +127,8 @@ function App() {
                 path="profile-management"
                 element={<ProfileManagement />}
               />
+              <Route path="proctoring" element={<AdminLiveProctoring />} />
+              <Route path="violations" element={<AdminViolations />} />
             </Route>
 
             <Route

@@ -8,9 +8,82 @@ import {
   FaTimesCircle,
   FaCheckCircle,
   FaCode,
+  FaVideo,
+  FaCamera,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import PracticeSession from "../PracticeSession.jsx";
 import SecurityViolationModal from "../../../components/exam/SecurityViolationModal.jsx";
+
+const CameraPreview = ({ stream, isHidden = false }) => {
+  const videoRef = React.useRef(null);
+  React.useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+  if (!stream) return null;
+  return (
+    <div className={`fixed bottom-6 right-6 w-48 h-36 bg-slate-900 rounded-lg shadow-2xl border-2 border-indigo-500 overflow-hidden z-50 ring-4 ring-indigo-500/20 transition-opacity ${isHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        className="w-full h-full object-cover transform -scale-x-100"
+      />
+      <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-0.5 bg-red-500 rounded-full">
+        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+        <span className="text-[10px] font-bold text-white uppercase tracking-wider">Live</span>
+      </div>
+    </div>
+  );
+};
+
+const ProctoringSetup = ({ startCamera, error, examTitle, navigate }) => {
+  return (
+    <div className="flex items-center justify-center min-h-[80vh] bg-slate-50 font-sans p-6">
+      <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200 w-full max-w-2xl text-center">
+        <div className="space-y-8">
+          <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto ring-8 ring-indigo-50">
+            <FaVideo size={36} />
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Live Proctoring Setup</h2>
+            <p className="text-slate-500 text-lg">
+              To ensure integrity, this exam for <strong className="text-slate-900">{examTitle}</strong> requires a live camera feed.
+            </p>
+          </div>
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-6 text-left space-y-4">
+            <h4 className="flex items-center gap-2 font-bold text-amber-800">
+              <FaCamera className="text-amber-600" /> Proctoring Rules:
+            </h4>
+            <ul className="text-sm text-amber-800/80 space-y-2 list-disc pl-5 font-medium">
+              <li>Ensure you are in a well-lit room.</li>
+              <li>Your face must be clearly visible throughout the exam.</li>
+              <li>Do not leave the camera frame until submission.</li>
+              <li>Browser will request camera permission next.</li>
+            </ul>
+          </div>
+          {error && (
+            <div className="flex items-center gap-3 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-sm font-medium text-left">
+              <FaExclamationTriangle className="shrink-0" />
+              {error}
+            </div>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+            <button className="px-8 py-4 border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-slate-800 transition-all" onClick={() => navigate(-1)}>
+              Go Back
+            </button>
+            <button className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-indigo-200" onClick={startCamera}>
+              Start Camera & Exam
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SECTION_CONFIG = {
   mcq: { label: "MCQ", color: "bg-indigo-600", ring: "ring-indigo-400", badge: "bg-indigo-100 text-indigo-700", icon: "📝" },
@@ -46,48 +119,75 @@ const ExamRunnerView = ({
   sections,
   availableSections,
   handleSectionChange,
+  // Proctoring Props
+  isProctored,
+  stream,
+  proctoringError,
+  startCamera,
+  // AI Props
+  isSuspicious,
+  isVoiceSuspicious,
+  multipleFacesDetected,
+  detections,
 }) => {
   const [hasStarted, setHasStarted] = React.useState(false);
 
   const handleStartExam = () => {
+    if (!isProctored) {
+      startCamera();
+      return;
+    }
     triggerFullscreen();
     setHasStarted(true);
   };
 
   /* =========================
-     START SCREEN
+     PROCTORING SETUP / START SCREEN
   ========================= */
-  if (!hasStarted && !loading && exam && !isSubmitted) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-100 font-sans">
-        <div className="bg-white p-10 rounded-xl shadow-lg border border-slate-200 text-center max-w-lg w-full">
-          <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FaCode size={32} />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">{exam.title}</h1>
-          <p className="text-slate-500 mb-8 leading-relaxed">
-            This is a secured assessment. Full-screen mode will be enabled, and
-            tab switching is monitored.
-          </p>
-          <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg text-sm text-amber-800 mb-8 text-left space-y-2">
-            <p className="font-bold flex items-center gap-2">
-              <FaTimesCircle /> Security Rules:
+  if (!isSubmitted && !loading && exam) {
+    if (!isProctored) {
+      return (
+        <ProctoringSetup
+          startCamera={startCamera}
+          error={proctoringError}
+          examTitle={exam.title}
+          navigate={navigate}
+        />
+      );
+    }
+
+    if (!hasStarted) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-slate-100 font-sans">
+          <div className="bg-white p-10 rounded-xl shadow-lg border border-slate-200 text-center max-w-lg w-full">
+            <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaCode size={32} />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 mb-4">{exam.title}</h1>
+            <p className="text-slate-500 mb-8 leading-relaxed">
+              Camera is active. Full-screen mode will be enabled once you start.
+              Tab switching is strictly monitored.
             </p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Do not switch tabs or windows.</li>
-              <li>Do not exit full-screen mode.</li>
-              <li>Clipboard actions are disabled.</li>
-            </ul>
+            <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg text-sm text-amber-800 mb-8 text-left space-y-2">
+              <p className="font-bold flex items-center gap-2">
+                <FaTimesCircle /> Security Rules:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Do not switch tabs or windows.</li>
+                <li>Do not exit full-screen mode.</li>
+                <li>Clipboard actions are disabled.</li>
+              </ul>
+            </div>
+            <button
+              onClick={handleStartExam}
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition-all text-lg"
+            >
+              Start Assessment
+            </button>
           </div>
-          <button
-            onClick={handleStartExam}
-            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition-all text-lg"
-          >
-            Start Assessment
-          </button>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   /* =========================
@@ -95,9 +195,9 @@ const ExamRunnerView = ({
   ========================= */
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-100">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-500 font-medium">Loading Assessment...</p>
         </div>
       </div>
@@ -360,6 +460,50 @@ const ExamRunnerView = ({
       className="h-[calc(100vh-6rem)] flex flex-col bg-slate-50"
       {...securityHandlers}
     >
+      {/* ⚠️ Suspicious Activity Warning Detail Overlay */}
+      {isSuspicious && !multipleFacesDetected && (
+        <div className="fixed inset-0 z-[10000] bg-rose-900/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full text-center shadow-2xl border-4 border-rose-500 animate-pulse">
+            <div className="w-24 h-24 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6 ring-8 ring-rose-50">
+              <FaExclamationTriangle size={48} />
+            </div>
+            <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Suspicious Activity!</h2>
+            <p className="text-slate-600 text-lg font-medium mb-8">
+              Unauthorized objects or a mobile phone detected in your frame.
+              <br /><br />
+              <strong>Warning:</strong> This incident is being logged. Please remove the device immediately.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 👥 Multiple Faces Detected Warning */}
+      {multipleFacesDetected && (
+        <div className="fixed inset-0 z-[10001] bg-rose-900/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full text-center shadow-2xl border-4 border-rose-500 animate-pulse">
+            <div className="w-24 h-24 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6 ring-8 ring-rose-50">
+              <FaExclamationTriangle size={48} />
+            </div>
+            <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Multi-Face Alert!</h2>
+            <p className="text-slate-600 text-lg font-medium mb-8">
+              Multiple people detected. Only one candidate is allowed during the exam.
+              <br /><br />
+              <strong>Warning:</strong> This violation is being reported to the admin.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <CameraPreview stream={stream} />
+
+      <SecurityViolationModal
+        isOpen={securityModal.open}
+        violationType={securityModal.type}
+        count={securityModal.count}
+        onResume={handleResumeExam}
+        isTerminated={isTerminated}
+      />
+
       {/* ── TOP NAV BAR ── */}
       <div className="h-16 bg-slate-900 text-white px-6 flex items-center justify-between shrink-0 shadow-md z-20">
         <div className="flex items-center gap-4">
@@ -380,20 +524,18 @@ const ExamRunnerView = ({
         {!isPractice && (
           <div className="flex items-center gap-4">
             <span
-              className={`px-4 py-1.5 rounded-full flex items-center gap-2 font-mono font-bold text-lg border transition-all ${
-                timeLeft < 300
-                  ? "bg-red-500/20 text-red-300 border-red-500/50 animate-pulse"
-                  : "bg-white/10 text-white border-white/10"
-              }`}
+              className={`px-4 py-1.5 rounded-full flex items-center gap-2 font-mono font-bold text-lg border transition-all ${timeLeft < 300
+                ? "bg-red-500/20 text-red-300 border-red-500/50 animate-pulse"
+                : "bg-white/10 text-white border-white/10"
+                }`}
             >
               <FaClock size={16} /> {formatTime(timeLeft)}
             </span>
             <button
-              className={`text-white text-sm font-bold py-2 px-4 rounded-lg shadow-md transition-colors ${
-                isExamLocked
-                  ? "bg-slate-600 cursor-not-allowed"
-                  : "bg-red-500 hover:bg-red-600"
-              }`}
+              className={`text-white text-sm font-bold py-2 px-4 rounded-lg shadow-md transition-colors ${isExamLocked
+                ? "bg-slate-600 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600"
+                }`}
               onClick={handleSubmit}
               disabled={isExamLocked}
             >
@@ -427,20 +569,18 @@ const ExamRunnerView = ({
                   <button
                     key={sKey}
                     onClick={() => handleSectionChange(sKey)}
-                    className={`w-full px-3 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center justify-between ${
-                      isActive
-                        ? `${sc.color} text-white shadow-md`
-                        : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                    }`}
+                    className={`w-full px-3 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center justify-between ${isActive
+                      ? `${sc.color} text-white shadow-md`
+                      : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                      }`}
                   >
                     <span className="flex items-center gap-2">
                       <span>{sc.icon}</span>
                       {sc.label}
                     </span>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        isActive ? "bg-white/20 text-white" : sc.badge
-                      }`}
+                      className={`text-xs px-2 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : sc.badge
+                        }`}
                     >
                       {answeredCount}/{count}
                     </span>
@@ -497,9 +637,8 @@ const ExamRunnerView = ({
 
         {/* ── QUESTION AREA ── */}
         <div
-          className={`flex-1 overflow-y-auto ${
-            qType === "coding" ? "p-0" : "p-6 md:p-10"
-          } flex flex-col items-center bg-slate-50/50`}
+          className={`flex-1 overflow-y-auto ${qType === "coding" ? "p-0" : "p-6 md:p-10"
+            } flex flex-col items-center bg-slate-50/50`}
         >
 
           {/* ── DESCRIPTIVE ── */}
@@ -550,15 +689,14 @@ const ExamRunnerView = ({
             return (
               <div className="flex flex-col h-full w-full">
                 <div
-                  className={`flex-1 overflow-hidden relative ${
-                    isExamLocked || isSubmitted ? "opacity-60 pointer-events-none" : ""
-                  }`}
+                  className={`flex-1 overflow-hidden relative ${isExamLocked || isSubmitted ? "opacity-60 pointer-events-none" : ""
+                    }`}
                 >
                   <PracticeSession
                     question={currentQ}
                     value={answers[questionId]}
                     onChange={(val) => handleAnswer(currentQ, val)}
-                    onComplete={() => {}}
+                    onComplete={() => { }}
                     readOnly={isExamLocked || isSubmitted}
                   />
                 </div>
@@ -601,22 +739,19 @@ const ExamRunnerView = ({
                     return (
                       <label
                         key={optId}
-                        className={`group flex items-center gap-4 p-4 md:p-5 rounded-lg border-2 transition-all ${
-                          isExamLocked || isSubmitted
-                            ? "cursor-not-allowed opacity-70"
-                            : "cursor-pointer"
-                        } ${
-                          answers[questionId] === optId
+                        className={`group flex items-center gap-4 p-4 md:p-5 rounded-lg border-2 transition-all ${isExamLocked || isSubmitted
+                          ? "cursor-not-allowed opacity-70"
+                          : "cursor-pointer"
+                          } ${answers[questionId] === optId
                             ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500"
                             : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50"
-                        }`}
+                          }`}
                       >
                         <div
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                            answers[questionId] === optId
-                              ? "border-indigo-500 bg-indigo-500"
-                              : "border-slate-300 group-hover:border-indigo-400"
-                          }`}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${answers[questionId] === optId
+                            ? "border-indigo-500 bg-indigo-500"
+                            : "border-slate-300 group-hover:border-indigo-400"
+                            }`}
                         >
                           {answers[questionId] === optId && (
                             <div className="w-2.5 h-2.5 bg-white rounded-full" />
@@ -632,11 +767,10 @@ const ExamRunnerView = ({
                           disabled={isExamLocked || isSubmitted}
                         />
                         <span
-                          className={`text-lg transition-colors ${
-                            answers[questionId] === optId
-                              ? "text-blue-700 font-bold"
-                              : "text-slate-600 font-medium group-hover:text-slate-800"
-                          }`}
+                          className={`text-lg transition-colors ${answers[questionId] === optId
+                            ? "text-blue-700 font-bold"
+                            : "text-slate-600 font-medium group-hover:text-slate-800"
+                            }`}
                         >
                           {optText}
                         </span>

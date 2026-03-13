@@ -12,7 +12,10 @@ import {
   debugUserGroups,
   diagnosticDatabaseSchema,
   bulkAssignStudentsToGroup,
-  getNotificationsForUser
+  getNotificationsForUser,
+  getViolationsSummary,
+  getAllViolations,
+  getDetailedViolationsReport
 } from "../controllers/admin.controller.js";
 import { getAllUsers } from "../controllers/user.controller.js";
 import firebaseAuth from "../middlewares/firebaseAuth.js";
@@ -146,15 +149,15 @@ router.get(
     try {
       console.log('📥 Search request received');
       console.log('Query:', req.query);
-      
+
       const { query } = req.query;
 
       // Validate query parameter
       if (!query || query.trim().length === 0) {
         console.log('❌ Empty search query');
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Search query is required',
-          results: [] 
+          results: []
         });
       }
 
@@ -220,17 +223,17 @@ router.get(
 
       // Execute query
       const result = await pool.query(searchQuery, [searchTerm]);
-      
+
       console.log(`✅ Found ${result.rows.length} results (courses + modules)`);
-      
+
       // Return results
       res.json(result.rows);
 
     } catch (error) {
       console.error('❌ Search error:', error.message);
       console.error('Full error:', error);
-      
-      res.status(500).json({ 
+
+      res.status(500).json({
         message: 'Failed to search courses and modules',
         error: error.message,
         results: []
@@ -239,6 +242,11 @@ router.get(
   }
 );
 
+router.get('/violations/summary', firebaseAuth, attachUser, roleGuard('admin'), getViolationsSummary);
+router.get('/violations', firebaseAuth, attachUser, roleGuard('admin'), getAllViolations);
+router.get('/violations/report', firebaseAuth, attachUser, roleGuard('admin'), getDetailedViolationsReport);
+
 export default router;
+
 
 

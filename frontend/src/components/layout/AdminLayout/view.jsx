@@ -11,8 +11,10 @@ import {
   Users,
   Menu,
   Award,
+  ShieldAlert,
   MessageSquare,
   Timer,
+  Video,
 } from "lucide-react";
 import markLogo from "../../../assets/just_logo.jpeg";
 import { useNavigate } from "react-router-dom";
@@ -156,9 +158,9 @@ const AdminLayoutView = ({
             Main Menu
           </div>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, marginBottom: '32px' }}>
-            <NavItem path="dashboard"       icon={LayoutGrid}   label="Dashboard" />
-            <NavItem path="add-instructor"  icon={GraduationCap} label="Add Instructor" />
-            <NavItem path="add-student"     icon={UserPlus}     label="Add Student" />
+            <NavItem path="dashboard" icon={LayoutGrid} label="Dashboard" />
+            <NavItem path="add-instructor" icon={GraduationCap} label="Add Instructor" />
+            <NavItem path="add-student" icon={UserPlus} label="Add Student" />
           </ul>
 
           {/* Management */}
@@ -171,15 +173,29 @@ const AdminLayoutView = ({
             Management
           </div>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            <NavItem path="manage-users"    icon={Users}        label="Manage Users" />
-            <NavItem path="groups"          icon={Users}        label="Groups" />
-            <NavItem path="approve-courses" icon={CheckCircle}  label="Approve Courses" />
-            <NavItem path="assign-course"   icon={UserPlus}     label="Assign Courses" />
-            <NavItem path="approve-users"   icon={UserCircle}   label="Approve Users" />
-            <NavItem path="exam-timers"     icon={Timer}        label="Exam Timers" />
-            <NavItem path="chat-students"   icon={MessageSquare} label="Chat with Students" />
-            <NavItem path="certificates"    icon={Award}        label="Certificates" />
-            <NavItem path="settings"        icon={Settings}     label="Settings" />
+            <NavItem path="manage-users" icon={Users} label="Manage Users" />
+            <NavItem path="groups" icon={Users} label="Groups" />
+            <NavItem path="approve-courses" icon={CheckCircle} label="Approve Courses" />
+            <NavItem path="assign-course" icon={UserPlus} label="Assign Courses" />
+            <NavItem path="approve-users" icon={UserCircle} label="Approve Users" />
+            <NavItem path="exam-timers" icon={Timer} label="Exam Timers" />
+            <NavItem path="chat-students" icon={MessageSquare} label="Chat with Students" />
+            <NavItem path="certificates" icon={Award} label="Certificates" />
+            <NavItem path="settings" icon={Settings} label="Settings" />
+          </ul>
+
+          {/* Security */}
+          <div style={{
+            fontSize: '10px', fontWeight: 700,
+            color: 'rgba(255,255,255,0.3)',
+            textTransform: 'uppercase', letterSpacing: '2px',
+            padding: '0 8px', marginBottom: '12px', marginTop: '32px',
+          }}>
+            Security
+          </div>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            <NavItem path="proctoring" icon={Video} label="Live Proctoring" />
+            <NavItem path="violations" icon={ShieldAlert} label="Violation Log" />
           </ul>
         </div>
       </div>

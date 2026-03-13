@@ -1979,3 +1979,485 @@ tr:hover td {
   font-size: 1.5rem;
   margin-bottom: 10px;
 }
+   
+ 
+/* Certificate Styles */
+
+
+
+
+/* Certificate Styles */
+.certificate-view-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.certificate-container {
+  border: 6px solid #1E3A8A;
+  padding: 50px;
+  font-family: 'Times New Roman', serif;
+  text-align: center;
+  position: relative;
+  width: 900px;
+  margin: 40px auto;
+  /* yeh line container ko horizontally center karegi */
+  background: #fff;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+
+  display: flex;
+  /* flex layout */
+  flex-direction: column;
+  /* elements vertically stack honge */
+  align-items: center;
+  /* sab content horizontally centre ho jayega */
+  justify-content: center;
+  /* vertically bhi centre ho sakta hai agar parent height set ho */
+}
+
+.corner {
+  position: absolute;
+  width: 50px;
+  /* size bada karo */
+  height: 50px;
+  background-color: #1E3A8A;
+}
+
+.top-left {
+  top: -6px;
+  left: -6px;
+}
+
+.top-right {
+  top: -6px;
+  right: -6px;
+}
+
+.bottom-left {
+  bottom: -6px;
+  left: -6px;
+}
+
+.bottom-right {
+  bottom: -6px;
+  right: -6px;
+}
+
+/*.certificate-paper {
+  width: 800px;
+  max-width: 100%;
+  margin: 40px auto;
+  padding: 60px 40px;
+  background: white;
+  border: 8px double #003366;
+  border-radius: 12px;
+  text-align: center;
+  font-family: 'Georgia', serif;
+  color: #1f2937;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+}*/
+/* ================= PORTRAIT CERTIFICATE DESIGN ================= */
+.certificate-paper {
+  width: 700px;
+  min-height: 620px;
+  /* Further reduced height */
+  background: white;
+  margin: 10px auto;
+  padding: 25px 40px;
+  /* Reduced vertical padding */
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 6px solid #1E3A8A;
+}
+
+/* Consolidated Corner Triangles */
+.triangle {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.top-left {
+  top: -6px;
+  left: -6px;
+  border-width: 40px 40px 0 0;
+  border-color: #1E3A8A transparent transparent transparent;
+}
+
+.top-right {
+  top: -6px;
+  right: -6px;
+  border-width: 40px 0 0 40px;
+  border-color: #1E3A8A transparent transparent transparent;
+}
+
+.bottom-left {
+  bottom: -6px;
+  left: -6px;
+  border-width: 0 40px 40px 0;
+  border-color: transparent transparent #1E3A8A transparent;
+}
+
+.bottom-right {
+  bottom: -6px;
+  right: -6px;
+  border-width: 0 0 40px 40px;
+  border-color: transparent transparent #1E3A8A transparent;
+}
+
+/* Bottom-left QR & ID Placement */
+.qr-id-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  z-index: 10;
+}
+
+.qr-id-overlay span {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+
+
+.certificate-logo {
+  width: 180px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.certificate-paper h1 {
+  font-size: 1.8rem;
+  /* Reduced to ensure one line */
+  color: #00008B;
+  /* Dark Blue */
+  font-weight: 800;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  /* Force single line */
+}
+
+.certificate-paper h2 {
+  font-size: 1.8rem;
+  color: #059669;
+  margin-bottom: 15px;
+  font-weight: normal;
+}
+
+/*.certificate-subtitle {
+  font-size: 1.2rem;
+  color: #6b7280;
+  margin: 20px 0;
+  font-style: italic;
+}*/
+.certificate-subtitle {
+  font-size: 1.2rem;
+  margin: 10px 0;
+}
+
+.certificate-paper h3 {
+  font-size: 1.6rem;
+  color: #003366;
+  margin: 15px 0;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.company-name-highlight {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #00008B;
+  /* Professional Blue */
+  margin: 10px 0;
+  text-transform: uppercase;
+}
+
+/* ================= CERTIFICATE SIGNATURE ================= */
+
+.signature-section {
+  margin-top: 5px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.signature-image {
+  width: 110px;
+  /* Reduced from 150px for professional look */
+  height: auto;
+  margin-bottom: 8px;
+  display: block;
+  margin: 0 auto 5px;
+}
+
+.signature-label {
+  font-size: 1rem;
+  color: #374151;
+  font-weight: 500;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 5px;
+  display: inline-block;
+  min-width: 180px;
+}
+
+.nasscom-footer {
+  margin-top: auto;
+  padding-bottom: 25px;
+  /* More space at bottom */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.nasscom-footer-logo {
+  width: 140px;
+  /* Increased from 100px */
+  height: auto;
+  opacity: 1;
+}
+
+.nasscom-certified-text {
+  font-size: 0.8rem;
+  /* Slightly larger */
+  color: #374151;
+  /* Neutral dark grey */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.certificate-score,
+.certificate-date {
+  margin: 8px 0;
+  font-size: 1rem;
+}
+
+.certificate-date {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-top: 30px;
+  font-style: italic;
+}
+
+.no-print {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.no-print button {
+  background: #003366;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 0 10px;
+  font-size: 1rem;
+}
+
+.no-print button:hover {
+  background: #002244;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .certificate-paper {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 40px 20px !important;
+    border: 4px solid #003366 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .certificate-paper h1 {
+    font-size: 2rem !important;
+  }
+
+  .certificate-paper h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .certificate-paper h3 {
+    font-size: 1.3rem !important;
+  }
+}
+
+/* Certificate List Styles */
+.certificate-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.certificate-item h4 {
+  margin: 0 0 5px 0;
+  color: #1f2937;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.certificate-item p {
+  margin: 2px 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.certificate-item button {
+  background: #003366;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 0.9rem;
+}
+
+.certificate-item button:hover {
+  background: #002244;
+}
+
+/* ================= CERTIFICATE SIGNATURE ================= */
+
+.certificate-signature-section {
+  margin-top: 50px;
+  position: absolute;
+  /* corner me fix karne ke liye */
+  bottom: 30px;
+  /* thoda upar from bottom */
+  right: 30px;
+  /* bilkul right corner */
+  text-align: center;
+  /* image aur text ek line me centre aligned */
+}
+
+/* thoda spacing right se */
+.signature-box {
+  text-align: center;
+  margin-right: 60px;
+  /* Right side se thoda gap */
+}
+
+.signature-img {
+  width: 100px;
+  /* pehle 140px tha, ab chhota */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.signature-text {
+  margin-top: 5px;
+  font-weight: 600;
+  text-align: center;
+  /* text neatly niche centre me */
+}
+
+.signature-box p {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.certificate-logo-wrapper {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* NASSCOM Association Styles */
+.nasscom-association {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.nasscom-logo-small {
+  height: 18px;
+  width: auto;
+  object-fit: contain;
+}
+
+.association-text {
+  font-size: 0.85rem;
+  color: #4b5563;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.2px;
+}
+
+
+/* Advanced Certificate Styles */
+.certificate-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.download-pdf-btn {
+  background: #166534 !important;
+  color: white !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-weight: 600 !important;
+}
+
+.certificate-id-display p {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}
+
+.id-number {
+  color: #1f2937;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

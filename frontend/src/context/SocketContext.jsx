@@ -175,6 +175,7 @@ import React, {
   useMemo,
 } from 'react';
 import { io } from 'socket.io-client';
+import { toast } from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../auth/AuthContext';
 
@@ -194,6 +195,10 @@ export const SocketProvider = ({ children }) => {
   const [unreadCounts, setUnreadCounts] = useState({});
   const [notificationPermission, setNotificationPermission] = useState('default');
   const [socketStatus, setSocketStatus] = useState('disconnected');
+  
+   
+    const dbUserRef = useRef(null);
+    const socketRef = useRef(null);
 
   const activeChatRef = useRef(null);
   const socketInitialized = useRef(false);

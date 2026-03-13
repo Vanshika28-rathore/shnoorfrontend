@@ -6,7 +6,9 @@ import roleGuard from "../middlewares/roleGuard.js";
 import {
   getStudentExams,
   getExamForAttempt,
-  submitExam
+  submitExam,
+  logViolation,
+  savePracticeResult
 } from "../controllers/studentExam.controller.js";
 
 const router = express.Router();
@@ -36,6 +38,23 @@ router.post(
   attachUser,
   roleGuard("student", "user"),
   submitExam
+);
+
+// 4️⃣ Log Proctoring Violation
+router.post(
+  "/:examId/violation",
+  firebaseAuth,
+  attachUser,
+  roleGuard("student", "user"),
+  logViolation
+);
+
+router.post(
+  "/practice/save-result",
+  firebaseAuth,
+  attachUser,
+  roleGuard("student", "user"),
+  savePracticeResult
 );
 
 export default router;

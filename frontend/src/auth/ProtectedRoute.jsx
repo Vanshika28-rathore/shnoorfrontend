@@ -29,16 +29,24 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
     : [allowedRoles];
 
   if (allowedRoles && !roles.includes(userRole)) {
-    if (userRole === "admin")
+    console.warn(`[ProtectedRoute] Access Denied. UserRole: '${userRole}', Required: ${JSON.stringify(allowedRoles)}. Redirection logic triggering...`);
+    if (userRole === "admin"){
+      console.log("[ProtectedRoute] Redirecting ADMIN to admin/dashboard");
       return <Navigate to="/admin/dashboard" replace />;
-    if (userRole === "instructor")
+    }
+    if (userRole === "instructor"){
+     console.log("[ProtectedRoute] Redirecting INSTRUCTOR to instructor/dashboard");
+ 
       return <Navigate to="/instructor/dashboard" replace />;
-    if (userRole === "student")
+    }
+    if (userRole === "student"){
+      console.log("[ProtectedRoute] Redirecting STUDENT to student/dashboard");
       return <Navigate to="/student/dashboard" replace />;
-
+    }
+    console.log("[ProtectedRoute] Redirecting to ROOT (No role match)");
     return <Navigate to="/" replace />;
   }
-
+  console.log(`[ProtectedRoute] Access Granted. Current Role: '${userRole}', Path Allowed.`);
   return children ? children : <Outlet />;
 };
 

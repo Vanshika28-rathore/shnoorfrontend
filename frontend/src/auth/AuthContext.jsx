@@ -59,6 +59,7 @@ export function AuthProvider({ children }) {
 
         } catch (error) {
           console.error("AuthContext backend sync failed:", error);
+          console.error("Error response:", error.response?.status, error.response?.data);
 
           // Auto-register new Google users as students (status='pending')
           if (error.response?.status === 404) {
@@ -136,6 +137,12 @@ export function AuthProvider({ children }) {
             alert("Access Denied: Your account is pending approval or blocked.");
             return;
           }
+
+          // For any other error - show visible message to diagnose
+          const errMsg = error.response?.data?.message || error.message || "Unknown error";
+          const errStatus = error.response?.status || "Network Error";
+          console.error(`[LOGIN ERROR] Status: ${errStatus}, Message: ${errMsg}`);
+          alert(`Login failed (${errStatus}): ${errMsg}\n\nPlease check if the backend is running on port 5000.`);
 
           setCurrentUser(null);
           setUserData(null);
