@@ -5,7 +5,6 @@ import { useObjectDetection } from '../../../hooks/useObjectDetection';
 import { useVoiceDetection } from '../../../hooks/useVoiceDetection';
 import { useFaceDetection } from '../../../hooks/useFaceDetection';
 import { db } from '../../../auth/firebase';
-import { doc, setDoc, deleteDoc, serverTimestamp, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -102,28 +101,28 @@ const ExamRunner = () => {
       newPeer.on('open', async (id) => {
         if (!isMounted) return;
         try {
-          const uid = auth.currentUser?.uid;
-          if (uid) {
-            const q = query(collection(db, 'live_sessions'), where('userId', '==', uid));
-            const snap = await getDocs(q);
-            if (!snap.empty) {
-              const batch = writeBatch(db);
-              snap.forEach(d => batch.delete(d.ref));
-              await batch.commit();
-            }
-          }
-          await setDoc(doc(db, 'live_sessions', id), {
-            userId: auth.currentUser?.uid,
+          // USE BACKEND BRIDGE TO BYPASS PERMISSION ISSUES
+          await api.post('/api/proctoring/register', {
+            peerId: id,
             userName: auth.currentUser?.displayName || localStorage.getItem('full_name') || 'Student',
             examId: examId,
             examTitle: exam?.title || 'Regular Exam',
-            startTime: serverTimestamp(),
-            peerId: id
+            userId: auth.currentUser?.uid
           });
-        } catch (e) { console.error(e); }
+          console.log("[PROCTORING] session registered via backend:", id);
+        } catch (e) {
+          console.error("[PROCTORING] Registration Error:", e);
+          toast.error("Proctoring Registry Error: " + (e.response?.data?.message || e.message));
+        }
       });
       newPeer.on('call', (call) => {
-        if (streamRef.current) call.answer(streamRef.current);
+        console.log("[PEER] Receiving proctoring call. Answering with current stream...");
+        if (streamRef.current) {
+          call.answer(streamRef.current);
+          console.log("[PEER] Answered call with stream:", streamRef.current.id);
+        } else {
+          console.warn("[PEER] Call received but no local stream available to answer with.");
+        }
       });
       if (isMounted) {
         setPeer(newPeer);
@@ -142,13 +141,16 @@ const ExamRunner = () => {
       lastSyncRef.current = now;
       const isViolation = isSuspicious || isVoiceSuspicious || multipleFacesDetected || noFaceDetected || isLoudNoise;
       try {
-        await setDoc(doc(db, 'live_sessions', peer.id), {
-          isSuspicious: isViolation,
-          isVoiceSuspicious: isVoiceSuspicious || isLoudNoise,
-          multipleFacesDetected: multipleFacesDetected,
-          noFaceDetected: noFaceDetected,
-          lastDetected: isViolation ? serverTimestamp() : null
-        }, { merge: true });
+        await api.post("/api/proctoring/status", {
+          peerId: peer.id,
+          status: {
+            isSuspicious: isViolation,
+            isVoiceSuspicious: isVoiceSuspicious || isLoudNoise,
+            multipleFacesDetected: multipleFacesDetected,
+            noFaceDetected: noFaceDetected,
+            lastDetected: isViolation ? new Date().toISOString() : null
+          }
+        });
         if (isViolation && (now - (window._lastViolationLog || 0) > 10000)) {
           window._lastViolationLog = now;
           let type = 'UNKNOWN';
@@ -183,7 +185,7 @@ const ExamRunner = () => {
       if (peerRef.current) {
         const pId = peerRef.current.id;
         peerRef.current.destroy();
-        deleteDoc(doc(db, 'live_sessions', pId)).catch(() => { });
+        api.delete(`/api/proctoring/session/${pId}`).catch(() => { });
       }
     };
     window.addEventListener('beforeunload', handleUnload);

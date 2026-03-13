@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { db } from "../../../auth/firebase";
-import { collection, onSnapshot, query, orderBy, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
+import api from "../../../api/axios";
 import { Peer } from "peerjs";
+import { toast } from "react-hot-toast";
 import {
     Video,
     Users,
@@ -61,15 +61,29 @@ const VideoFeed = ({ session, adminPeer }) => {
 
                 try {
                     // Start with a very low-quality dummy to negotiate
+                    // We draw a pixel to ensure some browsers don't treat the stream as "silent/inactive"
                     const canvas = document.createElement("canvas");
-                    canvas.width = 1; canvas.height = 1;
-                    const dummyStream = canvas.captureStream();
+                    canvas.width = 10; canvas.height = 10;
+                    const ctx = canvas.getContext('2d');
+                    let frame = 0;
+                    const animInterval = setInterval(() => {
+                        if (!isMounted) {
+                            clearInterval(animInterval);
+                            return;
+                        }
+                        ctx.fillStyle = `rgb(${frame % 255}, 0, 0)`;
+                        ctx.fillRect(0, 0, 10, 10);
+                        frame++;
+                    }, 200);
+
+                    const dummyStream = canvas.captureStream(5); // 5fps
 
                     const call = adminPeer.call(session.peerId, dummyStream, {
                         metadata: { type: 'admin-proctoring' }
                     });
 
                     if (!call) {
+                        clearInterval(animInterval);
                         setError(true);
                         setErrorMsg("Logic Error");
                         setLoading(false);
@@ -77,6 +91,8 @@ const VideoFeed = ({ session, adminPeer }) => {
                     }
 
                     activeCall = call;
+                    // Store interval in call for cleanup
+                    call._animInterval = animInterval;
 
                     call.on("stream", (remoteStream) => {
                         const tracks = remoteStream.getTracks();
@@ -85,6 +101,12 @@ const VideoFeed = ({ session, adminPeer }) => {
                             setStream(remoteStream);
                             setLoading(false);
                             setError(false);
+                            // Ensure the video plays once state updates
+                            setTimeout(() => {
+                                if (videoRef.current) {
+                                    videoRef.current.play().catch(e => console.warn("[VIDEO] Auto-play retry failed:", e));
+                                }
+                            }, 300);
                         }
                     });
 
@@ -99,6 +121,7 @@ const VideoFeed = ({ session, adminPeer }) => {
 
                     call.on("close", () => {
                         console.log(`[PEER] Call closed for ${session.userName}`);
+                        if (call._animInterval) clearInterval(call._animInterval);
                         if (isMounted) {
                             setLoading(false);
                             setStream(null);
@@ -131,8 +154,16 @@ const VideoFeed = ({ session, adminPeer }) => {
         return () => {
             isMounted = false;
             clearTimeout(timeout);
-            if (activeCall) activeCall.close();
-            if (stream) stream.getTracks().forEach(track => track.stop());
+            if (activeCall) {
+                if (activeCall._animInterval) clearInterval(activeCall._animInterval);
+                activeCall.close();
+            }
+            if (stream) {
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                    console.log(`[PEER] Stopped track for ${session.userName}:`, track.kind);
+                });
+            }
         };
     }, [adminPeer, session.peerId, retryCount]);
 
@@ -316,16 +347,26 @@ const AdminLiveProctoring = () => {
     const [peerState, setPeerState] = useState("initializing"); // initializing, open, disconnected, error
 
     useEffect(() => {
-        // 1. Setup Firestore Real-time Listener
-        const q = query(collection(db, "live_sessions"));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const activeSessions = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setSessions(activeSessions);
-            setLoading(false);
-        });
+        let isMounted = true;
+        let pollTimer = null;
+
+        const fetchSessions = async () => {
+            try {
+                const res = await api.get("/api/proctoring/active");
+                if (isMounted) {
+                    setSessions(res.data || []);
+                    setLoading(false);
+                }
+            } catch (e) {
+                console.error("[PROCTORING] Fetch Error:", e);
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        // Initial fetch
+        fetchSessions();
+        // Poll every 8 seconds
+        pollTimer = setInterval(fetchSessions, 8000);
 
         // 2. Setup Admin Peer Connection
         // We want this to be persistent and only init once
@@ -376,11 +417,9 @@ const AdminLiveProctoring = () => {
         const peerObj = initPeer();
 
         return () => {
-            console.log("[PEER] Component unmounting. Cleaning up resources.");
-            unsubscribe();
-            if (peerObj) {
-                peerObj.destroy();
-            }
+            isMounted = false;
+            if (pollTimer) clearInterval(pollTimer);
+            if (peerObj) peerObj.destroy();
         };
     }, []);
 
@@ -442,11 +481,33 @@ const AdminLiveProctoring = () => {
                     <div className="flex flex-col gap-2">
                         <button
                             onClick={async () => {
+                                try {
+                                    const testPeerId = "test-peer-" + Math.random().toString(36).substr(2, 4);
+                                    await api.post("/api/proctoring/register", {
+                                        peerId: testPeerId,
+                                        userName: "BACKEND TEST STUDENT",
+                                        examId: "test-exam",
+                                        examTitle: "Backend Bridge Test",
+                                        userId: "debug-user"
+                                    });
+                                    toast.success("Test session seeded via backend!");
+                                } catch (e) {
+                                    toast.error("Backend Write Failed: " + (e.response?.data?.message || e.message));
+                                }
+                            }}
+                            className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 transition-all"
+                        >
+                            Seed Test Feed
+                        </button>
+                        <button
+                            onClick={async () => {
                                 if (!window.confirm("Clean all inactive sessions?")) return;
-                                const snap = await getDocs(collection(db, "live_sessions"));
-                                const batch = writeBatch(db);
-                                snap.forEach(d => batch.delete(d.ref));
-                                await batch.commit();
+                                try {
+                                    await api.post("/api/proctoring/cleanup");
+                                    toast.success("Sessions cleared");
+                                } catch (e) {
+                                    toast.error("Cleanup failed");
+                                }
                             }}
                             className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-500/20 transition-all"
                         >

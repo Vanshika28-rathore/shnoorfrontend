@@ -65,14 +65,8 @@ const MyCertificates = () => {
   useEffect(() => {
     const fetchCertConfig = async () => {
       try {
-        const docRef = doc(db, "settings", "certificateConfig");
-        const docSnap = await getDoc(docRef);
-        let firestoreData = docSnap.exists() ? docSnap.data() : {};
-
-        // Handle legacy 'imageUrl'
-        if (!firestoreData.signatureUrl && firestoreData.imageUrl) {
-          firestoreData.signatureUrl = firestoreData.imageUrl;
-        }
+        const res = await api.get("/api/certificate/settings/config");
+        const firestoreData = res.data || {};
 
         const finalConfig = {
           ...defaultConfig,
@@ -86,7 +80,7 @@ const MyCertificates = () => {
 
         setCertConfig(finalConfig);
       } catch (err) {
-        console.error("Error fetching certificate configuration from Firestore:", err);
+        console.error("Error fetching certificate configuration:", err);
         setCertConfig(defaultConfig); // Fallback to defaults
       }
     };
@@ -218,8 +212,10 @@ const MyCertificates = () => {
           <div className="triangle bottom-left"></div>
           <div className="triangle bottom-right"></div>
           {/* 1. Centered Logo */}
-          {certConfig?.logoUrl && (
+          {certConfig?.logoUrl ? (
             <img src={certConfig.logoUrl} alt="Company Logo" className="certificate-logo" />
+          ) : (
+            <img src="/just_logo.svg" alt="Company Logo" className="certificate-logo" />
           )}
 
           {/* 2. Professional Title */}
@@ -236,7 +232,7 @@ const MyCertificates = () => {
             has successfully completed the training program with
           </p>
           <p className="company-name-highlight">
-            SHNOOR International LLC
+            {certConfig?.issuerName || "SHNOOR International LLC"}
           </p>
 
           {/* 6. Issued Date */}
@@ -244,10 +240,15 @@ const MyCertificates = () => {
 
           {/* 7. Authorized Signature */}
           <div className="signature-section">
-            {certConfig?.signatureUrl && (
+            {certConfig?.signatureUrl ? (
               <img src={certConfig.signatureUrl} alt="Signature" className="signature-image" rotate="0" />
+            ) : (
+              <img src="/signatures/sign.png" alt="Signature" className="signature-image" rotate="0" />
             )}
             <p className="signature-label">Authorized Signature</p>
+            <p className="authority-name-text" style={{ fontSize: '10px', marginTop: '2px', color: '#64748b' }}>
+              {certConfig?.authorityName || "Director of Education"}
+            </p>
           </div>
 
           {/* 8. NASSCOM Footer Logo */}

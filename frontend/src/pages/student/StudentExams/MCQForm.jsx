@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { Peer } from "peerjs";
 import { auth, db } from "../../../auth/firebase";
-import { doc, setDoc, deleteDoc, serverTimestamp, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
 import api from "../../../api/axios";
 import { toast } from "react-hot-toast";
 import { addLocalCertificate } from "../../../utils/certificateStorage";
@@ -230,34 +229,28 @@ const MCQForm = ({ onBack }) => {
         console.log("[PEER] Student Peer Online:", id);
         toast.success("Live proctoring active!");
         try {
-          // CLEANUP STALE SESSIONS for this user first
-          const uid = auth.currentUser?.uid;
-          if (uid) {
-            const q = query(collection(db, "live_sessions"), where("userId", "==", uid));
-            const snap = await getDocs(q);
-            if (!snap.empty) {
-              const batch = writeBatch(db);
-              snap.forEach(d => batch.delete(d.ref));
-              await batch.commit();
-            }
-          }
-          // SYNC NEW SESSION
-          await setDoc(doc(db, "live_sessions", id), {
-            userId: auth.currentUser?.uid || "anonymous",
+          // USE BACKEND BRIDGE TO BYPASS PERMISSION ISSUES
+          await api.post('/api/proctoring/register', {
+            peerId: id,
             userName: auth.currentUser?.displayName || "Student",
             examId: "practice-quiz",
             examTitle: "React Fundamentals Practice",
-            startTime: serverTimestamp(),
-            peerId: id
+            userId: auth.currentUser?.uid
           });
+          console.log("[PROCTORING] MCQ session registered via backend:", id);
         } catch (e) {
-          console.error("[FIRESTORE] Session sync error:", e);
+          console.error("[PROCTORING] Registration Error:", e);
+          toast.error("Proctoring Registry Error: " + (e.response?.data?.message || e.message));
         }
       });
 
       newPeer.on("call", (call) => {
-        console.log("[PEER] Receiving call from admin. Answering with stream...");
-        call.answer(stream);
+        console.log("[PEER] Receiving call from admin. Answering with current stream...");
+        if (streamRef.current) {
+          call.answer(streamRef.current);
+        } else {
+          console.warn("[PEER] Call received but local stream is not ready yet.");
+        }
       });
 
       newPeer.on("error", (err) => console.error("[PEER] Student Peer Error:", err.type));
@@ -286,13 +279,16 @@ const MCQForm = ({ onBack }) => {
       const isViolation = isSuspicious || isVoiceSuspicious || multipleFacesDetected || noFaceDetected || isLoudNoise;
 
       try {
-        await setDoc(doc(db, "live_sessions", peer.id), {
-          isSuspicious: isViolation,
-          isVoiceSuspicious: isVoiceSuspicious || isLoudNoise,
-          multipleFacesDetected: multipleFacesDetected,
-          noFaceDetected: noFaceDetected,
-          lastDetected: isViolation ? serverTimestamp() : null
-        }, { merge: true });
+        await api.post("/api/proctoring/status", {
+          peerId: peer.id,
+          status: {
+            isSuspicious: isViolation,
+            isVoiceSuspicious: isVoiceSuspicious || isLoudNoise,
+            multipleFacesDetected: multipleFacesDetected,
+            noFaceDetected: noFaceDetected,
+            lastDetected: isViolation ? new Date().toISOString() : null
+          }
+        });
 
         if (isViolation) {
           // Log to Permanent Storage (PostgreSQL) - Throttled to once every 10 seconds
@@ -372,11 +368,11 @@ const MCQForm = ({ onBack }) => {
       peerRef.current.destroy();
       peerRef.current = null;
       setPeer(null);
-      // Remove from Firestore
+      // Remove from Firestore via Backend
       try {
-        await deleteDoc(doc(db, "live_sessions", peerId));
+        await api.delete(`/api/proctoring/session/${peerId}`);
       } catch (err) {
-        console.error("Firestore cleanup error:", err);
+        console.error("Backend cleanup error:", err);
       }
     }
   };

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import {
     Users, BookOpen, Clock, Award, Search, X, Download, BarChart3,
     TrendingUp, ArrowUpRight, ArrowDownRight, UserPlus, CheckCircle,
-    Activity, Zap, Calendar, FileText, GraduationCap, BookMarked
+    Activity, Zap, Calendar, FileText, GraduationCap, BookMarked, Video
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
@@ -24,6 +24,8 @@ const AdminDashboardView = ({
     goToAddInstructor,
     goToApproveCourses,
     goToAssignCourse,
+    goToProctoring,
+    liveSessionCount,
 }) => {
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +73,7 @@ const AdminDashboardView = ({
     const statCards = [
         { label: 'Total Students', value: stats?.totalStudents ?? 0, icon: Users, change: '+12%', up: true, color: '#6366f1', bg: '#eef2ff', iconColor: '#6366f1', spark: sparkData[0] },
         { label: 'Total Instructors', value: stats?.totalInstructors ?? 0, icon: GraduationCap, change: '+5%', up: true, color: '#8b5cf6', bg: '#f5f3ff', iconColor: '#8b5cf6', spark: sparkData[1] },
+        { label: 'Live Sessions', value: liveSessionCount ?? 0, icon: Video, change: 'LIVE', up: true, color: '#ef4444', bg: '#fee2e2', iconColor: '#ef4444', spark: [5, 2, 8, 4, 6, 3, 7] },
         { label: 'Pending Courses', value: stats?.pendingCourses ?? 0, icon: Clock, change: '-3%', up: false, color: '#f59e0b', bg: '#fffbeb', iconColor: '#f59e0b', spark: sparkData[2] },
         { label: 'Certificates Issued', value: stats?.certificates ?? 0, icon: Award, change: '+18%', up: true, color: '#10b981', bg: '#ecfdf5', iconColor: '#10b981', spark: sparkData[3] },
     ];
@@ -79,6 +82,7 @@ const AdminDashboardView = ({
     const quickActions = [
         { label: 'Add Instructor', icon: UserPlus, onClick: goToAddInstructor, color: '#6366f1' },
         { label: 'Approve Courses', icon: CheckCircle, onClick: goToApproveCourses, color: '#10b981' },
+        { label: 'Live Proctoring', icon: Video, onClick: goToProctoring, color: '#8b5cf6' },
         { label: 'Assign Course', icon: BookMarked, onClick: goToAssignCourse, color: '#f59e0b' },
         { label: 'Download Report', icon: FileText, onClick: onDownloadReport, color: '#ef4444' },
     ];

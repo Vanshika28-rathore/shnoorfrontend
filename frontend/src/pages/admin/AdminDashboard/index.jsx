@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../../../auth/firebase";
 import api from "../../../api/axios";
 import AdminDashboardView from "./view";
+import { db } from "../../../auth/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ const AdminDashboard = () => {
     totalInstructors: 0,
     certificates: 0,
   });
+  const [liveSessionCount, setLiveSessionCount] = useState(0);
   const [error, setError] = useState("");
 
   const [searchResults, setSearchResults] = useState([]);
@@ -24,6 +27,17 @@ const AdminDashboard = () => {
   // Date range state
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [activeFilter, setActiveFilter] = useState(null);
+
+  /* =========================
+     FETCH LIVE SESSIONS (REAL-TIME)
+  ========================= */
+  useEffect(() => {
+    const q = collection(db, "live_sessions");
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setLiveSessionCount(snapshot.size);
+    });
+    return () => unsubscribe();
+  }, []);
 
   /* =========================
      FETCH DASHBOARD STATS
@@ -226,6 +240,8 @@ const AdminDashboard = () => {
       goToAddInstructor={goToAddInstructor}
       goToApproveCourses={goToApproveCourses}
       goToAssignCourse={goToAssignCourse}
+      goToProctoring={() => navigate("/admin/proctoring")}
+      liveSessionCount={liveSessionCount}
     />
   );
 };

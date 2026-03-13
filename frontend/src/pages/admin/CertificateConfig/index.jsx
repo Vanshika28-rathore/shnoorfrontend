@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { storage, db, auth } from "../../../auth/firebase";
+import { storage, auth } from "../../../auth/firebase";
+import api from "../../../api/axios";
 import CertificateConfigView from "./view";
 
 const CertificateConfig = () => {
@@ -19,7 +19,7 @@ const CertificateConfig = () => {
   const [error, setError] = useState("");
 
   /* =========================
-     FETCH CONFIG FROM FIRESTORE
+     FETCH CONFIG FROM BACKEND BRIDGE
   ========================= */
   useEffect(() => {
     fetchConfig();
@@ -28,14 +28,13 @@ const CertificateConfig = () => {
   const fetchConfig = async () => {
     try {
       setLoading(true);
-      const docRef = doc(db, "settings", "certificateConfig");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setConfig((prev) => ({ ...prev, ...docSnap.data() }));
+      const res = await api.get("/api/certificate/settings/config");
+      if (res.data) {
+        setConfig((prev) => ({ ...prev, ...res.data }));
       }
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching certificate config from Firestore:", err);
+      console.error("Error fetching certificate config:", err);
       setError("Failed to load certificate configuration");
       setLoading(false);
     }
@@ -77,30 +76,20 @@ const CertificateConfig = () => {
     setUploadingField(fieldName);
 
     try {
-      console.log(`Attempting Firebase Storage upload for ${fieldName}...`);
-
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Storage timeout")), 15000)
-      );
-
       const storageRef = ref(storage, `certificates/${fieldName}_${Date.now()}`);
-      const uploadTask = uploadBytes(storageRef, file);
-
-      const snapshot = await Promise.race([uploadTask, timeout]);
-      const url = await getDownloadURL(snapshot.ref);
+      const uploadTask = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(uploadTask.ref);
 
       updateField(fieldName, url);
       alert(`Image uploaded successfully! Don't forget to SAVE.`);
 
     } catch (err) {
       console.warn("Storage upload failed, switching to Base64 fallback:", err);
-
       try {
         const base64String = await fileToBase64(file);
         updateField(fieldName, base64String);
         alert(`Image uploaded via Backup Mode! Don't forget to SAVE.`);
       } catch (fallbackErr) {
-        console.error("Base64 fallback failed:", fallbackErr);
         alert(`Upload failed completely. Please try a different image.`);
       }
     } finally {
@@ -109,7 +98,7 @@ const CertificateConfig = () => {
   };
 
   /* =========================
-     SAVE CONFIG TO FIRESTORE
+     SAVE CONFIG TO BACKEND BRIDGE
   ========================= */
   const handleSave = async (e) => {
     if (e) e.preventDefault();
@@ -117,20 +106,17 @@ const CertificateConfig = () => {
       setLoading(true);
       setError("");
 
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error("You must be logged in as an admin to save changes.");
+      const res = await api.post("/api/certificate/settings/config", config);
+
+      if (res.data?.success) {
+        alert("Certificate configuration saved successfully via Secure Bridge!");
+      } else {
+        alert("Configuration saved successfully!");
       }
-
-      // Save to Firestore
-      const docRef = doc(db, "settings", "certificateConfig");
-      await setDoc(docRef, config, { merge: true });
-
-      alert("Certificate configuration saved successfully!");
       setLoading(false);
     } catch (err) {
       console.error("Error saving config:", err);
-      const friendlyMessage = err.message || "Failed to save configuration.";
+      const friendlyMessage = err.response?.data?.message || err.message || "Failed to save configuration.";
       setError(friendlyMessage);
       alert("Failed to save: " + friendlyMessage);
       setLoading(false);
