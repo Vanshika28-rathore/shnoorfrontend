@@ -1,0 +1,21 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import LandingView from './view';
+
+const Landing = () => {
+  const navigate = useNavigate();
+
+  const handleLogin = () => navigate('/login');
+  const handleRegister = () => navigate('/register');
+  const handleContact = () => navigate('/contact');
+
+  return (
+    <LandingView 
+      onLogin={handleLogin}
+      onRegister={handleRegister}
+      onContact={handleContact}
+    />
+  );
+};
+
+export default Landing;

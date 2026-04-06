@@ -1,0 +1,81 @@
+/* StudentGrid.css - Specific styles for course grids/cards to ensure loading */
+
+.student-course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  padding-bottom: 20px;
+}
+
+.student-course-card {
+  background: var(--color-bg-white);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.student-course-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+.course-thumbnail {
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.course-thumbnail-gradient-0 { background: linear-gradient(135deg, #003B5C, #145E86); }
+.course-thumbnail-gradient-1 { background: linear-gradient(135deg, #E8AA25, #C58A12); }
+.course-thumbnail-gradient-2 { background: linear-gradient(135deg, #0f172a, #1e293b); }
+.course-thumbnail-gradient-3 { background: linear-gradient(135deg, #145E86, #0f172a); }
+
+.course-details {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.course-title {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  color: #1f2937;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.course-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background-color: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.course-progress-bar-0,
+.course-progress-bar-1,
+.course-progress-bar-2,
+.course-progress-bar-3,
+.progress-bar {
+  background: var(--color-accent);
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}

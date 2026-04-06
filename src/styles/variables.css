@@ -1,0 +1,41 @@
+:root {
+  /* Brand Colors - Shnoor International */
+  --color-primary: #003B5C;          /* Corporate Blue */
+  --color-primary-light: #145E86;   /* Hover / subtle accents */
+  --color-primary-dark: #00263A;    /* Active / focus states */
+
+  --color-accent: #E8AA25;          /* Accent Gold for CTAs */
+  --color-accent-dark: #C58A12;
+  --color-accent-soft: #FEF3C7;
+
+  --color-secondary: #E8AA25;       /* Alias for accent where needed */
+  
+  /* Neutrals */
+  --color-white: #ffffff;
+  --color-bg-white: #ffffff;
+  --color-bg-light: #F8FAFC;        /* Soft dashboard background */
+  --color-text-main: #0f172a;       /* Slate 900 - not pure black */
+  --color-text-secondary: #64748b;  /* Slate 500 */
+  --color-border: #e2e8f0;
+  --color-danger: #ef4444;
+  
+  /* Typography */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  
+  /* Effects */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 10px 40px rgba(15, 23, 42, 0.10);
+  --transition-fast: 0.2s ease;
+}
