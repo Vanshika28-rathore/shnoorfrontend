@@ -83,7 +83,7 @@ const StudentLayout = () => {
       if (permission === "granted") {
         new Notification("✅ Notifications Enabled", {
           body: "You will now receive global updates!",
-          icon: "/just_logo.svg",
+          icon: "/shnoor_logo.png",
         });
 
         subscribeUserToPush();
@@ -169,7 +169,7 @@ const StudentLayout = () => {
               notification.type === "STREAK_EXPIRED"
                 ? "⚠️ Streak Expired"
                 : "🎓 New Notification";
-            const icon = "/just_logo.svg";
+            const icon = "/shnoor_logo.png";
 
             // Use ServiceWorker registration if available (more reliable)
             if ("serviceWorker" in navigator && navigator.serviceWorker.ready) {

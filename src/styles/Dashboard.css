@@ -2059,14 +2059,13 @@ tr:hover td {
   position: relative;
 }*/
 /* ================= PORTRAIT CERTIFICATE DESIGN ================= */
-.certificate-paper {
-  width: 1050px;
-  min-height: 680px;
-  /* Further reduced height */
+.certificate-view-container .certificate-paper {
+  width: 1100px;
+  height: 640px;
+  /* Fixed height for true landscape rectangle */
   background: white;
   margin: 10px auto;
-  padding: 20px 40px;
-  /* Reduced vertical padding */
+  padding: 15px 40px;
   position: relative;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   font-family: 'Helvetica', 'Arial', sans-serif;
@@ -2074,7 +2073,7 @@ tr:hover td {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 6px solid #1E3A8A;
+  border: 8px solid #1E3A8A; /* Slightly thicker for better visibility */
 }
 
 /* Consolidated Corner Triangles */
@@ -2116,11 +2115,11 @@ tr:hover td {
 /* Bottom-left QR & ID Placement */
 .qr-id-overlay {
   position: absolute;
-  bottom: 12px;
-  left: 15px;
+  top: 15px;
+  right: 15px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 5px;
   z-index: 10;
 }
@@ -2134,9 +2133,9 @@ tr:hover td {
 
 
 .certificate-logo {
-  width: 180px;
+  width: 230px;
   height: auto;
-  margin-bottom: 20px;
+  margin-bottom: 35px;
 }
 
 .certificate-paper h1 {
@@ -2524,24 +2523,7 @@ tr:hover td {
 }
 
 /* Certificate Paper Layout */
-.certificate-paper {
-  position: relative;
-  width: 100%;
-  max-width: 800px;
-  aspect-ratio: 1.4; /* Matches admin preview aspect-[1.4] */
-  background-color: #ffffff;
-  border: 4px solid #1e3a8a; /* blue-900 */
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  padding: 3rem 4rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: serif;
-  color: #1e293b; /* slate-800 */
-  overflow: hidden;
-  text-align: center;
-}
+/* Removed redundant certificate-paper block to prevent conflicts */
 
 /* Corner Triangles */
 .certificate-paper .triangle {
@@ -2676,22 +2658,9 @@ tr:hover td {
 }
 
 /* Hidden elements for print/PDF but visible on screen */
-.qr-id-overlay {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  opacity: 0.6;
-}
+/* Removed redundant qr-id-overlay to prevent Top Right drift */
 
-.qr-id-overlay span {
-  font-size: 0.6rem;
-  font-family: monospace;
-  margin-top: 0.25rem;
-  color: #64748b;
-}
+/* Removed redundant qr-id-overlay span */
 
 /* Print Styles */
 @media print {
