@@ -11,8 +11,8 @@ import { exportToPDF } from "../../utils/certificatePDF";
 const defaultConfig = {
   title: "Certificate of Achievement",
   authorityName: "Director of Education",
-  issuerName: "Shnoor LMS",
-  logoUrl: "/just_logo.svg",
+  issuerName: "Shnoor International LLC",
+  logoUrl: "/shnoor_certificate_logo.png",
   signatureUrl: "/signatures/sign.png",
   templateUrl: "",
 };
@@ -38,7 +38,10 @@ const MyCertificates = () => {
           ...defaultConfig,
           ...firestoreData,
           ...localOverrides,
-          logoUrl: String(firestoreData.logoUrl || defaultConfig.logoUrl).replace('/public/', '/'),
+          logoUrl: (() => {
+            const raw = String(firestoreData.logoUrl || defaultConfig.logoUrl).replace('/public/', '/');
+            return (raw && !raw.startsWith('/') && !raw.startsWith('http')) ? `/${raw}` : raw;
+          })(),
           signatureUrl: String(firestoreData.signatureUrl || firestoreData.imageUrl || defaultConfig.signatureUrl).replace('/public/', '/'),
           authorityName: firestoreData.authorityName || defaultConfig.authorityName,
           title: firestoreData.title || defaultConfig.title,
@@ -60,7 +63,7 @@ const MyCertificates = () => {
       if (meRes.data?.full_name) {
         localStorage.setItem("full_name", String(meRes.data.full_name));
       }
-    } catch (_) {}
+    } catch (_) { }
 
     try {
       const res = await api.get(`/api/certificate/my`);
@@ -112,7 +115,7 @@ const MyCertificates = () => {
           {certConfig?.logoUrl ? (
             <img src={certConfig.logoUrl} alt="Company Logo" className="certificate-logo" />
           ) : (
-            <img src="/just_logo.svg" alt="Company Logo" className="certificate-logo" />
+            <img src="/shnoor_certificate_logo.png" alt="Company Logo" className="certificate-logo" />
           )}
 
           <h1>{certConfig?.title || "CERTIFICATE OF COMPLETION"}</h1>

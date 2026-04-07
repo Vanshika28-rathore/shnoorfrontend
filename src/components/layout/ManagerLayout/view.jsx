@@ -178,11 +178,11 @@ const ManagerLayoutView = ({
         style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}
       >
         <header
+          className="px-3 sm:px-5 md:px-8"
           style={{
             background: "#fff",
             borderBottom: "1px solid #e2e8f0",
             height: "64px",
-            padding: "0 32px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -278,7 +278,7 @@ const ManagerLayoutView = ({
           </div>
         </header>
 
-        <main style={{ flex: 1, overflow: "auto", background: "#D8E2EB", padding: "32px" }}>
+        <main className="p-4 md:p-8" style={{ flex: 1, overflow: "auto", background: "#D8E2EB" }}>
           <div style={{ width: "100%", height: "100%" }}>
             <Outlet />
           </div>

@@ -359,7 +359,7 @@ const CoursePlayerView = ({
   return (
     <div className="flex flex-col min-h-screen bg-primary-900 text-slate-100 font-sans">
       { }
-      <div className="h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-6 flex-shrink-0 z-20 shadow-md">
+      <div className="h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-3 sm:px-6 flex-shrink-0 z-20 shadow-md">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/student/courses")}
@@ -369,12 +369,12 @@ const CoursePlayerView = ({
             <ArrowLeft size={20} />
           </button>
           <div className="h-6 w-px bg-slate-700 mx-2"></div>
-          <h1 className="font-bold text-lg text-white truncate max-w-md">
+          <h1 className="font-bold text-sm sm:text-lg text-white truncate max-w-[150px] sm:max-w-md">
             {course.title}
           </h1>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="hidden sm:flex items-center gap-4">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
             Your Progress
           </div>
@@ -388,12 +388,19 @@ const CoursePlayerView = ({
             {progressPercentage}%
           </div>
         </div>
+        {/* Mobile-only compact progress */}
+        <div className="flex sm:hidden items-center gap-2">
+          <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+          </div>
+          <span className="text-xs font-bold text-indigo-400">{progressPercentage}%</span>
+        </div>
       </div>
 
       {(course.prereq_description ||
         (course.prereq_video_urls && course.prereq_video_urls.length > 0) ||
         course.prereq_pdf_url) && (
-          <div className="bg-slate-800 border-b border-slate-700 px-6 py-3 text-xs flex flex-wrap gap-4 items-center">
+          <div className="bg-slate-800 border-b border-slate-700 px-3 sm:px-6 py-3 text-xs flex flex-wrap gap-2 sm:gap-4 items-center">
             <div className="font-semibold text-slate-200 flex items-center gap-2">
               <Info size={14} className="text-indigo-400" />
               Pre‑course requirements

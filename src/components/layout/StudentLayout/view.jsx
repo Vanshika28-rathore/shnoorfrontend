@@ -126,9 +126,12 @@ const StudentLayoutView = ({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button
-              className="lg:hidden"
+              className="lg:hidden hover:bg-slate-100 transition-colors"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', borderRadius: '8px', display: 'flex' }}
+              style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', borderRadius: '8px', display: 'flex', transition: 'all 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e2e8f0'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+              title="Toggle Menu"
             >
               <Menu size={20} />
             </button>
@@ -214,7 +217,7 @@ const StudentLayoutView = ({
                 </div>
               )}
             </div>
-{/* Rank Badge */}
+            {/* Rank Badge */}
             <div className="hidden md:flex" style={{ alignItems: 'center', gap: '6px', background: '#f8fafc', padding: '6px 12px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                 <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1 }}>Rank</span>

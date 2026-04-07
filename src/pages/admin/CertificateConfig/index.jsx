@@ -7,11 +7,11 @@ import CertificateConfigView from "./view";
 const CertificateConfig = () => {
   const [config, setConfig] = useState({
     title: "Certificate of Achievement",
-    logoUrl: "",
+    logoUrl: "/shnoor_certificate_logo.png",
     templateUrl: "",
     signatureUrl: "",
     authorityName: "Director of Education",
-    issuerName: "Shnoor LMS",
+    issuerName: "Shnoor International LLC",
   });
 
   const [loading, setLoading] = useState(true);

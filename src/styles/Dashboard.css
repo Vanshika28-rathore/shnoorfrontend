@@ -2060,12 +2060,12 @@ tr:hover td {
 }*/
 /* ================= PORTRAIT CERTIFICATE DESIGN ================= */
 .certificate-paper {
-  width: 700px;
-  min-height: 620px;
+  width: 1050px;
+  min-height: 680px;
   /* Further reduced height */
   background: white;
   margin: 10px auto;
-  padding: 25px 40px;
+  padding: 20px 40px;
   /* Reduced vertical padding */
   position: relative;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);

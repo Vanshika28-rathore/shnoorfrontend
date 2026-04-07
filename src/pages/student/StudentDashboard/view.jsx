@@ -129,7 +129,7 @@ const StudentDashboardView = ({
         <div className="space-y-6 font-sans max-w-[1440px] mx-auto">
 
             {/* WELCOME BANNER */}
-            <div className="relative rounded-2xl p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+            <div className="relative rounded-2xl p-4 sm:p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
                 <div className="relative z-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <p className="text-indigo-300 text-sm font-medium mb-1">👋 {greeting}, {studentName}</p>
@@ -140,7 +140,7 @@ const StudentDashboardView = ({
                     <div className="flex items-center gap-3">
                         {/* Search */}
                         <div className="relative z-50">
-                            <div className={`relative transition-all duration-300 ${isSearchExpanded ? 'w-80 sm:w-96' : 'w-64'}`}>
+                            <div className={`relative transition-all duration-300 ${isSearchExpanded ? 'w-full sm:w-80 md:w-96' : 'w-full sm:w-64'}`}>
                                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                 <input
                                     className="pl-10 pr-10 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-sm w-full text-white focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400/50 focus:bg-white/15 transition-all placeholder:text-slate-400"

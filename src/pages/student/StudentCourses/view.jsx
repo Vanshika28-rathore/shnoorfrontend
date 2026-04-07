@@ -83,7 +83,7 @@ const StudentCoursesView = ({
       />
 
       {/* Header Section */}
-      <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-8 mb-8">
+      <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-4 sm:p-6 lg:p-8 mb-8">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -ml-24 -mb-24"></div>
 
@@ -98,7 +98,7 @@ const StudentCoursesView = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md p-1 rounded-xl border border-white/10 overflow-x-auto max-w-full">
+          <div className="flex items-center gap-2 sm:gap-3 bg-white/5 backdrop-blur-md p-1 rounded-xl border border-white/10 overflow-x-auto max-w-full scrollbar-hide">
             {[
               { id: "my-learning", label: "My Learning", icon: Library },
               { id: "explore", label: "Explore", icon: BookOpen },
@@ -111,11 +111,10 @@ const StudentCoursesView = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                  activeTab === tab.id
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${activeTab === tab.id
                     ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
-                }`}
+                  }`}
               >
                 <tab.icon size={14} />
                 {tab.label}
@@ -229,11 +228,10 @@ const StudentCoursesView = ({
                           {result.title}
                         </h4>
                         <span
-                          className={`flex-shrink-0 text-[10px] font-extrabold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider ${
-                            result.type === "module"
+                          className={`flex-shrink-0 text-[10px] font-extrabold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider ${result.type === "module"
                               ? "bg-purple-100 text-purple-700"
                               : "bg-blue-100 text-blue-700"
-                          }`}
+                            }`}
                         >
                           {result.type === "module" ? "Module" : "Course"}
                         </span>
@@ -316,11 +314,10 @@ const StudentCoursesView = ({
                             <span className="text-xs text-slate-500">{course.category}</span>
                             <span className="text-xs text-slate-400">•</span>
                             <span className="text-xs text-slate-500">By {course.instructor_name || "Instructor"}</span>
-                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                              course.price_type === "paid"
+                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${course.price_type === "paid"
                                 ? "bg-amber-100 text-amber-700"
                                 : "bg-emerald-100 text-emerald-700"
-                            }`}>
+                              }`}>
                               {course.price_type === "paid" ? `₹${course.price_amount}` : "FREE"}
                             </span>
                           </div>
@@ -403,11 +400,10 @@ const StudentCoursesView = ({
                           <span className="text-xs text-slate-500">{course.category}</span>
                           <span className="text-xs text-slate-400">•</span>
                           <span className="text-xs text-slate-500">By {course.instructor_name || "Instructor"}</span>
-                          <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                            course.price_type === "paid"
+                          <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${course.price_type === "paid"
                               ? "bg-amber-100 text-amber-700"
                               : "bg-emerald-100 text-emerald-700"
-                          }`}>
+                            }`}>
                             {course.price_type === "paid" ? `₹${course.price_amount}` : "FREE"}
                           </span>
                         </div>
@@ -482,11 +478,10 @@ const StudentCoursesView = ({
                         </span>
                       </div>
                       <div
-                        className={`absolute bottom-4 right-4 px-3 py-1 rounded-lg text-[11px] font-extrabold uppercase shadow-lg border-2 ${
-                          course.price_type === "paid"
+                        className={`absolute bottom-4 right-4 px-3 py-1 rounded-lg text-[11px] font-extrabold uppercase shadow-lg border-2 ${course.price_type === "paid"
                             ? "bg-amber-400 text-slate-900 border-amber-500"
                             : "bg-emerald-500 text-white border-emerald-600"
-                        }`}
+                          }`}
                       >
                         {course.price_type === "paid"
                           ? `₹${course.price_amount}`
@@ -521,11 +516,10 @@ const StudentCoursesView = ({
                               Resume Learning <ArrowRight size={16} />
                             </button>
                             <button
-                              className={`w-full font-extrabold py-3 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2 border-2 ${
-                                course.has_reviewed
+                              className={`w-full font-extrabold py-3 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2 border-2 ${course.has_reviewed
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-100 cursor-not-allowed"
                                   : "bg-white text-slate-700 border-slate-100 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50"
-                              }`}
+                                }`}
                               onClick={(e) =>
                                 !course.has_reviewed && openReviewModal(e, course)
                               }
