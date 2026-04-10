@@ -39,6 +39,7 @@ const ExamRunner = () => {
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [canRewrite, setCanRewrite] = useState(false);
@@ -577,8 +578,10 @@ const ExamRunner = () => {
      SUBMIT EXAM (BACKEND)
   ========================= */
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     try {
       if (isSubmitted) return;
+      setIsSubmitting(true);
 
       const token = await auth.currentUser.getIdToken(false);
 
@@ -626,6 +629,8 @@ const ExamRunner = () => {
       } else {
         alert(`Submission Error: ${errorMessage}`);
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -746,6 +751,7 @@ const ExamRunner = () => {
       handleAnswer={handleAnswer}
       timeLeft={timeLeft}
       isSubmitted={isSubmitted}
+      isSubmitting={isSubmitting}
       result={result}
       handleSubmit={handleSubmit}
       handleRewrite={handleRewrite}

@@ -8,11 +8,12 @@ import {
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
-// Layouts (always needed — keep eager)
-import AdminLayout from "./components/layout/AdminLayout";
-import InstructorLayout from "./components/layout/InstructorLayout";
-import StudentLayout from "./components/layout/StudentLayout";
-import ManagerLayout from "./components/layout/ManagerLayout";
+// Layouts (lazy loaded to save initial bundle size)
+const AdminLayout = React.lazy(() => import("./components/layout/AdminLayout"));
+const InstructorLayout = React.lazy(() => import("./components/layout/InstructorLayout"));
+const StudentLayout = React.lazy(() => import("./components/layout/StudentLayout"));
+const ManagerLayout = React.lazy(() => import("./components/layout/ManagerLayout"));
+
 import { SocketProvider } from "./context/SocketContext";
 import CookieBanner from "./components/CookieBanner";
 

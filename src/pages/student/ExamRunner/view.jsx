@@ -76,6 +76,7 @@ const ExamRunnerView = ({
   handleAnswer,
   timeLeft,
   isSubmitted,
+  isSubmitting,
   result,
   handleSubmit,
   handleRewrite,
@@ -386,16 +387,16 @@ const ExamRunnerView = ({
       nextBtn = (
         <button
           className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold shadow-lg transition-all
-            ${isExamLocked
+            ${(isExamLocked || isSubmitting)
               ? "bg-slate-400 text-white cursor-not-allowed"
               : darkMode
                 ? "bg-red-500 text-white hover:bg-red-600 rounded-lg px-6 py-2"
                 : "bg-red-500 text-white hover:bg-red-600 shadow-red-500/30"
             }`}
           onClick={handleSubmit}
-          disabled={isExamLocked}
+          disabled={isExamLocked || isSubmitting}
         >
-          Submit Test
+          {isSubmitting ? "Submitting..." : "Submit Test"}
         </button>
       );
     } else if (isLastQuestionInSection) {
@@ -499,14 +500,14 @@ const ExamRunnerView = ({
               <FaClock size={16} /> {formatTime(timeLeft)}
             </span>
             <button
-              className={`text-white text-sm font-bold py-2 px-4 rounded-lg shadow-md transition-colors ${isExamLocked
+              className={`text-white text-sm font-bold py-2 px-4 rounded-lg shadow-md transition-colors ${(isExamLocked || isSubmitting)
                 ? "bg-slate-600 cursor-not-allowed"
                 : "bg-red-500 hover:bg-red-600"
                 }`}
               onClick={handleSubmit}
-              disabled={isExamLocked}
+              disabled={isExamLocked || isSubmitting}
             >
-              {isExamLocked ? "Time's Up" : "Finish Test"}
+              {isSubmitting ? "Submitting..." : isExamLocked ? "Time's Up" : "Finish Test"}
             </button>
           </div>
         )}

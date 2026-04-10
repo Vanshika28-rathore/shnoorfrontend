@@ -44,6 +44,10 @@ const StudentLayoutView = ({
   const notifButtonRef = React.useRef(null);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
+  const isExamMode = ['/exam', '/mocktest', '/test', '/mock-test', '/mock-exam'].some(keyword =>
+    location.pathname.toLowerCase().includes(keyword)
+  );
+
   React.useEffect(() => {
     if (!notifOpen) return undefined;
 
@@ -144,7 +148,7 @@ const StudentLayoutView = ({
   return (
     <div className="flex min-h-screen font-sans" style={{ background: '#D8E2EB' }}>
       <NotificationToast notifications={toasts} onDismiss={onDismissToast} />
-      {isSidebarOpen && (
+      {!isExamMode && isSidebarOpen && (
         <div
           className="fixed inset-0 z-[90] lg:hidden"
           style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
@@ -153,6 +157,7 @@ const StudentLayoutView = ({
       )}
 
       {/* DARK SIDEBAR */}
+      {!isExamMode && (
       <div
         className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
@@ -183,13 +188,15 @@ const StudentLayoutView = ({
           </ul>
         </div>
       </div>
+      )}
 
       {/* MAIN CONTENT */}
       <div
-        className={`transition-all duration-300 ${isSidebarOpen ? 'lg:ml-[260px]' : 'ml-0'}`}
+        className={`transition-all duration-300 ${(!isExamMode && isSidebarOpen) ? 'lg:ml-[260px]' : 'ml-0'}`}
         style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', position: 'relative', isolation: "isolate" }}
       >
         {/* Header */}
+        {!isExamMode && (
         <header style={{
           background: '#fff', borderBottom: '1px solid #e2e8f0', minHeight: '64px', padding: '0 clamp(16px, 4vw, 32px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -351,8 +358,16 @@ const StudentLayoutView = ({
             </div>
           </div>
         </header>
+        )}
 
-        <main style={{ flex: 1, overflow: 'auto', background: '#D8E2EB', padding: 'clamp(16px, 3vw, 32px)' }}>
+        <main style={{ 
+          flex: 1, 
+          overflow: 'auto', 
+          background: '#D8E2EB', 
+          padding: isExamMode ? 0 : 'clamp(16px, 3vw, 32px)',
+          width: isExamMode ? '100%' : 'auto',
+          height: isExamMode ? '100vh' : 'auto'
+        }}>
           <div style={{ width: '100%', height: '100%' }}>
             <Outlet context={{ studentName, xp }} />
           </div>

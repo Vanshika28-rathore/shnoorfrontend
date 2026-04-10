@@ -33,28 +33,27 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
     }
   };
 
-  const NavLink = ({ target, label, onClick }) => (
+  const NavLink = ({ target, label, onClick, className = '' }) => (
     <button
       onClick={onClick ? onClick : () => scrollToSection(target)}
-      className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors tracking-wide"
+      className={`text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors tracking-wide ${className}`}
     >
       {label}
     </button>
   );
 
   const BrandLogo = ({ titleColor = 'text-slate-900', subtitleColor = 'text-slate-500' }) => (
-    <div className="flex items-center">
+    <div className="flex items-center gap-2 sm:gap-3 min-w-0 pr-4">
       <img
         src={markLogo}
-        alt="Shnoor International"
-        className="rounded-xl"
-        style={{ width: '60px', height: '62px', objectFit: 'cover', borderRadius: '50%', marginRight: '10px' }}
+        alt="Shnoor International Logo"
+        className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover shadow-sm bg-white border border-slate-100"
       />
-      <div>
-        <h1 className={`brand-logo ${titleColor} text-xl md:text-2xl font-semibold mb-1 tracking-tight leading-tight`}>
-          SHNOOR International
+      <div className="flex flex-col justify-center min-w-0">
+        <h1 className={`brand-logo ${titleColor} text-[15px] sm:text-lg md:text-xl lg:text-2xl font-black tracking-tight leading-tight mb-0.5`}>
+          SHNOOR <br className="sm:hidden" /> International
         </h1>
-        <p className={`text-xs md:text-sm ${subtitleColor} font-medium tracking-[0.18em] uppercase`}>
+        <p className={`text-[8px] sm:text-[10px] md:text-xs ${subtitleColor} font-bold tracking-[0.2em] uppercase leading-none mt-0.5`}>
           Learning Platform
         </p>
       </div>
@@ -72,12 +71,12 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
       </div>
 
       {/* --- NAV BAR --- */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm border-b border-white/20' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100' : 'bg-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 min-h-[5rem] md:min-h-[6rem] flex items-center justify-between relative z-50">
           <BrandLogo />
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8 bg-white/50 px-6 py-2 rounded-full border border-white/50 backdrop-blur-sm">
+          <div className="hidden lg:flex items-center gap-4 xl:gap-8 bg-white/50 px-4 xl:px-6 py-2 rounded-full border border-white/50 backdrop-blur-sm">
             <NavLink target="home" label="Home" />
             <NavLink target="training" label="Training" />
             <NavLink target="certification" label="Certifications" />
@@ -85,32 +84,40 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             <NavLink target="contact" label="Contact" onClick={onContact} />
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <button onClick={onLogin} className="text-sm font-bold text-slate-700 hover:text-slate-900 transition-colors px-4">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-4">
+            <button onClick={onLogin} className="text-sm font-bold text-slate-700 hover:text-slate-900 transition-colors px-2 xl:px-4">
               Log In
             </button>
-            <button onClick={onRegister} className="px-6 py-2.5 bg-slate-900 text-white rounded-full font-bold text-sm hover:bg-slate-800 transition-all shadow-lg hover:shadow-slate-900/25">
+            <button onClick={onRegister} className="px-5 xl:px-6 py-2.5 bg-slate-900 text-white rounded-full font-bold text-sm hover:bg-slate-800 transition-all shadow-lg hover:shadow-slate-900/25 whitespace-nowrap">
               Get Started
             </button>
           </div>
 
           {/* Mobile Menu Toggle */}
-          <button className="md:hidden text-slate-900" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X /> : <Menu />}
+          <button 
+            className="lg:hidden flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-slate-900 hover:bg-slate-200 transition-colors shrink-0" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle Menu"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
-        {/* Mobile Menu Dropdown */}
+        {/* Mobile Menu Full Overlay */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-200 p-6 flex flex-col gap-6 shadow-xl absolute w-full animate-fade-in-up">
-            <NavLink target="home" label="Home" />
-            <NavLink target="training" label="Training" />
-            <NavLink target="certification" label="Certifications" />
-            <NavLink target="stories" label="Success Stories" />
-            <NavLink target="contact" label="Contact" onClick={onContact} />
-            <hr className="border-slate-100" />
-            <button onClick={onLogin} className="w-full h-12 border border-slate-200 rounded-xl font-bold text-slate-900">Log In</button>
-            <button onClick={onRegister} className="w-full h-12 bg-slate-900 text-white rounded-xl font-bold">Get Started</button>
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-2xl flex flex-col z-40 animate-fade-in-up max-h-[85vh] overflow-y-auto">
+            <div className="px-6 py-4 flex flex-col space-y-1">
+              <NavLink target="home" label="Home" className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
+              <NavLink target="training" label="Training" className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
+              <NavLink target="certification" label="Certifications" className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
+              <NavLink target="stories" label="Success Stories" className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
+              <NavLink target="contact" label="Contact" onClick={onContact} className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
+            </div>
+            
+            <div className="px-6 py-6 mt-auto border-t border-slate-50 bg-slate-50/50 flex flex-col gap-3">
+              <button onClick={onLogin} className="w-full h-12 min-h-[48px] bg-white border border-slate-200 rounded-xl font-bold text-slate-900 shadow-sm hover:bg-slate-50 transition-colors">Log In</button>
+              <button onClick={onRegister} className="w-full h-12 min-h-[48px] bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-colors">Get Started</button>
+            </div>
           </div>
         )}
       </nav>
@@ -129,31 +136,31 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
               <span className="text-xs font-bold uppercase tracking-widest text-slate-900">Platform AV</span>
             </div>
 
-            <h1 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tight mb-6 leading-[1.1]">
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tight mb-4 md:mb-6 leading-[1.1]">
               Mastery Is Not <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600">
                 An Accident.
               </span>
             </h1>
 
-            <p className="text-lg lg:text-xl text-slate-600 font-medium max-w-2xl mx-auto lg:mx-0 mb-10 leading-relaxed">
+            <p className="text-base md:text-lg lg:text-xl text-slate-600 font-medium max-w-2xl mx-auto lg:mx-0 mb-8 md:mb-10 leading-relaxed px-4 lg:px-0">
               The all-in-one learning operating system. Train your workforce, validate skills with code-native exams, and certify compliance in real-time.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <button onClick={onRegister} className="h-14 px-8 bg-slate-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 shadow-xl hover:shadow-slate-900/30 hover:-translate-y-1">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 w-full sm:w-auto px-4 lg:px-0">
+              <button onClick={onRegister} className="w-full sm:w-auto h-14 min-h-[56px] px-8 bg-slate-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-slate-800 transition-all flex justify-center items-center gap-2 shadow-xl hover:shadow-slate-900/30 hover:-translate-y-1">
                 Start Learning Now <ArrowRight size={18} />
               </button>
-              <button onClick={() => scrollToSection('training')} className="h-14 px-8 bg-white border border-slate-200 text-slate-700 rounded-full font-bold text-sm uppercase tracking-widest hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50 transition-all">
+              <button onClick={() => scrollToSection('training')} className="w-full sm:w-auto h-14 min-h-[56px] px-8 bg-white border border-slate-200 text-slate-700 rounded-full font-bold text-sm uppercase tracking-widest hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50 transition-all">
                 Explore Platform
               </button>
             </div>
 
-            <div className="mt-12 flex items-center justify-center lg:justify-start gap-8 text-slate-400 grayscale opacity-70">
-              <span className="font-bold text-xl">ACME Corp</span>
-              <span className="font-bold text-xl">GlobalTech</span>
-              <span className="font-bold text-xl">Nebula</span>
-              <span className="font-bold text-xl">Vertex</span>
+            <div className="mt-12 flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 text-slate-400 grayscale opacity-70">
+              <span className="font-bold text-lg md:text-xl">ACME Corp</span>
+              <span className="font-bold text-lg md:text-xl">GlobalTech</span>
+              <span className="font-bold text-lg md:text-xl">Nebula</span>
+              <span className="font-bold text-lg md:text-xl">Vertex</span>
             </div>
           </div>
 
@@ -500,13 +507,13 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm !text-[#64748b]">
+        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[#64748b] text-center md:text-left">
           <div>© 2026 Shnoor International. All rights reserved.</div>
-          <div className="flex gap-6">
-            <Link to="/privacy-policy" className="hover:!text-[#cbd5e1] !text-[#64748b]">Privacy Policy</Link>
-            <Link to="/terms-and-conditions" className="hover:!text-[#cbd5e1] !text-[#64748b]">Terms & Conditions</Link>
-            <Link to="/cookie-policy" className="hover:!text-[#cbd5e1] !text-[#64748b]">Cookie Policy</Link>
-            <a href="/Company profile..pdf" download className="hover:!text-[#cbd5e1] !text-[#64748b]">Company Profile</a>
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+            <Link to="/privacy-policy" className="hover:text-[#cbd5e1] text-[#64748b] py-2 whitespace-nowrap">Privacy Policy</Link>
+            <Link to="/terms-and-conditions" className="hover:text-[#cbd5e1] text-[#64748b] py-2 whitespace-nowrap">Terms & Conditions</Link>
+            <Link to="/cookie-policy" className="hover:text-[#cbd5e1] text-[#64748b] py-2 whitespace-nowrap">Cookie Policy</Link>
+            <a href="/Company profile..pdf" download className="hover:text-[#cbd5e1] text-[#64748b] py-2 whitespace-nowrap">Company Profile</a>
           </div>
         </div>
       </footer>

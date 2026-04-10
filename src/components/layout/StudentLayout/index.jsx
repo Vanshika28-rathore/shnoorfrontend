@@ -226,9 +226,13 @@ const StudentLayout = () => {
   }, [currentUser, navigate]);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
+    if (!currentUser) return;
+
+    let controller = new AbortController();
+
+    const fetchNotifications = async (signal) => {
       try {
-        const res = await api.get("/api/notifications");
+        const res = await api.get("/api/notifications", { signal });
         const unread = res.data.filter((n) => !n.is_read);
 
         setNotifications((prev) => {
@@ -242,16 +246,27 @@ const StudentLayout = () => {
           return prev;
         });
       } catch (err) {
-        console.error("Failed to fetch notifications:", err);
+        if (err.name !== "CanceledError" && err.code !== "ERR_CANCELED") {
+          console.error("Failed to fetch notifications:", err);
+        }
       }
     };
 
-    if (currentUser) {
-      fetchNotifications();
-      // Poll every 10 seconds as fallback
-      const interval = setInterval(fetchNotifications, 10000);
-      return () => clearInterval(interval);
-    }
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        controller.abort();
+        controller = new AbortController();
+        fetchNotifications(controller.signal);
+      }
+    };
+
+    fetchNotifications(controller.signal);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      controller.abort();
+    };
   }, [currentUser]);
 
   const handleDismissNotification = async (id) => {

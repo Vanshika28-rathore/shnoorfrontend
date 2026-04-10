@@ -172,6 +172,7 @@ const SECTIONS_TEMPLATE = [
 ];
 
 const TOTAL_SECONDS = 15 * 60;
+const STORAGE_KEY = 'shnoor_exam_backup';
 
 // Question status constants
 const STATUS = {
@@ -527,14 +528,47 @@ const MockExam = () => {
   const [isRunning, setIsRunning]           = useState({});
   const [consoleOutput, setConsoleOutput]   = useState({});
   const [secondsLeft, setSecondsLeft]       = useState(TOTAL_SECONDS);
+  const [isHydrated, setIsHydrated]         = useState(false);
   const timerRef = useRef(null);
 
   // ── CHANGE 4a: videoRef — forwarded to <VideoStreamWidget> so
   //   useMockSecurity can read frames for face/phone detection ────────────────
   const videoRef = useRef(null);
 
-  // ── Randomized sections — built ONCE on mount, never change again ──────────
-  const [SECTIONS] = useState(() => buildRandomizedSections());
+  // ── Randomized sections — hydrated ONCE on mount, never change again ───────
+  const [SECTIONS, setSECTIONS] = useState([]);
+
+  useEffect(() => {
+    const cachedData = localStorage.getItem(STORAGE_KEY);
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        setAnswers(parsed.answers || {});
+        setStatuses(parsed.statuses || {});
+        setSecondsLeft(parsed.secondsLeft ?? TOTAL_SECONDS);
+        setSECTIONS(parsed.shuffledSections || buildRandomizedSections());
+      } catch (err) {
+        console.error("Failed to parse existing backup data, resetting...", err);
+        setSECTIONS(buildRandomizedSections());
+      }
+    } else {
+      const freshSections = buildRandomizedSections();
+      setSECTIONS(freshSections);
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ answers: {}, statuses: {}, secondsLeft: TOTAL_SECONDS, shuffledSections: freshSections })
+      );
+    }
+    setIsHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated && SECTIONS.length > 0) {
+      const backupData = { answers, statuses, secondsLeft, shuffledSections: SECTIONS };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(backupData));
+    }
+  }, [answers, statuses, secondsLeft, SECTIONS, isHydrated]);
 
   const currentSectionId = SECTIONS[activeSection]?.id ?? "";
   const currentSection   = SECTIONS[activeSection];
@@ -559,8 +593,14 @@ const MockExam = () => {
   }, []);
 
   const handleAutoSubmit = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
     setSubmitted(true);
   }, []);
+
+  const handleSubmitExam = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setSubmitted(true);
+  };
 
   // CHANGE 4c: pass videoRef + mediaStream as the two new params
   const { triggerFullscreen, securityHandlers, stopAiDetection, aiDebugInfo } = useMockSecurity(
@@ -607,6 +647,7 @@ const MockExam = () => {
       setSecondsLeft((s) => {
         if (s <= 1) {
           clearInterval(timerRef.current);
+          localStorage.removeItem(STORAGE_KEY);
           setSubmitted(true);
           return 0;
         }
@@ -756,13 +797,13 @@ const MockExam = () => {
   }, [activeQuestion, activeSection, currentSection]);
 
   // ── Loading screen ─────────────────────────────────────────────────────────
-  if (!mediaAllowed) {
+  if (!mediaAllowed || !isHydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50 font-sans">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-600 font-medium">
-            Requesting camera and microphone access...
+            {!isHydrated ? "Loading your exam..." : "Requesting camera and microphone access..."}
           </p>
         </div>
       </div>
@@ -798,7 +839,7 @@ const MockExam = () => {
           <div className="flex items-center gap-2">
             <Timer secondsLeft={secondsLeft} />
             <button
-              onClick={() => setSubmitted(true)}
+              onClick={handleSubmitExam}
               className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
             >
               <Send size={13} />
@@ -991,7 +1032,7 @@ const MockExam = () => {
 
             {isLastQuestion ? (
               <button
-                onClick={() => setSubmitted(true)}
+                onClick={handleSubmitExam}
                 className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2 rounded-lg text-sm transition-colors shadow-sm"
               >
                 <Send size={13} />
