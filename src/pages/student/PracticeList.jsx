@@ -55,11 +55,11 @@ const PracticeList = () => {
     if (loading) return <div className="p-8 text-center text-slate-500">Loading challenges...</div>;
 
     return (
-        <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+        <div className="space-y-6">
             {/* GRADIENT HEADER */}
-            <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+            <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
                 <div className="relative z-10 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
                         <Code size={24} className="text-indigo-300" />
                     </div>
                     <div>

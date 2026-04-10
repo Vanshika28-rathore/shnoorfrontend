@@ -2060,8 +2060,9 @@ tr:hover td {
 }*/
 /* ================= PORTRAIT CERTIFICATE DESIGN ================= */
 .certificate-view-container .certificate-paper {
-  width: 1100px;
-  height: 640px;
+  width: 100%;
+  max-width: 1100px;
+  min-height: 500px;
   /* Fixed height for true landscape rectangle */
   background: white;
   margin: 10px auto;
@@ -2073,7 +2074,56 @@ tr:hover td {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 8px solid #1E3A8A; /* Slightly thicker for better visibility */
+  border: 8px solid #1E3A8A;
+  /* Slightly thicker for better visibility */
+}
+
+@media (max-width: 768px) {
+  .certificate-view-container {
+    padding: 10px;
+  }
+  
+  .certificate-view-container .certificate-paper {
+    width: 100%;
+    padding: 10px 15px;
+    border-width: 4px;
+    min-height: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .certificate-view-container .certificate-paper h1 {
+    font-size: 1.2rem !important;
+  }
+  
+  .certificate-view-container .certificate-paper h2 {
+    font-size: 1rem !important;
+  }
+  
+  .certificate-view-container .certificate-paper .this-is-to-certify,
+  .certificate-view-container .certificate-paper .program-completion-text,
+  .certificate-view-container .certificate-paper .company-name-highlight,
+  .certificate-view-container .certificate-paper .issued-on-date {
+    font-size: 0.8rem !important;
+  }
+  
+  .certificate-view-container .certificate-paper .certificate-logo {
+    max-width: 80px !important;
+    height: auto !important;
+  }
+  
+  .certificate-view-container .certificate-paper .signature-image {
+    max-width: 60px !important;
+    height: auto !important;
+  }
+  
+  .certificate-view-container .certificate-paper .qr-id-overlay {
+    top: 8px;
+    right: 8px;
+  }
+  
+  .certificate-view-container .certificate-paper .qr-id-overlay span {
+    font-size: 0.5rem;
+  }
 }
 
 /* Consolidated Corner Triangles */
@@ -2112,6 +2162,26 @@ tr:hover td {
   border-color: transparent transparent #1E3A8A transparent;
 }
 
+@media (max-width: 768px) {
+  .triangle {
+    display: none;
+  }
+  
+  .qr-id-overlay {
+    top: 8px;
+    right: 8px;
+  }
+  
+  .qr-id-overlay img {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .qr-id-overlay span {
+    font-size: 0.5rem;
+  }
+}
+
 /* Bottom-left QR & ID Placement */
 .qr-id-overlay {
   position: absolute;
@@ -2147,8 +2217,30 @@ tr:hover td {
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  white-space: nowrap;
-  /* Force single line */
+}
+
+@media (max-width: 768px) {
+  .certificate-paper h1 {
+    font-size: 1rem;
+    white-space: normal;
+  }
+  
+  .certificate-paper h2 {
+    font-size: 1rem;
+  }
+  
+  .certificate-logo {
+    width: 80px;
+    margin-bottom: 15px;
+  }
+  
+  .signature-section {
+    margin-top: 10px !important;
+  }
+  
+  .signature-image {
+    width: 60px !important;
+  }
 }
 
 .certificate-paper h2 {
@@ -2482,6 +2574,23 @@ tr:hover td {
   width: 100%;
   max-width: 800px;
   justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .certificate-view-container {
+    padding: 10px;
+  }
+  
+  .certificate-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .certificate-actions button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .back-btn {
