@@ -286,8 +286,8 @@ const AdminLayoutView = ({
         </header>
 
         {/* Page Content */}
-        <main className="p-4 md:p-8" style={{ flex: 1, overflow: 'auto', background: '#D8E2EB' }}>
-          <div style={{ width: '100%', height: '100%' }}>
+        <main className="p-4 md:p-8" style={{ flex: 1, overflow: 'auto', background: '#D8E2EB', minWidth: 0 }}>
+          <div style={{ width: '100%', minWidth: 0 }}>
             <Outlet />
           </div>
         </main>

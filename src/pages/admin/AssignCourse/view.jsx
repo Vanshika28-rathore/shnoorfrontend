@@ -40,10 +40,10 @@ const AssignCourseView = ({
           </div>
         )}
         <form onSubmit={(e) => { e.preventDefault(); handleAssign(); }} className="flex-1 flex flex-col h-full">
-          <div className="flex flex-1 overflow-hidden divide-x divide-slate-100">
+          <div className="flex flex-1 overflow-hidden divide-x divide-slate-100 flex-col md:flex-row">
 
             {/* Groups */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 min-h-[300px] md:min-h-0">
               <div className="p-4 border-b border-slate-100">
                 <h3 className="flex items-center gap-2 text-sm font-bold text-primary-900 mb-3 uppercase tracking-wide">
                   <User className="text-slate-400" size={16} /> Select Groups
@@ -78,7 +78,7 @@ const AssignCourseView = ({
             </div>
 
             {/* Students */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 min-h-[300px] md:min-h-0">
               <div className="p-4 border-b border-slate-100">
                 <h3 className="flex items-center gap-2 text-sm font-bold text-primary-900 mb-3 uppercase tracking-wide">
                   <User className="text-slate-400" size={16} /> Select Students
@@ -113,7 +113,7 @@ const AssignCourseView = ({
             </div>
 
             {/* Courses */}
-            <div className={`flex-1 flex flex-col min-w-0 transition-opacity ${selectedGroups.length === 0 && selectedStudents.length === 0 ? "opacity-40 pointer-events-none" : ""}`}>
+            <div className={`flex-1 flex flex-col min-w-0 min-h-[300px] md:min-h-0 transition-opacity ${selectedGroups.length === 0 && selectedStudents.length === 0 ? "opacity-40 pointer-events-none" : ""}`}>
               <div className="p-4 border-b border-slate-100">
                 <h3 className="flex items-center gap-2 text-sm font-bold text-primary-900 mb-1 uppercase tracking-wide">
                   <BookOpen className="text-indigo-500" size={16} /> Select Courses

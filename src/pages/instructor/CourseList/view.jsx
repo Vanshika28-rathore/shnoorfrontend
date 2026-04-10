@@ -194,17 +194,17 @@ const CourseListView = ({
 
   /* ================= COURSE LIST VIEW ================= */
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
       
       {/* Gradient Header */}
       <div
-        className="relative overflow-hidden rounded-2xl p-6 lg:p-8"
+        className="relative overflow-hidden rounded-2xl p-5 md:p-6 lg:p-8"
         style={{
           background:
             "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)",
         }}
       >
-        <div className="relative z-10 flex justify-between items-center">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-white">
               Course Library
@@ -216,42 +216,46 @@ const CourseListView = ({
 
           <button
             onClick={onCreate}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg whitespace-nowrap"
           >
-            <Plus size={16} /> Create New Course
+            <Plus size={16} />
+            <span className="hidden sm:inline">Create New Course</span>
+            <span className="sm:hidden">Create</span>
           </button>
         </div>
       </div>
 
-      {/* Courses Table */}
+      {/* Courses Table - Responsive */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b">
-            <tr>
-              <th className="px-6 py-3 text-xs font-bold text-slate-400 uppercase">
-                Title
-              </th>
-              <th className="px-6 py-3 text-xs font-bold text-slate-400 uppercase">
-                Modules
-              </th>
-              <th className="px-6 py-3 text-xs font-bold text-slate-400 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-3 text-xs font-bold text-slate-400 uppercase text-right">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {courses.map((course) => (
-              <tr
-                key={course.courses_id}
-                onClick={() => onOpenCourse(course)}
-                className="hover:bg-slate-50 cursor-pointer"
-              >
-                <td className="px-6 py-4 font-semibold text-sm">
-                  {course.title}
-                </td>
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50 border-b">
+              <tr>
+                <th className="px-6 py-3 text-xs font-bold text-slate-400 uppercase">
+                  Title
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-slate-400 uppercase">
+                  Modules
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-slate-400 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-slate-400 uppercase text-right">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {courses.map((course) => (
+                <tr
+                  key={course.courses_id}
+                  onClick={() => onOpenCourse(course)}
+                  className="hover:bg-slate-50 cursor-pointer"
+                >
+                  <td className="px-6 py-4 font-semibold text-sm">
+                    {course.title}
+                  </td>
                 <td className="px-6 py-4 text-sm">
                   {course.modules?.length || 0}
                 </td>
@@ -309,6 +313,42 @@ const CourseListView = ({
             ))}
           </tbody>
         </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {courses.map((course) => (
+            <div
+              key={course.courses_id}
+              onClick={() => onOpenCourse(course)}
+              className="p-4 hover:bg-slate-50 cursor-pointer"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-sm text-slate-800 line-clamp-2">{course.title}</h3>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-slate-500">{course.modules?.length || 0} modules</div>
+                <span className={`inline-flex px-2 py-1 rounded-md text-xs font-semibold ${getStatusBadge(course.status)}`}>
+                  {course.status}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(course); }}
+                  className="flex-1 flex items-center justify-center gap-1 py-2 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-lg"
+                >
+                  <Edit size={12} /> Edit
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete(course.courses_id); }}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Comments Modal */}

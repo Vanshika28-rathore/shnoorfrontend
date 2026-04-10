@@ -3,16 +3,23 @@ import { ClipboardList, Clock, AlertCircle, Play, CheckCircle, BotOff, Camera, S
 
 const MockTestView = ({ navigate }) => {
   return (
-    <div className="w-full pb-12">
-      <div className="mb-8">
-        <h3 className="text-2xl font-bold text-slate-900">Mock Test</h3>
-        <p className="text-slate-500 mt-1">
-          Prepare yourself before taking the real exam.
-        </p>
+    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+      {/* GRADIENT HEADER */}
+      <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+            <ClipboardList size={24} className="text-indigo-300" />
+          </div>
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Mock Test</h1>
+            <p className="text-slate-400 text-sm mt-0.5">Prepare yourself before taking the real exam.</p>
+          </div>
+        </div>
+        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)' }}></div>
       </div>
 
       {/* Awareness Note */}
-      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
         <AlertCircle className="text-amber-500 mt-0.5 shrink-0" size={18} />
         <p className="text-sm text-amber-800">
           <span className="font-semibold">Note:</span> This mock test is designed

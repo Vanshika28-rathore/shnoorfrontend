@@ -6,6 +6,7 @@ import {
   FaGithub,
   FaSave,
   FaCamera,
+  FaCog,
 } from "react-icons/fa";
 
 const ProfileSettingsView = ({
@@ -29,12 +30,22 @@ const ProfileSettingsView = ({
     );
 
   return (
-    <div className="w-full pb-12">
-      <h2 className="text-2xl font-bold mb-8 text-primary-900">
-        Account Settings
-      </h2>
+    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+      {/* GRADIENT HEADER */}
+      <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+            <FaCog size={22} className="text-indigo-300" />
+          </div>
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Account Settings</h1>
+            <p className="text-slate-400 text-sm mt-0.5">Manage your profile and preferences.</p>
+          </div>
+        </div>
+        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)' }}></div>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6 md:gap-8">
         {}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center text-center h-fit">
           <div className="relative mb-6 group cursor-pointer">

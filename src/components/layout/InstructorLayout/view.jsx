@@ -117,7 +117,7 @@ const InstructorLayoutView = ({
             </div>
 
             {/* MAIN CONTENT */}
-            <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'lg:ml-[260px]' : 'ml-0'}`}>
+            <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'lg:ml-[260px]' : 'ml-0'}`} style={{ background: '#D8E2EB' }}>
                 {/* Header */}
                 <header className="px-3 sm:px-5 md:px-8" style={{
                     background: '#fff', borderBottom: '1px solid #e2e8f0', height: '64px',
@@ -161,7 +161,7 @@ const InstructorLayoutView = ({
                 </header>
 
                 <main className="p-4 md:p-8" style={{ flex: 1, overflow: 'auto', background: '#D8E2EB' }}>
-                    <div style={{ width: '100%', height: '100%' }}>
+                    <div style={{ width: '100%', minWidth: 0 }}>
                         <Outlet />
                     </div>
                 </main>

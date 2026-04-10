@@ -97,37 +97,41 @@ const ContestList = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-primary-900">
-            Manage Contests
-          </h1>
-          <p className="text-slate-500 mt-1">
-            Create and oversee weekly coding challenges.
-          </p>
+      {/* GRADIENT HEADER */}
+      <div className="relative overflow-hidden rounded-2xl p-5 md:p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+              <Trophy size={24} className="text-amber-300" />
+            </div>
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Manage Contests</h1>
+              <p className="text-slate-400 text-sm mt-0.5">Create and oversee weekly coding challenges.</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => navigate("create")}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-lg transition-all active:scale-95 text-sm font-bold whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create</span>
+          </button>
         </div>
-
-        <button
-          onClick={() => navigate("create")}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary-900 text-white rounded-lg hover:bg-primary-800 shadow-md transition-all active:scale-95"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="font-medium">Create Contest</span>
-        </button>
+        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)' }}></div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-200">
+      <div className="border-b border-slate-200 bg-white rounded-xl p-4 md:p-0 md:rounded-none">
         <div className="flex gap-6 overflow-x-auto">
           {["active", "scheduled", "ended"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap capitalize ${activeTab === tab
-                  ? "border-primary-900 text-primary-900"
+                  ? "border-indigo-600 text-indigo-600"
                   : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
             >
@@ -138,17 +142,17 @@ const ContestList = () => {
       </div>
 
       {/* List */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         {filtered.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4">Contest Title</th>
-                  <th className="px-6 py-4">Created</th>
-                  <th className="px-6 py-4">Participants</th>
-                  <th className="px-6 py-4">Validity</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-4 md:px-6 py-4">Contest Title</th>
+                  <th className="px-4 md:px-6 py-4">Created</th>
+                  <th className="px-4 md:px-6 py-4">Participants</th>
+                  <th className="px-4 md:px-6 py-4">Validity</th>
+                  <th className="px-4 md:px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
 

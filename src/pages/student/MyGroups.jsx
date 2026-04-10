@@ -1,207 +1,244 @@
-{/*import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../../api/axios';
-import { MessageSquare, Users, Calendar, Loader2 } from 'lucide-react';
-import { getAuth } from 'firebase/auth';
-const MyGroups = () => {
-  const [groups, setGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+// import React, { useState, useEffect } from 'react';
+// import { Link } from 'react-router-dom';
+// import api from '../../api/axios';
+// import { MessageSquare, Users, Calendar, Loader2 } from 'lucide-react';
+// import { getAuth } from 'firebase/auth';
+// const MyGroups = () => {
+//   const [groups, setGroups] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
 
-  useEffect(() => {
-  const fetchMyGroups = async () => {
-  try {
-    setLoading(true);
-    setError(null);
+//   useEffect(() => {
+//   const fetchMyGroups = async () => {
+//   try {
+//     setLoading(true);
+//     setError(null);
 
-    const auth = getAuth();
-    const user = auth.currentUser;
+//     const auth = getAuth();
+//     const user = auth.currentUser;
 
-    if (!user) {
-      setError('Please log in to view your groups');
-      return;
-    }
+//     if (!user) {
+//       setError('Please log in to view your groups');
+//       return;
+//     }
 
-    // Force refresh token
-    const freshToken = await user.getIdToken(true);
-    console.log('[MyGroups] Fresh token generated');
+//     // Force refresh token
+//     const freshToken = await user.getIdToken(true);
+//     console.log('[MyGroups] Fresh token generated');
 
-    const [adminChatGroupsRes, studentSectionGroupsRes] = await Promise.allSettled([
-      api.get('/api/admingroups/my-groups', {
-        headers: {
-          Authorization: `Bearer ${freshToken}`
-        }
-      }),
-      api.get('/api/chats/groups/my', {
-        headers: {
-          Authorization: `Bearer ${freshToken}`
-        }
-      }),
-    ]);
+//     const [adminChatGroupsRes, studentSectionGroupsRes] = await Promise.allSettled([
+//       api.get('/api/admingroups/my-groups', {
+//         headers: {
+//           Authorization: `Bearer ${freshToken}`
+//         }
+//       }),
+//       api.get('/api/chats/groups/my', {
+//         headers: {
+//           Authorization: `Bearer ${freshToken}`
+//         }
+//       }),
+//     ]);
 
-    const adminChatGroups =
-      adminChatGroupsRes.status === 'fulfilled' && Array.isArray(adminChatGroupsRes.value?.data)
-        ? adminChatGroupsRes.value.data.map((group) => ({
-            ...group,
-            source: 'admin-chat',
-          }))
-        : [];
+//     const adminChatGroups =
+//       adminChatGroupsRes.status === 'fulfilled' && Array.isArray(adminChatGroupsRes.value?.data)
+//         ? adminChatGroupsRes.value.data.map((group) => ({
+//             ...group,
+//             source: 'admin-chat',
+//           }))
+//         : [];
 
-    const studentSectionGroups =
-      studentSectionGroupsRes.status === 'fulfilled' && Array.isArray(studentSectionGroupsRes.value?.data)
-        ? studentSectionGroupsRes.value.data.map((group) => ({
-            ...group,
-            source: 'student-chat',
-          }))
-        : [];
+//     const studentSectionGroups =
+//       studentSectionGroupsRes.status === 'fulfilled' && Array.isArray(studentSectionGroupsRes.value?.data)
+//         ? studentSectionGroupsRes.value.data.map((group) => ({
+//             ...group,
+//             source: 'student-chat',
+//           }))
+//         : [];
 
-    const mergedMap = new Map();
-    [...adminChatGroups, ...studentSectionGroups].forEach((group) => {
-      const key = `${group.source}-${group.group_id}`;
-      mergedMap.set(key, group);
-    });
+//     const mergedMap = new Map();
+//     [...adminChatGroups, ...studentSectionGroups].forEach((group) => {
+//       const key = `${group.source}-${group.group_id}`;
+//       mergedMap.set(key, group);
+//     });
 
-    const mergedGroups = Array.from(mergedMap.values()).sort(
-      (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
-    );
+//     const mergedGroups = Array.from(mergedMap.values()).sort(
+//       (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+//     );
 
-    console.log('[MyGroups] Admin groups:', adminChatGroups.length);
-    console.log('[MyGroups] Student groups:', studentSectionGroups.length);
-    console.log('[MyGroups] Merged groups:', mergedGroups.length);
+//     console.log('[MyGroups] Admin groups:', adminChatGroups.length);
+//     console.log('[MyGroups] Student groups:', studentSectionGroups.length);
+//     console.log('[MyGroups] Merged groups:', mergedGroups.length);
 
-    const res = { status: 200, data: mergedGroups };
+//     const res = { status: 200, data: mergedGroups };
 
-    console.log('[MyGroups] Success - status:', res.status);
-    console.log('[MyGroups] Groups data:', res.data);
+//     console.log('[MyGroups] Success - status:', res.status);
+//     console.log('[MyGroups] Groups data:', res.data);
 
-    setGroups(res.data || []);
-  } catch (err) {
-    console.error('Failed to load groups:', err);
+//     setGroups(res.data || []);
+//   } catch (err) {
+//     console.error('Failed to load groups:', err);
 
-    let msg = 'Could not load your groups.';
+//     let msg = 'Could not load your groups.';
 
-    if (err.response?.status === 401) {
-      msg = 'Your session has expired. Please log out and log in again.';
-      // Optional: auto-logout or redirect
-      // auth.signOut().then(() => navigate('/login'));
-    } else if (err.response?.status === 403) {
-      msg = 'You do not have permission to view groups.';
-    } else if (err.message.includes('network')) {
-      msg = 'Network error – please check your connection.';
-    }
+//     if (err.response?.status === 401) {
+//       msg = 'Your session has expired. Please log out and log in again.';
+//       // Optional: auto-logout or redirect
+//       // auth.signOut().then(() => navigate('/login'));
+//     } else if (err.response?.status === 403) {
+//       msg = 'You do not have permission to view groups.';
+//     } else if (err.message.includes('network')) {
+//       msg = 'Network error – please check your connection.';
+//     }
 
-    setError(msg);
-  } finally {
-    setLoading(false);
-  }
-};
+//     setError(msg);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
-    fetchMyGroups();
-  }, []);
+//     fetchMyGroups();
+//   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
-      </div>
-    );
-  }
+//   if (loading) {
+//     return (
+//       <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+//         <div className="flex items-center justify-center min-h-[400px]">
+//           <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
+//         </div>
+//       </div>
+//     );
+//   }
 
-  if (error) {
-    return (
-      <div className="text-center py-16 px-4 text-red-600">
-        {error}
-      </div>
-    );
-  }
+//   if (error) {
+//     return (
+//       <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+//         <div className="text-center py-16 px-4 text-red-600">
+//           {error}
+//         </div>
+//       </div>
+//     );
+//   }
 
-  if (groups.length === 0) {
-    return (
-      <div className="text-center py-16 px-4">
-        <Users className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-          No Groups Yet
-        </h2>
-        <p className="text-gray-600 max-w-md mx-auto">
-          Your admin hasn't added you to any group yet. Check back later or contact support.
-        </p>
-      </div>
-    );
-  }
+//   if (groups.length === 0) {
+//     return (
+//       <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+//         <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+//           <div className="relative z-10 flex items-center gap-4">
+//             <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+//               <Users size={24} className="text-indigo-300" />
+//             </div>
+//             <div>
+//               <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">My Groups</h1>
+//               <p className="text-slate-400 text-sm mt-0.5">View and manage your group memberships.</p>
+//             </div>
+//           </div>
+//           <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)' }}></div>
+//         </div>
+//         <div className="text-center py-16 px-4 bg-white rounded-2xl border border-slate-100">
+//           <Users className="mx-auto h-16 w-16 text-slate-300 mb-4" />
+//           <h2 className="text-2xl font-semibold text-slate-800 mb-2">
+//             No Groups Yet
+//           </h2>
+//           <p className="text-slate-500 max-w-md mx-auto">
+//             Your admin hasn't added you to any group yet. Check back later or contact support.
+//           </p>
+//         </div>
+//       </div>
+//     );
+//   }
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Groups</h1>
-        <span className="text-sm text-gray-500">
-          {groups.length} {groups.length === 1 ? 'group' : 'groups'}
-        </span>
-      </div>
+//   return (
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {groups.map((group) => (
-          <div
-            key={group.group_id}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden"
-          >
-            <div className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {group.name}
-                  </h3>
-                  {group.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                      {group.description}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <Calendar size={14} />
-                  {new Date(group.created_at).toLocaleDateString()}
-                </div>
-              </div>
+//     <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
 
-              <div className="flex items-center gap-2 mt-4 text-sm text-gray-600">
-                <Users size={16} />
-                <span>{group.member_count || '...' } members</span>
-              </div>
-            </div>
+//       <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+//         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+//           <div className="flex items-center gap-4">
+//             <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+//               <Users size={24} className="text-indigo-300" />
+//             </div>
+//             <div>
+//               <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">My Groups</h1>
+//               <p className="text-slate-400 text-sm mt-0.5">View and manage your group memberships.</p>
+//             </div>
+//           </div>
+//           <span className="text-sm text-indigo-200 font-medium px-3 py-1 bg-white/10 rounded-lg">
+//             {groups.length} {groups.length === 1 ? 'group' : 'groups'}
+//           </span>
+//         </div>
+//         <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)' }}></div>
+//       </div>
 
-            <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
-              <Link
-                to={`/student/groups/${group.group_id}?source=${group.source}`}
-                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
-              >
-                <MessageSquare size={16} />
-                Open Chat
-              </Link>
+//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+//         {groups.map((group) => (
+//           <div
+//             key={group.group_id}
+//             className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden"
+//           >
+//             <div className="p-6">
+//               <div className="flex items-start justify-between">
+//                 <div>
+//                   <h3 className="text-lg font-semibold text-gray-900 mb-1">
+//                     {group.name}
+//                   </h3>
+//                   {group.description && (
+//                     <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+//                       {group.description}
+//                     </p>
+//                   )}
+//                 </div>
+//                 <div className="flex items-center gap-1 text-sm text-gray-500">
+//                   <Calendar size={14} />
+//                   {new Date(group.created_at).toLocaleDateString()}
+//                 </div>
+//               </div>
 
-              {group.unread_count > 0 && (
-                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  {group.unread_count} new
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+//               <div className="flex items-center gap-2 mt-4 text-sm text-gray-600">
+//                 <Users size={16} />
+//                 <span>{group.member_count || '...' } members</span>
+//               </div>
+//             </div>
 
-export default MyGroups;*/}
+//             <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
+//               <Link
+//                 to={`/student/groups/${group.group_id}?source=${group.source}`}
+//                 className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+//               >
+//                 <MessageSquare size={16} />
+//                 Open Chat
+//               </Link>
 
+//               {group.unread_count > 0 && (
+//                 <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+//                   {group.unread_count} new
+//                 </span>
+//               )}
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default MyGroups;*/}
 
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import api from '../../api/axios';
-import { MessageSquare, Users, Calendar, Loader2, Search, X } from 'lucide-react';
-import { getAuth } from 'firebase/auth';
-import { useSocket } from '../../context/SocketContext';
-import { formatChatDate, formatChatDateTime } from '../../utils/chatDateTime';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import api from "../../api/axios";
+import {
+  MessageSquare,
+  Users,
+  Calendar,
+  Loader2,
+  Search,
+  X,
+} from "lucide-react";
+import { getAuth } from "firebase/auth";
+import { useSocket } from "../../context/SocketContext";
+import { formatChatDate, formatChatDateTime } from "../../utils/chatDateTime";
 
 const MyGroups = () => {
   const navigate = useNavigate();
@@ -209,87 +246,102 @@ const MyGroups = () => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [allMessages, setAllMessages] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
   useEffect(() => {
-  const fetchMyGroups = async () => {
-  try {
-    setLoading(true);
-    setError(null);
+    const fetchMyGroups = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    const auth = getAuth();
-    const user = auth.currentUser;
+        const auth = getAuth();
+        const user = auth.currentUser;
 
-    if (!user) {
-      setError('Please log in to view your groups');
-      return;
-    }
+        if (!user) {
+          setError("Please log in to view your groups");
+          return;
+        }
 
-    // Force refresh token
-    const freshToken = await user.getIdToken(true);
-    console.log('[MyGroups] Fresh token generated');
+        // Force refresh token
+        const freshToken = await user.getIdToken(true);
+        console.log("[MyGroups] Fresh token generated");
 
-    // Use allSettled to prevent one endpoint crashing the entire view
-    const results = await Promise.allSettled([
-      api.get('/api/admingroups/my-groups', { headers: { Authorization: `Bearer ${freshToken}` } }),
-      api.get('/api/admin/groups/my-groups', { headers: { Authorization: `Bearer ${freshToken}` } })
-    ]);
+        // Use allSettled to prevent one endpoint crashing the entire view
+        const results = await Promise.allSettled([
+          api.get("/api/admingroups/my-groups", {
+            headers: { Authorization: `Bearer ${freshToken}` },
+          }),
+          api.get("/api/admin/groups/my-groups", {
+            headers: { Authorization: `Bearer ${freshToken}` },
+          }),
+        ]);
 
-    const [adminChatRes, adminSectionRes] = results;
+        const [adminChatRes, adminSectionRes] = results;
 
-    if (adminChatRes.status === 'rejected') console.error('Admin Groups call failed:', adminChatRes.reason);
-    if (adminSectionRes.status === 'rejected') console.error('Admin Section Groups call failed:', adminSectionRes.reason);
+        if (adminChatRes.status === "rejected")
+          console.error("Admin Groups call failed:", adminChatRes.reason);
+        if (adminSectionRes.status === "rejected")
+          console.error(
+            "Admin Section Groups call failed:",
+            adminSectionRes.reason,
+          );
 
-    const adminChatGroups = (adminChatRes.status === 'fulfilled' ? adminChatRes.value.data : []).map(g => ({
-      ...g,
-      group_id: g.group_id,
-      name: g.name,
-      member_count: g.member_count || 0,
-      source: 'admin-chat'
-    }));
+        const adminChatGroups = (
+          adminChatRes.status === "fulfilled" ? adminChatRes.value.data : []
+        ).map((g) => ({
+          ...g,
+          group_id: g.group_id,
+          name: g.name,
+          member_count: g.member_count || 0,
+          source: "admin-chat",
+        }));
 
-    const adminSectionGroups = (adminSectionRes.status === 'fulfilled' ? adminSectionRes.value.data : []).map(g => ({
-      ...g,
-      group_id: g.group_id,
-      name: g.name || g.group_name,
-      member_count: g.member_count || 0,
-      source: 'admin-section'
-    }));
+        const adminSectionGroups = (
+          adminSectionRes.status === "fulfilled"
+            ? adminSectionRes.value.data
+            : []
+        ).map((g) => ({
+          ...g,
+          group_id: g.group_id,
+          name: g.name || g.group_name,
+          member_count: g.member_count || 0,
+          source: "admin-section",
+        }));
 
-    const merged = [...adminChatGroups, ...adminSectionGroups].sort(
-      (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
-    );
+        const merged = [...adminChatGroups, ...adminSectionGroups].sort(
+          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0),
+        );
 
-    console.log('[MyGroups] Total Groups found:', {
-      adminChat: adminChatGroups.length,
-      adminSection: adminSectionGroups.length,
-      merged: merged.length
-    });
-    setGroups(merged);
-  } catch (err) {
-    console.error('Failed to load groups:', err);
+        console.log("[MyGroups] Total Groups found:", {
+          adminChat: adminChatGroups.length,
+          adminSection: adminSectionGroups.length,
+          merged: merged.length,
+        });
+        setGroups(merged);
+      } catch (err) {
+        console.error("Failed to load groups:", err);
 
-    let msg = 'Could not load your groups.';
+        let msg = "Could not load your groups.";
 
-    if (err.response?.status === 401) {
-      msg = 'Your session has expired. Please log out and log in again.';
-      // Optional: auto-logout or redirect
-      // auth.signOut().then(() => navigate('/login'));
-    } else if (err.response?.status === 403) {
-      msg = 'You do not have permission to view groups.';
-    } else if (err.message.includes('network')) {
-      msg = 'Network error – please check your connection.';
-    }
+        if (err.response?.status === 401) {
+          msg = "Your session has expired. Please log out and log in again.";
+          // Optional: auto-logout or redirect
+          // auth.signOut().then(() => navigate('/login'));
+        } else if (err.response?.status === 403) {
+          msg = "You do not have permission to view groups.";
+        } else if (err.message.includes("network")) {
+          msg = "Network error – please check your connection.";
+        }
 
-    setError(msg);
-  } finally {
-    setLoading(false);
-  }
-};
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchMyGroups();
   }, []);
@@ -299,11 +351,11 @@ const MyGroups = () => {
     try {
       setSearchLoading(true);
       const groupMessages = [];
-      
+
       for (const group of groups) {
         try {
           let endpoint;
-          if (group.source === 'admin-section') {
+          if (group.source === "admin-section") {
             endpoint = `/api/chats/groups/${group.group_id}/messages`; // Admin-section groups also use group_messages table
           } else {
             // admin-chat
@@ -311,7 +363,7 @@ const MyGroups = () => {
           }
 
           const res = await api.get(endpoint);
-          const messagesWithGroup = res.data.map(m => ({
+          const messagesWithGroup = res.data.map((m) => ({
             ...m,
             group_id: group.group_id,
             group_name: group.name,
@@ -319,14 +371,17 @@ const MyGroups = () => {
           }));
           groupMessages.push(...messagesWithGroup);
         } catch (err) {
-          console.error(`Failed to load messages for group ${group.group_id}:`, err);
+          console.error(
+            `Failed to load messages for group ${group.group_id}:`,
+            err,
+          );
         }
       }
-      
+
       setAllMessages(groupMessages);
       setShowSearch(true);
     } catch (err) {
-      console.error('Failed to fetch all messages:', err);
+      console.error("Failed to fetch all messages:", err);
     } finally {
       setSearchLoading(false);
     }
@@ -335,9 +390,11 @@ const MyGroups = () => {
   // Search messages when query changes
   useEffect(() => {
     if (searchQuery.trim() && allMessages.length > 0) {
-      const results = allMessages.filter(msg =>
-        msg.text?.toLowerCase().includes(searchQuery.toLowerCase())
-      ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const results = allMessages
+        .filter((msg) =>
+          msg.text?.toLowerCase().includes(searchQuery.toLowerCase()),
+        )
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       setSearchResults(results);
     } else {
       setSearchResults([]);
@@ -360,36 +417,50 @@ const MyGroups = () => {
       const incomingSenderId = msg.sender_id ?? msg.senderId;
       if (incomingSenderId && incomingSenderId === dbUser?.id) return;
 
-      const incomingGroupId = msg.group_id ?? msg.groupId ?? msg.chat_id ?? msg.chatId;
-      const targetGroup = groups.find((group) => group.group_id === incomingGroupId);
+      const incomingGroupId =
+        msg.group_id ?? msg.groupId ?? msg.chat_id ?? msg.chatId;
+      const targetGroup = groups.find(
+        (group) => group.group_id === incomingGroupId,
+      );
       if (!targetGroup) return;
 
-      toast.custom((t) => (
-        <div
-          className="bg-white border-l-4 border-blue-500 shadow-lg rounded-lg p-4 cursor-pointer hover:shadow-xl transition-shadow"
-          onClick={() => {
-            navigate(`/student/groups/${targetGroup.group_id}?source=${targetGroup.source || 'admin-chat'}`);
-            toast.dismiss(t.id);
-          }}
-        >
-          <p className="font-semibold text-gray-900">{msg.group_name || msg.groupName || targetGroup.name || 'Group'}</p>
-          <p className="text-gray-700 text-sm font-medium">{msg.sender_name || msg.senderName || 'User'}</p>
-          <p className="text-gray-600 text-sm truncate">{msg.text || msg.message_text || '📎 Attachment'}</p>
-        </div>
-      ), {
-        duration: 5,
-        position: 'top-right',
-      });
+      toast.custom(
+        (t) => (
+          <div
+            className="bg-white border-l-4 border-blue-500 shadow-lg rounded-lg p-4 cursor-pointer hover:shadow-xl transition-shadow"
+            onClick={() => {
+              navigate(
+                `/student/groups/${targetGroup.group_id}?source=${targetGroup.source || "admin-chat"}`,
+              );
+              toast.dismiss(t.id);
+            }}
+          >
+            <p className="font-semibold text-gray-900">
+              {msg.group_name || msg.groupName || targetGroup.name || "Group"}
+            </p>
+            <p className="text-gray-700 text-sm font-medium">
+              {msg.sender_name || msg.senderName || "User"}
+            </p>
+            <p className="text-gray-600 text-sm truncate">
+              {msg.text || msg.message_text || "📎 Attachment"}
+            </p>
+          </div>
+        ),
+        {
+          duration: 5,
+          position: "top-right",
+        },
+      );
     };
 
-    socket.on('group_message', showGroupPopup);
-    socket.on('receive_message', showGroupPopup);
-    socket.on('new_message', showGroupPopup);
+    socket.on("group_message", showGroupPopup);
+    socket.on("receive_message", showGroupPopup);
+    socket.on("new_message", showGroupPopup);
 
     return () => {
-      socket.off('group_message', showGroupPopup);
-      socket.off('receive_message', showGroupPopup);
-      socket.off('new_message', showGroupPopup);
+      socket.off("group_message", showGroupPopup);
+      socket.off("receive_message", showGroupPopup);
+      socket.off("new_message", showGroupPopup);
     };
   }, [socket, dbUser, groups, navigate]);
 
@@ -402,11 +473,7 @@ const MyGroups = () => {
   }
 
   if (error) {
-    return (
-      <div className="text-center py-16 px-4 text-red-600">
-        {error}
-      </div>
-    );
+    return <div className="text-center py-16 px-4 text-red-600">{error}</div>;
   }
 
   if (groups.length === 0) {
@@ -417,7 +484,8 @@ const MyGroups = () => {
           No Groups Yet
         </h2>
         <p className="text-gray-600 max-w-md mx-auto">
-          Your admin hasn't added you to any group yet. Check back later or contact support.
+          Your admin hasn't added you to any group yet. Check back later or
+          contact support.
         </p>
       </div>
     );
@@ -425,19 +493,24 @@ const MyGroups = () => {
 
   // Replace the existing search div and grid with this:
 
-return (
+  return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col gap-6 mb-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Groups</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            My Groups
+          </h1>
           <span className="text-sm text-gray-500">
-            {groups.length} {groups.length === 1 ? 'group' : 'groups'}
+            {groups.length} {groups.length === 1 ? "group" : "groups"}
           </span>
         </div>
 
         <div className="relative">
           <div className="relative flex items-center">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search groups or messages..."
@@ -451,7 +524,7 @@ return (
             {searchQuery && (
               <button
                 onClick={() => {
-                  setSearchQuery('');
+                  setSearchQuery("");
                   setSearchResults([]);
                   setShowSearch(false);
                 }}
@@ -473,8 +546,8 @@ return (
                 <>
                   {/* ── Group name matches ── */}
                   {(() => {
-                    const matchedGroups = groups.filter(g =>
-                      g.name?.toLowerCase().includes(searchQuery.toLowerCase())
+                    const matchedGroups = groups.filter((g) =>
+                      g.name?.toLowerCase().includes(searchQuery.toLowerCase()),
                     );
                     return matchedGroups.length > 0 ? (
                       <>
@@ -486,8 +559,10 @@ return (
                             key={group.group_id}
                             onClick={() => {
                               setShowSearch(false);
-                              setSearchQuery('');
-                              navigate(`/student/groups/${group.group_id}?source=${group.source || 'admin-chat'}`);
+                              setSearchQuery("");
+                              navigate(
+                                `/student/groups/${group.group_id}?source=${group.source || "admin-chat"}`,
+                              );
                             }}
                             className="px-4 py-3 border-b cursor-pointer hover:bg-orange-50 transition-colors flex items-center gap-3"
                           >
@@ -495,9 +570,13 @@ return (
                               {group.name?.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-semibold text-gray-900 text-sm">{group.name}</div>
+                              <div className="font-semibold text-gray-900 text-sm">
+                                {group.name}
+                              </div>
                               {group.description && (
-                                <div className="text-xs text-gray-500 line-clamp-1">{group.description}</div>
+                                <div className="text-xs text-gray-500 line-clamp-1">
+                                  {group.description}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -517,14 +596,20 @@ return (
                           key={idx}
                           onClick={() => {
                             setShowSearch(false);
-                            setSearchQuery('');
-                            navigate(`/student/groups/${result.group_id}?source=${result.source || 'admin-chat'}`);
+                            setSearchQuery("");
+                            navigate(
+                              `/student/groups/${result.group_id}?source=${result.source || "admin-chat"}`,
+                            );
                           }}
                           className="p-4 border-b cursor-pointer hover:bg-orange-50 transition-colors last:border-b-0"
                         >
                           <div className="flex flex-col gap-1">
-                            <div className="font-semibold text-gray-900 text-sm">{result.group_name}</div>
-                            <div className="text-gray-600 text-sm line-clamp-2">{result.text || '(No text)'}</div>
+                            <div className="font-semibold text-gray-900 text-sm">
+                              {result.group_name}
+                            </div>
+                            <div className="text-gray-600 text-sm line-clamp-2">
+                              {result.text || "(No text)"}
+                            </div>
                             <div className="text-xs text-gray-400">
                               {formatChatDateTime(result.created_at)}
                             </div>
@@ -535,12 +620,14 @@ return (
                   ) : null}
 
                   {/* ── No results at all ── */}
-                  {groups.filter(g => g.name?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 &&
-                   searchResults.length === 0 && (
-                    <div className="p-6 text-center text-gray-500 text-sm">
-                      No groups or messages found
-                    </div>
-                  )}
+                  {groups.filter((g) =>
+                    g.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+                  ).length === 0 &&
+                    searchResults.length === 0 && (
+                      <div className="p-6 text-center text-gray-500 text-sm">
+                        No groups or messages found
+                      </div>
+                    )}
                 </>
               )}
             </div>
@@ -575,12 +662,12 @@ return (
                 </div>
                 <div className="flex items-center gap-2 mt-4 text-sm text-gray-600">
                   <Users size={16} />
-                  <span>{group.member_count || '...'} members</span>
+                  <span>{group.member_count || "..."} members</span>
                 </div>
               </div>
               <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
                 <Link
-                  to={`/student/groups/${group.group_id}?source=${group.source || 'admin-chat'}`}
+                  to={`/student/groups/${group.group_id}?source=${group.source || "admin-chat"}`}
                   className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
                 >
                   <MessageSquare size={16} />
