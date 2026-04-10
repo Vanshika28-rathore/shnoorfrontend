@@ -32,7 +32,7 @@ const StudentChat = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showMobileTabsMenu, setShowMobileTabsMenu] = useState(false);
   const [isMobileView, setIsMobileView] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 1024 : false,
+    typeof window !== "undefined" ? window.innerWidth : false,
   );
 
   // Fetch Data
@@ -52,7 +52,9 @@ const StudentChat = () => {
         }));
 
         console.log("📥 Fetching available instructors...");
-        const instructorsRes = await api.get("/api/chats/available-instructors");
+        const instructorsRes = await api.get(
+          "/api/chats/available-instructors",
+        );
         console.log("📥 Available instructors response:", instructorsRes.data);
         const allInstructors = instructorsRes.data || [];
 
@@ -146,7 +148,7 @@ const StudentChat = () => {
     if (!socket) return;
     const handleReceive = (msg) => {
       const isMyMessage = msg.sender_id === dbUser?.id;
-      
+
       if (
         activeChat &&
         (msg.chat_id === activeChat.id || msg.group_id === activeChat.id)
@@ -420,7 +422,10 @@ const StudentChat = () => {
   const handleCreateGroup = async (e) => {
     e.preventDefault();
     try {
-      console.log("📝 Creating group:", { name: newGroupName, description: newGroupDesc });
+      console.log("📝 Creating group:", {
+        name: newGroupName,
+        description: newGroupDesc,
+      });
       const res = await api.post("/api/chats/groups", {
         name: newGroupName,
         description: newGroupDesc,
@@ -438,7 +443,9 @@ const StudentChat = () => {
         fullError: err.message,
         response: err.response?.data,
       });
-      alert(err.response?.data?.message || err.message || "Failed to create group");
+      alert(
+        err.response?.data?.message || err.message || "Failed to create group",
+      );
     }
   };
 
@@ -465,7 +472,8 @@ const StudentChat = () => {
 
   const handleDeleteMessage = async (messageId) => {
     try {
-      if (!window.confirm("Are you sure you want to delete this message?")) return;
+      if (!window.confirm("Are you sure you want to delete this message?"))
+        return;
       // FIX: was broken string concatenation — use proper template literal
       await api.delete(`/api/chats/messages/${messageId}`);
     } catch (err) {
@@ -495,10 +503,14 @@ const StudentChat = () => {
   const handleReact = async (messageId, emoji) => {
     try {
       // FIX: was broken string concatenation — use proper template literal
-      const res = await api.post(`/api/chats/messages/${messageId}/react`, { emoji });
+      const res = await api.post(`/api/chats/messages/${messageId}/react`, {
+        emoji,
+      });
       setMessages((prev) =>
         prev.map((m) =>
-          m.message_id === messageId ? { ...m, reactions: res.data.reactions } : m,
+          m.message_id === messageId
+            ? { ...m, reactions: res.data.reactions }
+            : m,
         ),
       );
     } catch (err) {
@@ -512,7 +524,9 @@ const StudentChat = () => {
       const res = await api.delete(`/api/chats/messages/${messageId}/react`);
       setMessages((prev) =>
         prev.map((m) =>
-          m.message_id === messageId ? { ...m, reactions: res.data.reactions } : m,
+          m.message_id === messageId
+            ? { ...m, reactions: res.data.reactions }
+            : m,
         ),
       );
     } catch (err) {
@@ -598,19 +612,32 @@ const StudentChat = () => {
   const showChatPane = !isMobileView || Boolean(activeChat);
 
   return (
-    <div className="student-chat-page px-4 py-4 sm:px-6 sm:py-6 bg-slate-50/20 min-h-full">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 sm:mb-8 gap-5 sm:gap-8">
-        <div className="flex-1">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight mb-2">
-            Messages &amp; Groups
-          </h2>
-          <p className="text-slate-500 text-base font-medium">
-            Connect with instructors and {dbUser?.college || "college"} peers
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 items-start lg:items-end w-full lg:w-auto">
+    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+      {/* GRADIENT HEADER */}
+      <div
+        className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0"
+        style={{
+          background:
+            "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)",
+        }}
+      >
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+              <MessagesSquare size={24} className="text-indigo-300" />
+            </div>
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">
+                Messages
+              </h1>
+              <p className="text-slate-400 text-sm mt-0.5">
+                Connect with instructors and {dbUser?.college || "college"}{" "}
+                peers
+              </p>
+            </div>
+          </div>
           {/* Search Bar */}
-          <div className="relative w-full lg:w-72">
+          <div className="relative w-full sm:w-72">
             <div className="relative">
               <Search
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
@@ -621,7 +648,7 @@ const StudentChat = () => {
                 placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => handleSearchMessages(e.target.value)}
-                className="w-full pl-12 pr-10 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+                className="w-full pl-12 pr-10 py-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/50 focus:bg-white/10 transition-all"
               />
               {searchQuery && (
                 <button
@@ -630,134 +657,137 @@ const StudentChat = () => {
                     setSearchResults([]);
                     setShowSearchResults(false);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                 >
                   <X size={16} />
                 </button>
               )}
             </div>
+          </div>
+        </div>
+        <div
+          className="absolute -right-16 -top-16 w-56 h-56 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
+          }}
+        ></div>
+      </div>
 
-            {/* Search Results Dropdown */}
-            {showSearchResults && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 max-h-96 overflow-y-auto">
-                {searchLoading ? (
-                  <div className="p-4 text-center text-slate-500">
-                    <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-indigo-500 border-t-transparent"></div>
+      {/* Search Results Dropdown */}
+      {showSearchResults && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          {searchLoading ? (
+            <div className="p-4 text-center text-slate-500">
+              <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-indigo-500 border-t-transparent"></div>
+            </div>
+          ) : searchResults.length === 0 ? (
+            <div className="p-4 text-center text-slate-500 text-sm">
+              No messages found
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {searchResults.map((result, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSelectSearchResult(result)}
+                  className="w-full px-4 py-3 hover:bg-slate-50 border border-slate-100 rounded-xl text-left transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-slate-800 text-sm truncate">
+                          {result.type === "group"
+                            ? result.group_name
+                            : result.other_user_name}
+                        </span>
+                        <span className="text-xs text-slate-400 whitespace-nowrap">
+                          {result.created_at
+                            ? formatChatTime(result.created_at)
+                            : result.display_time || "—"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-600 line-clamp-2">
+                        {result.message_text || result.text}
+                      </p>
+                    </div>
                   </div>
-                ) : searchResults.length === 0 ? (
-                  <div className="p-4 text-center text-slate-500 text-sm">
-                    No messages found
-                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CHAT CONTAINER */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col overflow-hidden">
+        {/* Tab Buttons */}
+        <div className="hidden md:flex bg-white shadow-sm border border-slate-200 p-1.5 rounded-[20px] gap-1 w-full lg:w-auto">
+          {tabOptions.map((tab) => (
+            <button
+              key={tab.id}
+              className={`flex-1 lg:flex-none px-6 py-2.5 rounded-[14px] text-sm font-bold transition-all whitespace-nowrap ${
+                activeTab === tab.id
+                  ? tab.id === "discover"
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                    : "bg-primary-900 text-white shadow-lg shadow-blue-900/20"
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              }`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="md:hidden relative w-full">
+          <div className="flex items-center gap-3 rounded-[22px] border border-slate-200 bg-white p-2 shadow-sm">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                {activeTab === "discover" ? (
+                  <Users size={18} />
                 ) : (
-                  searchResults.map((result, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleSelectSearchResult(result)}
-                      className="w-full px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 text-left transition-colors"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-slate-800 text-sm truncate">
-                              {result.type === "group"
-                                ? result.group_name
-                                : result.other_user_name}
-                            </span>
-                            <span className="text-xs text-slate-400 whitespace-nowrap">
-                              {result.created_at
-                                ? formatChatTime(result.created_at)
-                                : result.display_time || "—"}
-                            </span>
-                          </div>
-                          {result.type === "group" && (
-                            <p className="text-xs text-indigo-500 font-medium mb-0.5">
-                              {result.sender_name}
-                            </p>
-                          )}
-                          {result.type === "dm" && result.sender_name && (
-                            <p className="text-xs text-slate-400 font-medium mb-0.5">
-                              {result.sender_id === dbUser?.id ? "You" : result.sender_name}
-                            </p>
-                          )}
-                          <p className="text-sm text-slate-600 line-clamp-2">
-                            {result.message_text || result.text}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        {result.created_at
-                          ? formatChatDate(result.created_at)
-                          : result.display_date || "—"}
-                      </div>
-                    </button>
-                  ))
+                  <MessagesSquare size={18} />
                 )}
               </div>
-            )}
-          </div>
-
-          {/* Tab Buttons */}
-          <div className="hidden md:flex bg-white shadow-sm border border-slate-200 p-1.5 rounded-[20px] gap-1 w-full lg:w-auto">
-            {tabOptions.map((tab) => (
-              <button
-                key={tab.id}
-                className={`flex-1 lg:flex-none px-6 py-2.5 rounded-[14px] text-sm font-bold transition-all whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? tab.id === "discover"
-                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
-                      : "bg-primary-900 text-white shadow-lg shadow-blue-900/20"
-                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-                }`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="md:hidden relative w-full">
-            <div className="flex items-center gap-3 rounded-[22px] border border-slate-200 bg-white p-2 shadow-sm">
-              <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
-                  {activeTab === "discover" ? <Users size={18} /> : <MessagesSquare size={18} />}
+              <div className="min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                  Filters
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                    Filters
-                  </div>
-                  <div className="truncate text-sm font-bold text-slate-800">
-                    {activeTabLabel}
-                  </div>
+                <div className="truncate text-sm font-bold text-slate-800">
+                  {activeTabLabel}
                 </div>
               </div>
-              <button
-                onClick={() => setShowMobileTabsMenu((prev) => !prev)}
-                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
-                aria-label="Open message filters"
-              >
-                <MoreVertical size={18} />
-              </button>
             </div>
-
-            {showMobileTabsMenu && (
-              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-full overflow-hidden rounded-3xl border border-slate-200 bg-white p-2 shadow-2xl">
-                {tabOptions.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-colors ${
-                      activeTab === tab.id
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-600 hover:bg-slate-50"
-                    }`}
-                  >
-                    <span>{tab.label}</span>
-                    {activeTab === tab.id && <span className="text-xs font-bold">Active</span>}
-                  </button>
-                ))}
-              </div>
-            )}
+            <button
+              onClick={() => setShowMobileTabsMenu((prev) => !prev)}
+              className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+              aria-label="Open message filters"
+            >
+              <MoreVertical size={18} />
+            </button>
           </div>
+
+          {showMobileTabsMenu && (
+            <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-full overflow-hidden rounded-3xl border border-slate-200 bg-white p-2 shadow-2xl">
+              {tabOptions.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-colors ${
+                    activeTab === tab.id
+                      ? "bg-slate-900 text-white"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {activeTab === tab.id && (
+                    <span className="text-xs font-bold">Active</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -769,7 +799,9 @@ const StudentChat = () => {
         />
       )}
 
-      <div className={`flex flex-1 overflow-hidden ${isMobileView ? "min-h-[calc(100vh-240px)]" : "h-[calc(100vh-280px)]"}`}>
+      <div
+        className={`flex flex-1 overflow-hidden ${isMobileView ? "min-h-[calc(100vh-240px)]" : "h-[calc(100vh-280px)]"}`}
+      >
         {activeTab === "discover" ? (
           <div className="flex-1 p-4 sm:p-8 bg-white border border-slate-200 w-full h-full overflow-y-auto rounded-[28px] shadow-sm flex flex-col">
             <div className="flex items-center gap-4 mb-8">
@@ -845,17 +877,19 @@ const StudentChat = () => {
         ) : (
           <div className="flex w-full min-h-0 gap-0 lg:gap-5">
             {showListPane && (
-              <div className={`chat-sidebar overflow-hidden rounded-[28px] border border-slate-200 shadow-sm ${isMobileView ? "w-full" : ""}`}>
+              <div
+                className={`chat-sidebar overflow-hidden rounded-[28px] border border-slate-200 shadow-sm ${isMobileView ? "w-full" : ""}`}
+              >
                 <div className="px-4 pt-4 pb-2 border-b bg-gradient-to-b from-white to-slate-50 sticky top-0 z-10 shadow-sm">
-                {activeTab === "groups" && (
-                  <button
-                    onClick={() => setShowCreateGroup(true)}
-                    className="w-full py-3 bg-indigo-600/10 text-indigo-600 rounded-xl font-bold hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center gap-2 border border-indigo-200 shadow-sm"
-                  >
-                    <span className="text-lg">+</span> Create New Group
-                  </button>
-                )}
-              </div>
+                  {activeTab === "groups" && (
+                    <button
+                      onClick={() => setShowCreateGroup(true)}
+                      className="w-full py-3 bg-indigo-600/10 text-indigo-600 rounded-xl font-bold hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center gap-2 border border-indigo-200 shadow-sm"
+                    >
+                      <span className="text-lg">+</span> Create New Group
+                    </button>
+                  )}
+                </div>
                 <div className="chat-contacts-list">
                   <ChatList
                     chats={activeTab === "dm" ? chats : groups}
@@ -867,7 +901,9 @@ const StudentChat = () => {
               </div>
             )}
             {showChatPane && (
-              <div className={`min-w-0 flex-1 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm ${isMobileView ? "w-full" : ""}`}>
+              <div
+                className={`min-w-0 flex-1 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm ${isMobileView ? "w-full" : ""}`}
+              >
                 <ChatWindow
                   socket={socket}
                   activeChat={activeChat}
@@ -886,10 +922,15 @@ const StudentChat = () => {
                           `/api/chats/groups/${activeChat.id}/meeting`,
                         );
                       }
-                      setActiveChat((prev) => ({ ...prev, meeting_link: link }));
+                      setActiveChat((prev) => ({
+                        ...prev,
+                        meeting_link: link,
+                      }));
                       setGroups((prev) =>
                         prev.map((g) =>
-                          g.id === activeChat.id ? { ...g, meeting_link: link } : g,
+                          g.id === activeChat.id
+                            ? { ...g, meeting_link: link }
+                            : g,
                         ),
                       );
                       socket.emit("update_meeting_link", {

@@ -23,8 +23,10 @@ import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import CreatePassword from "./pages/auth/CreatePassword";
 
+// Landing - EAGER load for LCP (critical for performance score)
+import Landing from "./pages/Landing";
+
 // ===== LAZY LOADED PAGES (code-split for page speed) =====
-const Landing = React.lazy(() => import("./pages/Landing"));
 const Contact = React.lazy(() => import("./pages/Contact"));
 const CookiePolicy = React.lazy(() => import("./pages/CookiePolicy"));
 const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));

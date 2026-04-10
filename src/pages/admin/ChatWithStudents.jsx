@@ -515,26 +515,26 @@ const ChatWithStudents = () => {
       <div
         key={chat.id}
         onClick={() => handleSelectChat(chat)}
-        className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-100 border-b transition-colors ${isActive ? 'bg-slate-100 border-l-4 border-indigo-500' : ''}`}
+        className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 border-b transition-colors ${isActive ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
       >
-        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+        <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
           <span className="text-indigo-600 font-bold text-sm">
             {chat.name?.charAt(0).toUpperCase() || 'G'}
           </span>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <div className="font-semibold text-slate-900 text-sm truncate">{chat.name}</div>
+            <div className="font-semibold text-slate-700 text-sm truncate">{chat.name}</div>
             {unreadCount > 0 && !isActive && (
-              <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold">
+              <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">
                 {unreadCount}
               </span>
             )}
           </div>
-          <div className="text-[10px] bg-cyan-100 text-cyan-600 px-1.5 py-0.5 rounded uppercase font-bold w-fit mt-1">
+          <div className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded uppercase font-bold w-fit mt-1">
             Group
           </div>
-          <div className="text-xs text-slate-500 mt-1 truncate">{chat.lastMessage || 'No messages yet'}</div>
+          <div className="text-xs text-slate-400 mt-1 truncate">{chat.lastMessage || 'No messages yet'}</div>
         </div>
       </div>
     );
@@ -648,148 +648,155 @@ const ChatWithStudents = () => {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="student-chat-page p-6 bg-slate-50/20 min-h-full">
-      {/* ── Header ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-5">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Admin Chat</h2>
-          <p className="text-gray-500 text-sm mt-1">Connect with student groups</p>
-        </div>
-
-        {/* Search Bar and Create Button */}
-        <div className="flex items-center gap-4">
-          {/* Search bar */}
-          <div ref={searchRef} className="relative w-72">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search groups or messages..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setShowSearch(true)}
-              className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
-            />
-            {hasSearchQuery && (
-              <button
-                onClick={() => { setSearchQuery(''); setShowSearch(false); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                <X size={16} />
-              </button>
-            )}
+    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+      {/* GRADIENT HEADER */}
+      <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+              <PlusCircle size={24} className="text-indigo-300" />
+            </div>
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Group Messages</h1>
+              <p className="text-slate-400 text-sm mt-0.5">Create and manage group conversations.</p>
+            </div>
           </div>
-
-          {/* Create Group Button */}
-          <button
-            onClick={() => setShowGroupModal(true)}
-            disabled={loadingChats || creatingGroup}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-          >
-            <PlusCircle size={18} />
-            Create Group
-          </button>
+          
+          {/* Search and Create Button */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+            <div ref={searchRef} className="relative w-full sm:w-64">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search groups..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowSearch(true)}
+                className="w-full pl-10 pr-10 py-2.5 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+              />
+              {hasSearchQuery && (
+                <button
+                  onClick={() => { setSearchQuery(''); setShowSearch(false); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowGroupModal(true)}
+              disabled={loadingChats || creatingGroup}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl active:scale-[0.98] whitespace-nowrap"
+              style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' }}
+            >
+              <PlusCircle size={16} />
+              Create Group
+            </button>
+          </div>
         </div>
+        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)' }}></div>
       </div>
 
-      {/* ── Main Chat Layout (side-by-side) ── */}
-      <div className="flex flex-1 overflow-hidden h-[calc(100vh-245px)] bg-white border border-slate-200 rounded-lg shadow-sm">
-        {/* ── Sidebar (Chat List) ── */}
-        <div className="chat-sidebar h-full flex flex-col min-w-0 border-r bg-white">
-          {/* ── Chat List ── */}
-          {showSearchPanel ? (
-          <div className="chat-contacts-list overflow-y-auto flex-1">
-            {loadingSearch ? (
-              <div className="flex items-center justify-center h-32">
-                <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+      {/* MAIN CHAT LAYOUT */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row h-full min-h-[500px]">
+          {/* Sidebar */}
+          <div className="w-full md:w-80 flex-shrink-0 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col">
+            {showSearchPanel ? (
+              <div className="flex-1 overflow-y-auto">
+                {loadingSearch ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                  </div>
+                ) : (
+                  <>
+                    {groupResults.length > 0 && (
+                      <div>
+                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b">
+                          Groups
+                        </div>
+                        {groupResults.map(group => (
+                          <div
+                            key={group.id}
+                            onClick={() => handleSearchResultClick(group.id)}
+                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 border-b transition-colors ${activeChat?.id === group.id ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
+                          >
+                            <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                              <span className="text-indigo-600 font-bold text-sm">
+                                {group.name?.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-semibold text-slate-700 text-sm truncate">{group.name}</div>
+                              <div className="text-xs text-slate-400">{group.memberCount} members</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {searchResults.length > 0 && (
+                      <div>
+                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b">
+                          Messages
+                        </div>
+                        {searchResults.map((result, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleSearchResultClick(result.chat_id)}
+                            className="w-full p-4 border-b hover:bg-slate-50 transition-colors text-left"
+                          >
+                            <div className="font-semibold text-slate-700 text-sm mb-1">{result.chat_name}</div>
+                            <div className="text-slate-500 text-sm line-clamp-2">{result.text || '(No text)'}</div>
+                            <div className="text-xs text-slate-400 mt-1">
+                              {formatChatDateTime(result.created_at)}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {groupResults.length === 0 && searchResults.length === 0 && !loadingSearch && (
+                      <div className="p-8 text-center text-slate-400 text-sm">
+                        No groups or messages found
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : loadingChats ? (
+              <div className="flex-1 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+              </div>
+            ) : error ? (
+              <div className="flex-1 p-6 text-center text-red-600 text-sm">{error}</div>
+            ) : chats.length === 0 ? (
+              <div className="flex-1 p-8 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                  <PlusCircle size={24} className="text-slate-300" />
+                </div>
+                <div className="text-slate-400 font-medium text-sm">No groups yet.</div>
+                <div className="text-xs text-slate-300 mt-1">Create one to get started!</div>
               </div>
             ) : (
-              <>
-                {/* Group Matches */}
-                {groupResults.length > 0 && (
-                  <div>
-                    <div className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 border-b">
-                      Groups
-                    </div>
-                    {groupResults.map(group => (
-                      <div
-                        key={group.id}
-                        onClick={() => handleSearchResultClick(group.id)}
-                        className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-100 border-b transition-colors ${activeChat?.id === group.id ? 'bg-slate-100 border-l-4 border-indigo-500' : ''}`}
-                      >
-                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                          <span className="text-indigo-600 font-bold text-sm">
-                            {group.name?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-slate-900 text-sm truncate">{group.name}</div>
-                          <div className="text-xs text-slate-500">{group.memberCount} members</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Message Matches */}
-                {searchResults.length > 0 && (
-                  <div>
-                    <div className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 border-b">
-                      Messages
-                    </div>
-                    {searchResults.map((result, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSearchResultClick(result.chat_id)}
-                        className="w-full p-4 border-b hover:bg-slate-50 transition-colors text-left"
-                      >
-                        <div className="font-semibold text-slate-900 text-sm mb-1">{result.chat_name}</div>
-                        <div className="text-slate-600 text-sm line-clamp-2">{result.text || '(No text)'}</div>
-                        <div className="text-xs text-slate-400 mt-1">
-                          {formatChatDateTime(result.created_at)}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* No Results */}
-                {groupResults.length === 0 && searchResults.length === 0 && !loadingSearch && (
-                  <div className="p-8 text-center text-slate-500">
-                    No groups or messages found
-                  </div>
-                )}
-              </>
+              <div className="flex-1 overflow-y-auto">
+                {chats.map(renderChatItem)}
+              </div>
             )}
           </div>
-        ) : loadingChats ? (
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-          </div>
-        ) : error ? (
-          <div className="flex-1 p-6 text-center text-red-600 text-sm">{error}</div>
-        ) : chats.length === 0 ? (
-          <div className="flex-1 p-6 text-center">
-            <div className="text-slate-400">No groups yet.</div>
-            <div className="text-sm text-slate-500 mt-1">Create one to get started!</div>
-          </div>
-        ) : (
-          <div className="chat-contacts-list overflow-y-auto flex-1">
-            {chats.map(renderChatItem)}
-          </div>
-        )}
-        </div>
 
-        {/* ── Chat Window (Main Area) ── */}
-        <ChatWindow
-          socket={socket}
-          activeChat={activeChat}
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          loadingMessages={loadingMessages}
-          onClose={() => setActiveChat(null)}
-          isAdmin={true}
-          currentUser={dbUser}
-        />
+          {/* Chat Window */}
+          <ChatWindow
+            socket={socket}
+            activeChat={activeChat}
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            loadingMessages={loadingMessages}
+            onClose={() => setActiveChat(null)}
+            isAdmin={true}
+            currentUser={dbUser}
+          />
+        </div>
       </div>
 
     {/* ── Create Group Modal ── */}

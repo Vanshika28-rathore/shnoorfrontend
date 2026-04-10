@@ -13,19 +13,26 @@ const CertificateConfigView = ({ loading, uploadingField, config, updateField, h
     );
 
     return (
-        <div className="p-8 w-full">
-            <div className="text-center mb-10">
-                <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-amber-50 shadow-sm">
-                    <FaCertificate size={28} />
+        <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+            {/* GRADIENT HEADER */}
+            <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+                <div className="relative z-10 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+                        <FaCertificate size={24} className="text-amber-300" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Certificate Configuration</h1>
+                        <p className="text-slate-400 text-sm mt-0.5">Customize the certificates issued to students.</p>
+                    </div>
                 </div>
-                <h2 className="text-2xl font-bold text-primary-900">Certificate Configuration</h2>
-                <p className="text-slate-500 mt-2">Customize the certificates issued to students.</p>
+                <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)' }}></div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <form onSubmit={handleSave} className="p-8">
+            {/* CONFIG FORM */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex-1 overflow-hidden">
+                <form onSubmit={handleSave} className="p-6 md:p-8">
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
 
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">Issuer Name</label>

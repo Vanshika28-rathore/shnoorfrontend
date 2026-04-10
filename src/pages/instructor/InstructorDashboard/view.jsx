@@ -231,22 +231,26 @@ const InstructorDashboardView = ({
   };
 
   return (
-    <div className="space-y-6 font-sans max-w-[1440px] mx-auto">
+    <div className="space-y-6 font-sans max-w-[1440px] mx-auto p-4 md:p-0">
 
-      {/* WELCOME BANNER — file1 */}
+      {/* WELCOME BANNER */}
       <div
-        className="relative rounded-2xl p-6 lg:p-8"
+        className="relative rounded-2xl p-5 md:p-6 lg:p-8 overflow-hidden"
         style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)" }}
       >
-        <div className="relative z-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        {/* Decorative glows - behind content */}
+        <div className="absolute right-0 top-0 w-[200px] md:w-[300px] lg:w-[400px] h-[200px] md:h-[300px] lg:h-[400px] rounded-full -z-10" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }}></div>
+        <div className="absolute -left-10 md:-left-20 -bottom-10 md:-bottom-20 w-[150px] md:w-[200px] lg:w-[300px] h-[150px] md:h-[200px] lg:h-[300px] rounded-full -z-10" style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%)' }}></div>
+        
+        <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="relative z-10">
             <p className="text-indigo-300 text-sm font-medium mb-1">👋 {greeting}, {userName}</p>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">Instructor Portal</h1>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight">Instructor Portal</h1>
             <p className="text-slate-400 mt-1 text-sm">Overview of your course performance and student engagement.</p>
           </div>
 
-          {/* Search — file1 glass style */}
-          <div className="relative z-50 w-full sm:w-auto">
+          {/* Search */}
+          <div className="relative z-10 w-full sm:w-auto">
             <div className={`relative transition-all duration-300 ${isSearchExpanded ? "w-full sm:w-96" : "w-full sm:w-72"}`}>
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input

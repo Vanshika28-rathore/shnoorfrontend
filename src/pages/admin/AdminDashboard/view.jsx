@@ -138,21 +138,25 @@ const AdminDashboardView = ({
     };
 
     return (
-        <div className="space-y-6 font-sans max-w-[1440px] mx-auto">
+        <div className="space-y-6 font-sans max-w-[1440px] mx-auto p-4 md:p-0">
 
             {/* ── WELCOME BANNER ── */}
-            <div className="relative rounded-2xl p-7 lg:p-9 shadow-2xl" style={{ background: 'linear-gradient(90deg, #0F172A 0%, #1E293B 50%, #312E81 100%)' }}>
-                <div className="relative z-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
+            <div className="relative rounded-2xl p-5 md:p-7 lg:p-9 shadow-2xl overflow-hidden" style={{ background: 'linear-gradient(90deg, #0F172A 0%, #1E293B 50%, #312E81 100%)' }}>
+                {/* Decorative glows - behind content */}
+                <div className="absolute right-0 top-0 w-[300px] md:w-[400px] h-[300px] md:h-[400px] rounded-full -z-10" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }}></div>
+                <div className="absolute -left-10 md:-left-20 -bottom-10 md:-bottom-20 w-[200px] md:w-[300px] h-[200px] md:h-[300px] rounded-full -z-10" style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%)' }}></div>
+                
+                <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="relative z-10">
                         <p className="text-sm font-bold mb-1.5 flex items-center gap-2">
                             <span className="text-indigo-400">👋 {greeting}, Admin</span>
                         </p>
-                        <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Analytics Overview</h1>
+                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight">Analytics Overview</h1>
                         <p className="text-[#CBD5E1] mt-1.5 text-sm font-medium">Here's what's happening on your platform today.</p>
                     </div>
 
                     {/* Search */}
-                    <div className="relative z-50 w-full sm:w-auto">
+                    <div className="relative z-10 w-full sm:w-auto">
                         <div className={`relative transition-all duration-300 ${isSearchExpanded ? 'w-full sm:w-96' : 'w-full sm:w-72'}`}>
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input
@@ -219,10 +223,6 @@ const AdminDashboardView = ({
                         )}
                     </div>
                 </div>
-
-                {/* Decorative glows */}
-                <div className="absolute right-0 top-0 w-[400px] h-[400px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)' }}></div>
-                <div className="absolute -left-20 -bottom-20 w-[300px] h-[300px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.08) 0%, transparent 70%)' }}></div>
             </div>
 
             {/* Click outside overlay */}

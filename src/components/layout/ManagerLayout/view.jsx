@@ -1,5 +1,6 @@
 import React from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import "../../../styles/Dashboard.css";
 import {
   UserCircle,
   LayoutGrid,
@@ -88,7 +89,10 @@ const ManagerLayoutView = ({
   };
 
   return (
-    <div className="flex min-h-screen font-sans" style={{ background: "#D8E2EB" }}>
+    <div
+      className="flex min-h-screen font-sans"
+      style={{ background: "#D8E2EB" }}
+    >
       {isSidebarOpen && (
         <div
           style={{
@@ -127,10 +131,22 @@ const ManagerLayoutView = ({
           <img
             src={markLogo}
             alt="SHNOOR"
-            style={{ width: "40px", height: "40px", borderRadius: "10px", objectFit: "cover" }}
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "10px",
+              objectFit: "cover",
+            }}
           />
           <div>
-            <div style={{ fontSize: "16px", fontWeight: 700, color: "#fff", letterSpacing: "-0.3px" }}>
+            <div
+              style={{
+                fontSize: "16px",
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "-0.3px",
+              }}
+            >
               SHNOOR
             </div>
             <div
@@ -164,8 +180,16 @@ const ManagerLayoutView = ({
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
             <NavItem path="dashboard" icon={LayoutGrid} label="Dashboard" />
             <NavItem path="students" icon={Users} label="View Students" />
-            <NavItem path="course-progress" icon={BookOpen} label="Course Progress" />
-            <NavItem path="exam-progress" icon={ClipboardCheck} label="Exam Progress" />
+            <NavItem
+              path="course-progress"
+              icon={BookOpen}
+              label="Course Progress"
+            />
+            <NavItem
+              path="exam-progress"
+              icon={ClipboardCheck}
+              label="Exam Progress"
+            />
             <NavItem path="certificates" icon={Award} label="Certificates" />
             {/* <NavItem path="messages" icon={MessageSquare} label="Messages" /> */}
             <NavItem path="settings" icon={Settings} label="Settings" />
@@ -175,7 +199,13 @@ const ManagerLayoutView = ({
 
       <div
         className={`transition-all duration-300 ${isSidebarOpen ? "lg:ml-[260px]" : "ml-0"}`}
-        style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0,
+          overflow: "hidden",
+        }}
       >
         <header
           className="px-3 sm:px-5 md:px-8"
@@ -207,7 +237,15 @@ const ManagerLayoutView = ({
             >
               <Menu size={20} />
             </button>
-            <h2 className="hidden sm:block" style={{ fontSize: "18px", fontWeight: 600, color: "#0f172a", margin: 0 }}>
+            <h2
+              className="hidden sm:block"
+              style={{
+                fontSize: "18px",
+                fontWeight: 600,
+                color: "#0f172a",
+                margin: 0,
+              }}
+            >
               Manager Console
             </h2>
           </div>
@@ -223,8 +261,24 @@ const ManagerLayoutView = ({
               }}
             >
               <div className="hidden md:block" style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a" }}>{managerName}</div>
-                <div style={{ fontSize: "11px", color: "#64748b", fontWeight: 500 }}>Manager</div>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "#0f172a",
+                  }}
+                >
+                  {managerName}
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#64748b",
+                    fontWeight: 500,
+                  }}
+                >
+                  Manager
+                </div>
               </div>
 
               <div
@@ -244,9 +298,24 @@ const ManagerLayoutView = ({
                 }}
               >
                 {photoURL ? (
-                  <img src={photoURL} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img
+                    src={photoURL}
+                    alt="Profile"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
                 ) : (
-                  <UserCircle style={{ width: "100%", height: "100%", padding: "4px", color: "#94a3b8" }} />
+                  <UserCircle
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      padding: "4px",
+                      color: "#94a3b8",
+                    }}
+                  />
                 )}
               </div>
 
@@ -278,7 +347,10 @@ const ManagerLayoutView = ({
           </div>
         </header>
 
-        <main className="p-4 md:p-8" style={{ flex: 1, overflow: "auto", background: "#D8E2EB" }}>
+        <main
+          className="p-4 md:p-8"
+          style={{ flex: 1, overflow: "auto", background: "#D8E2EB" }}
+        >
           <div style={{ width: "100%", height: "100%" }}>
             <Outlet />
           </div>

@@ -35,49 +35,52 @@ const ExamBuilderView = ({
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans text-primary-900">
+        <div className="h-full flex flex-col font-sans text-slate-700 max-w-[1440px] mx-auto">
             {/* --- Top Bar --- */}
-            <header className="px-6 py-3 flex items-center justify-between shrink-0 h-16 shadow-lg" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
-                <div className="flex items-center gap-4">
+            <header className="px-4 md:px-6 py-3 flex items-center justify-between shrink-0 h-14 md:h-16 shadow-lg" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+                <div className="flex items-center gap-2 md:gap-4 min-w-0">
                     <button
                         type="button"
                         onClick={handleBackArrowClick}
-                        className="text-slate-400 hover:text-white transition-colors"
+                        className="text-slate-400 hover:text-white transition-colors shrink-0"
                     >
                         <ArrowLeft size={20} />
                     </button>
-                    <div>
-                        <h1 className="text-lg font-bold text-white tracking-tight">{formData.title || 'Untitled Exam'}</h1>
-                        <div className="flex items-center gap-3 text-xs text-slate-400">
-                            {formData.duration && <span className="flex items-center gap-1"><Clock size={14} /> {formData.duration} mins</span>}
-                            <span>• {formData.questions.length} Questions</span>
-                            <span>• {formData.questions.reduce((acc, q) => acc + (q.marks || 0), 0)} Total Marks</span>
+                    <div className="min-w-0">
+                        <h1 className="text-sm md:text-lg font-bold text-white tracking-tight truncate">{formData.title || 'Untitled Exam'}</h1>
+                        <div className="flex items-center gap-2 md:gap-3 text-[10px] md:text-xs text-slate-400">
+                            {formData.duration && <span className="flex items-center gap-1 whitespace-nowrap"><Clock size={12} md:size={14} /> {formData.duration} mins</span>}
+                            <span className="hidden md:inline">•</span>
+                            <span className="whitespace-nowrap">{formData.questions.length} Qs</span>
+                            <span className="hidden md:inline">•</span>
+                            <span className="hidden md:inline">{formData.questions.reduce((acc, q) => acc + (q.marks || 0), 0)} Marks</span>
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3 shrink-0">
                     <button
-                        className="px-4 py-2 bg-white/10 border border-white/20 text-slate-300 font-bold rounded-xl text-xs hover:bg-white/20 hover:text-white transition-colors"
+                        className="px-3 md:px-4 py-1.5 md:py-2 bg-white/10 border border-white/20 text-slate-300 font-bold rounded-lg text-xs hover:bg-white/20 hover:text-white transition-colors"
                         onClick={() => handleSave()}
                     >
-                        Save Draft
+                        Save
                     </button>
                     <button
-                        className="px-6 py-2 text-white font-bold rounded-xl text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all hover:shadow-xl active:scale-[0.98]"
+                        className="px-4 md:px-6 py-1.5 md:py-2 text-white font-bold rounded-lg text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-1 md:gap-2 transition-all hover:shadow-xl active:scale-[0.98]"
                         style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' }}
                         onClick={handleSave}
                     >
-                        <Save size={16} /> Publish Exam
+                        <Save size={14} md:size={16} />
+                        <span className="hidden md:inline">Publish</span>
                     </button>
                 </div>
             </header>
 
             {/* --- Main Workspace --- */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex overflow-hidden flex-col md:flex-row">
 
                 {/* --- Sidebar (Navigation) --- */}
-                <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
-                    <div className="p-4 border-b border-slate-100">
+                <aside className="w-full md:w-56 lg:w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+                    <div className="p-3 md:p-4 border-b border-slate-100">
                         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Navigation</div>
                         <button
                             onClick={() => setStep(1)}
@@ -85,7 +88,7 @@ const ExamBuilderView = ({
                                 }`}
                         >
                             <Settings size={16} className={step === 1 ? 'text-indigo-500' : 'text-slate-400'} />
-                            Configuration
+                            <span className="hidden md:inline">Configuration</span>
                         </button>
                         <button
                             onClick={() => setStep(2)}
@@ -93,7 +96,7 @@ const ExamBuilderView = ({
                                 }`}
                         >
                             <List size={16} className={step === 2 ? 'text-indigo-500' : 'text-slate-400'} />
-                            Questions
+                            <span className="hidden md:inline">Questions</span>
                         </button>
                     </div>
 
@@ -111,9 +114,9 @@ const ExamBuilderView = ({
                                             }`}>
                                             {idx + 1}
                                         </span>
-                                        <span className="truncate max-w-[100px]">{q.text || `Question ${idx + 1}`}</span>
+                                        <span className="truncate max-w-[60px] md:max-w-[100px]">{q.text || `Q${idx + 1}`}</span>
                                     </div>
-                                    <span className="text-[10px] text-slate-400 font-mono ml-2">{q.type.substr(0, 3).toUpperCase()}</span>
+                                    <span className="text-[10px] text-slate-400 font-mono ml-2 hidden md:inline">{q.type.substr(0, 3).toUpperCase()}</span>
 
                                     <div
                                         onClick={(e) => { e.stopPropagation(); removeQuestion(q.id); if (activeQuestionIndex >= idx && activeQuestionIndex > 0) setActiveQuestionIndex(activeQuestionIndex - 1); }}
@@ -127,20 +130,20 @@ const ExamBuilderView = ({
                     )}
 
                     {step === 2 && (
-                        <div className="p-4 border-t border-slate-200 bg-slate-50">
+                        <div className="p-3 md:p-4 border-t border-slate-200 bg-slate-50">
                             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Add New</div>
                             <div className="grid grid-cols-3 gap-2">
                                 <button onClick={() => { addQuestion('mcq'); setActiveQuestionIndex(formData.questions.length); }} className="flex flex-col items-center justify-center gap-1 p-2 bg-white border border-slate-200 rounded-md hover:border-indigo-500 hover:shadow-sm transition-all text-slate-600 hover:text-indigo-600">
                                     <List size={16} />
-                                    <span className="text-[10px] font-bold">MCQ</span>
+                                    <span className="text-[10px] font-medium">MCQ</span>
                                 </button>
                                 <button onClick={() => { addQuestion('descriptive'); setActiveQuestionIndex(formData.questions.length); }} className="flex flex-col items-center justify-center gap-1 p-2 bg-white border border-slate-200 rounded-md hover:border-indigo-500 hover:shadow-sm transition-all text-slate-600 hover:text-indigo-600">
                                     <AlignLeft size={16} />
-                                    <span className="text-[10px] font-bold">Text</span>
+                                    <span className="text-[10px] font-medium">Desc</span>
                                 </button>
                                 <button onClick={() => { addQuestion('coding'); setActiveQuestionIndex(formData.questions.length); }} className="flex flex-col items-center justify-center gap-1 p-2 bg-white border border-slate-200 rounded-md hover:border-indigo-500 hover:shadow-sm transition-all text-slate-600 hover:text-indigo-600">
                                     <Code size={16} />
-                                    <span className="text-[10px] font-bold">Code</span>
+                                    <span className="text-[10px] font-medium">Code</span>
                                 </button>
                             </div>
                         </div>
@@ -148,17 +151,17 @@ const ExamBuilderView = ({
                 </aside>
 
                 {/* --- Main Content Area --- */}
-                <main className="flex-1 overflow-y-auto bg-[#f8fafc] p-6 lg:p-8">
+                <main className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6 lg:p-8">
 
                     {/* STEP 1: CONFIGURATION */}
                     {step === 1 && (
                         <div className="w-full space-y-6">
-                            <div className="bg-white p-8 rounded-lg border border-slate-200 shadow-sm">
-                                <h2 className="text-xl font-bold text-primary-900 mb-6 flex items-center gap-2">
+                            <div className="bg-white p-4 md:p-8 rounded-lg border border-slate-200 shadow-sm">
+                                <h2 className="text-lg md:text-xl font-bold text-slate-800 mb-4 md:mb-6 flex items-center gap-2">
                                     <Settings className="text-slate-400" size={20} /> Exam Settings
                                 </h2>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                                     <div className="space-y-5">
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Exam Title</label>
@@ -167,7 +170,7 @@ const ExamBuilderView = ({
                                                 value={formData.title}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g. Mid-Term Assessment"
-                                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-md focus:border-indigo-500 focus:ring-0 outline-none transition-all font-semibold text-primary-900"
+                                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-md focus:border-indigo-500 focus:ring-0 outline-none transition-all font-semibold text-slate-800"
                                             />
                                         </div>
                                         <div className="space-y-1.5">
@@ -176,7 +179,7 @@ const ExamBuilderView = ({
                                                 name="description"
                                                 value={formData.description}
                                                 onChange={handleInputChange}
-                                                rows={4}
+                                                rows={3}
                                                 placeholder="Instructions for students..."
                                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-md focus:border-indigo-500 focus:ring-0 outline-none transition-all resize-none text-sm"
                                             />
@@ -231,7 +234,7 @@ const ExamBuilderView = ({
                                                     value={formData.validity_value}
                                                     onChange={handleInputChange}
                                                     disabled={!!formData.courseId}
-                                                    className={`w-20 px-3 py-2 border border-slate-200 rounded-md focus:border-indigo-500 outline-none text-sm ${formData.courseId ? 'bg-slate-100 text-slate-400' : 'bg-white'}`}
+                                                    className={`w-16 md:w-20 px-3 py-2 border border-slate-200 rounded-md focus:border-indigo-500 outline-none text-sm ${formData.courseId ? 'bg-slate-100 text-slate-400' : 'bg-white'}`}
                                                 />
                                                 <select
                                                     name="validity_unit"
@@ -253,12 +256,12 @@ const ExamBuilderView = ({
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex justify-end">
+                            <div className="flex justify-end mt-4 md:mt-0">
                                 <button
                                     onClick={() => setStep(2)}
-                                    className="px-8 py-3 bg-primary-900 hover:bg-slate-800 text-white font-bold rounded-md shadow-sm flex items-center gap-2 text-sm"
+                                    className="px-6 md:px-8 py-2.5 md:py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm flex items-center gap-2 text-sm"
                                 >
-                                    Proceed to Questions <ArrowRight size={16} />
+                                    Next <ArrowRight size={16} />
                                 </button>
                             </div>
                         </div>
@@ -525,20 +528,20 @@ const ExamBuilderView = ({
                     )}
 
                     {step === 2 && formData.questions.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                        <div className="h-full flex flex-col items-center justify-center text-slate-400 p-4">
                             <div className="p-6 bg-slate-50 rounded-full mb-4">
                                 <List size={32} className="opacity-20" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-600 mb-2">No Questions Defined</h3>
                             <p className="text-sm max-w-xs text-center mb-6">Start building your exam by adding questions from the sidebar.</p>
-                            <div className="flex gap-3">
-                                <button onClick={() => { addQuestion('mcq'); setActiveQuestionIndex(0); }} className="px-4 py-2 bg-white border border-slate-200 rounded-md shadow-sm text-sm font-bold text-indigo-600 hover:border-indigo-500">
+                            <div className="flex flex-wrap gap-2 md:gap-3 justify-center">
+                                <button onClick={() => { addQuestion('mcq'); setActiveQuestionIndex(0); }} className="px-3 md:px-4 py-2 bg-white border border-slate-200 rounded-md shadow-sm text-xs md:text-sm font-bold text-indigo-600 hover:border-indigo-500">
                                     + MCQ
                                 </button>
-                                <button onClick={() => { addQuestion('coding'); setActiveQuestionIndex(0); }} className="px-4 py-2 bg-white border border-slate-200 rounded-md shadow-sm text-sm font-bold text-indigo-600 hover:border-indigo-500">
+                                <button onClick={() => { addQuestion('coding'); setActiveQuestionIndex(0); }} className="px-3 md:px-4 py-2 bg-white border border-slate-200 rounded-md shadow-sm text-xs md:text-sm font-bold text-indigo-600 hover:border-indigo-500">
                                     + Coding
                                 </button>
-                                <button onClick={() => { addQuestion('descriptive'); setActiveQuestionIndex(0); }} className="px-4 py-2 bg-white border border-slate-200 rounded-md shadow-sm text-sm font-bold text-indigo-600 hover:border-indigo-500">
+                                <button onClick={() => { addQuestion('descriptive'); setActiveQuestionIndex(0); }} className="px-3 md:px-4 py-2 bg-white border border-slate-200 rounded-md shadow-sm text-xs md:text-sm font-bold text-indigo-600 hover:border-indigo-500">
                                     + Text
                                 </button>
                             </div>
