@@ -45,10 +45,10 @@ const StudentLayoutView = ({
   const notifButtonRef = React.useRef(null);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
-  // Kiosk Mode check
-  const isExamMode = ['/exam', '/mocktest', '/test', '/mock-test', '/mock-exam'].some(keyword =>
-    location.pathname.toLowerCase().includes(keyword)
-  );
+  // Kiosk Mode check: Only trigger full screen when actually inside an active exam session
+  // e.g., `/student/mock-exam` or `/student/exam/1234`
+  // But NOT `/student/exams` or `/student/mock-test`
+  const isExamMode = /\/(mock-exam|exam\/[^/]+)\/?$/i.test(location.pathname);
 
   React.useEffect(() => {
     if (!notifOpen) return undefined;
