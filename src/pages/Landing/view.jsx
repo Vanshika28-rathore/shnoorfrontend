@@ -15,6 +15,7 @@ import selfPacedIcon from '../../assets/self_paced.png';
 import labsIcon from '../../assets/labs.png';
 import examIcon from '../../assets/exam.png';
 import WhatsAppContactButton from "../../components/WhatsAppButton";
+
 const LandingView = ({ onLogin, onRegister, onContact }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -47,6 +48,9 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
       <img
         src={markLogo}
         alt="Shnoor International Logo"
+        width="60"
+        height="62"
+        loading="eager"
         className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover shadow-sm bg-white border border-slate-100"
       />
       <div className="flex flex-col justify-center min-w-0">
@@ -63,11 +67,11 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-slate-500 selection:text-white overflow-x-hidden">
 
-      {/* --- BACKGROUND BLOBS --- */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gray-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-slate-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      {/* --- BACKGROUND BLOBS (STATIC FOR PERFORMANCE) --- */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gray-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-slate-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
       </div>
 
       {/* --- NAV BAR --- */}
@@ -93,11 +97,11 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             </button>
           </div>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle (With Accessibility from Aditya) */}
           <button 
             className="lg:hidden flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-slate-900 hover:bg-slate-200 transition-colors shrink-0" 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle Menu"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -277,7 +281,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             <div className="absolute bottom-12 -right-4 bg-white p-3 pr-6 rounded-2xl shadow-xl flex items-center gap-3 z-30 animate-[bounce_5s_infinite] border border-slate-100">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Annie&mouth=smile" alt="Mentor" />
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Annie&mouth=smile" alt="Mentor" width="40" height="40" loading="lazy" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border-2 border-white">
                   <CheckCircle2 size={10} className="text-white" />
@@ -294,7 +298,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
       </section>
 
       {/* --- TRAINING OPTIONS GRID (FIXED RATIO) --- */}
-      <section id="training" className="py-20 px-6 relative z-10 bg-white/50 backdrop-blur-sm">
+      <section id="training" className="py-20 px-6 relative z-10 bg-white/50 backdrop-blur-sm" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-4">
@@ -308,9 +312,8 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
           <div className="flex flex-wrap justify-center gap-8">
             {/* Card 1: Instructor-Led */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
-              {/* ADJUSTED: Smaller circle (w-32), Larger relative image (w-24) to fill space */}
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={instructorIcon} alt="Instructor-Led" className="w-24 h-24 object-contain" />
+                <img src={instructorIcon} alt="Instructor-Led" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Instructor-Led Training</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -321,7 +324,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 2: Private Training */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={privateIcon} alt="Private Training" className="w-24 h-24 object-contain" />
+                <img src={privateIcon} alt="Private Training" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Private Training</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -332,7 +335,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 3: Practice Arena */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={selfPacedIcon} alt="Practice Arena" className="w-24 h-24 object-contain" />
+                <img src={selfPacedIcon} alt="Practice Arena" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Practice Arena</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -343,7 +346,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 4: Facilitated Labs */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={labsIcon} alt="Facilitated Labs" className="w-24 h-24 object-contain" />
+                <img src={labsIcon} alt="Facilitated Labs" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Facilitated Labs</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -354,7 +357,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 5: Exam Prep */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={examIcon} alt="Exam Prep" className="w-24 h-24 object-contain" />
+                <img src={examIcon} alt="Exam Prep" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Exam Prep</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -366,7 +369,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
       </section>
 
       {/* --- CERTIFICATION SECTION --- */}
-      <section id="certification" className="py-20 px-6 bg-slate-100/50">
+      <section id="certification" className="py-20 px-6 bg-slate-100/50" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-6">
             Set Yourself Apart with <br /> Industry-Recognized Certifications
@@ -389,6 +392,9 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
               src={nasscomLogo}
               alt="NASSCOM Certified"
               className="w-full h-auto object-contain"
+              width="144"
+              height="144"
+              loading="lazy"
             />
             <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Milestone</div>
           </div>
@@ -405,7 +411,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
       </section>
 
       {/* --- SUCCESS STORIES --- */}
-      <section id="stories" className="py-24 px-6 relative z-10">
+      <section id="stories" className="py-24 px-6 relative z-10" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-4">
@@ -452,10 +458,10 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             </p>
             {/* Social Icons */}
             <div className="flex gap-4">
-              <a href="#" className="text-slate-400 hover:text-white transition-colors"><Twitter size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors"><Facebook size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors"><Linkedin size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors"><Instagram size={20} /></a>
+              <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="Twitter"><Twitter size={20} /></a>
+              <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="Facebook"><Facebook size={20} /></a>
+              <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="LinkedIn"><Linkedin size={20} /></a>
+              <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="Instagram"><Instagram size={20} /></a>
             </div>
           </div>
 
@@ -506,14 +512,14 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar (Combined Mobile Layout + A11y Colors) */}
         <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[#64748b] text-center md:text-left">
           <div>© 2026 Shnoor International. All rights reserved.</div>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-            <Link to="/privacy-policy" className="hover:text-[#cbd5e1] text-[#64748b] py-2 whitespace-nowrap">Privacy Policy</Link>
-            <Link to="/terms-and-conditions" className="hover:text-[#cbd5e1] text-[#64748b] py-2 whitespace-nowrap">Terms & Conditions</Link>
-            <Link to="/cookie-policy" className="hover:text-[#cbd5e1] text-[#64748b] py-2 whitespace-nowrap">Cookie Policy</Link>
-            <a href="/Company profile..pdf" download className="hover:text-[#cbd5e1] text-[#64748b] py-2 whitespace-nowrap">Company Profile</a>
+            <Link to="/privacy-policy" className="hover:!text-[#cbd5e1] !text-[#64748b] py-2 whitespace-nowrap">Privacy Policy</Link>
+            <Link to="/terms-and-conditions" className="hover:!text-[#cbd5e1] !text-[#64748b] py-2 whitespace-nowrap">Terms & Conditions</Link>
+            <Link to="/cookie-policy" className="hover:!text-[#cbd5e1] !text-[#64748b] py-2 whitespace-nowrap">Cookie Policy</Link>
+            <a href="/Company profile..pdf" download className="hover:!text-[#cbd5e1] !text-[#64748b] py-2 whitespace-nowrap">Company Profile</a>
           </div>
         </div>
       </footer>
