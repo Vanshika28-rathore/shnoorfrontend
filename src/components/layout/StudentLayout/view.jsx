@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Award,
   Users,
+  X,
 } from "lucide-react";
 import markLogo from "../../../assets/shnoor_logo.png";
 import NotificationToast from "../../common/NotificationToast";
@@ -28,6 +29,7 @@ const StudentLayoutView = ({
   handleLogout,
   totalUnread,
   navigate,
+  handleNavigate,
   location,
   photoURL,
   notifications,
@@ -38,6 +40,38 @@ const StudentLayoutView = ({
   onRequestPermission,
 }) => {
   const [notifOpen, setNotifOpen] = React.useState(false);
+  const notifPanelRef = React.useRef(null);
+  const notifButtonRef = React.useRef(null);
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+
+  React.useEffect(() => {
+    if (!notifOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      const target = event.target;
+      if (
+        notifPanelRef.current?.contains(target) ||
+        notifButtonRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setNotifOpen(false);
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setNotifOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [notifOpen]);
 
   const NavItem = ({ path, icon: Icon, label, badgeCount }) => {
     const isActive =
@@ -46,26 +80,60 @@ const StudentLayoutView = ({
 
     return (
       <li
+        onClick={() => handleNavigate(`/student/${path}`)}
         style={{
-          display: 'flex', alignItems: 'center', gap: '12px',
-          padding: '10px 16px', borderRadius: '10px', cursor: 'pointer',
-          transition: 'all 0.2s ease', marginBottom: '2px',
-          background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-          color: isActive ? '#fff' : 'rgba(255,255,255,0.65)',
-          fontWeight: isActive ? 600 : 500, fontSize: '14px',
-          position: 'relative',
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          padding: "12px 16px",
+          borderRadius: "12px",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          marginBottom: "4px",
+          background: isActive ? "rgba(255,255,255,0.10)" : "transparent",
+          color: isActive ? "#fff" : "rgba(255,255,255,0.55)",
+          fontWeight: isActive ? 600 : 500,
+          fontSize: "14px",
+          position: "relative",
         }}
-        onClick={() => { navigate(`/student/${path}`); setIsSidebarOpen(false); }}
-        onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#fff'; } }}
-        onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+        onMouseEnter={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+            e.currentTarget.style.color = "#fff";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "rgba(255,255,255,0.55)";
+          }
+        }}
       >
         {isActive && (
-          <div style={{ position: 'absolute', left: '-16px', top: '50%', transform: 'translateY(-50%)', width: '3px', height: '24px', borderRadius: '0 4px 4px 0', background: '#818cf8' }} />
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "3px",
+              height: "20px",
+              borderRadius: "0 4px 4px 0",
+              background: "#818cf8",
+            }}
+          />
         )}
-        <Icon size={18} style={{ color: isActive ? '#818cf8' : 'rgba(255,255,255,0.45)', transition: 'color 0.2s', flexShrink: 0 }} />
+        <Icon
+          size={18}
+          style={{
+            color: isActive ? "#818cf8" : "rgba(255,255,255,0.4)",
+            transition: "color 0.2s",
+            flexShrink: 0,
+          }}
+        />
         <span style={{ flex: 1 }}>{label}</span>
         {badgeCount > 0 && (
-          <span style={{ background: '#ef4444', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+          <span style={{ background: "#ef4444", color: "#fff", fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "10px" }}>
             {badgeCount}
           </span>
         )}
@@ -78,7 +146,7 @@ const StudentLayoutView = ({
       <NotificationToast notifications={toasts} onDismiss={onDismissToast} />
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 lg:hidden"
+          className="fixed inset-0 z-[90] lg:hidden"
           style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -86,9 +154,9 @@ const StudentLayoutView = ({
 
       {/* DARK SIDEBAR */}
       <div
-        className={`fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
-        style={{ width: '260px', background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}
+        className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ width: '260px', background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)', display: 'flex', flexDirection: 'column', flexShrink: 0, zIndex: 100, borderRight: '1px solid rgba(255,255,255,0.05)' }}
       >
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '24px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -117,16 +185,19 @@ const StudentLayoutView = ({
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div
+        className={`transition-all duration-300 ${isSidebarOpen ? 'lg:ml-[260px]' : 'ml-0'}`}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', position: 'relative', isolation: "isolate" }}
+      >
         {/* Header */}
         <header style={{
-          background: '#fff', borderBottom: '1px solid #e2e8f0', height: '64px', padding: '0 32px',
+          background: '#fff', borderBottom: '1px solid #e2e8f0', minHeight: '64px', padding: '0 clamp(16px, 4vw, 32px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           position: 'sticky', top: 0, zIndex: 30, boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button
-              className="lg:hidden hover:bg-slate-100 transition-colors"
+              className="hover:bg-slate-100 transition-colors"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', borderRadius: '8px', display: 'flex', transition: 'all 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e2e8f0'}
@@ -144,6 +215,7 @@ const StudentLayoutView = ({
             {/* Notifications */}
             <div style={{ position: 'relative' }}>
               <button
+                ref={notifButtonRef}
                 onClick={() => setNotifOpen(!notifOpen)}
                 style={{
                   padding: '8px', borderRadius: '50%', border: '1px solid #e2e8f0',
@@ -163,19 +235,37 @@ const StudentLayoutView = ({
               </button>
 
               {notifOpen && (
-                <div style={{
-                  position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                  width: 'min(360px, calc(100vw - 24px))', maxHeight: 'calc(100vh - 96px)',
-                  background: '#fff', borderRadius: '16px', boxShadow: '0 12px 40px rgba(0,0,0,.12)',
-                  border: '1px solid #e2e8f0', overflow: 'hidden', zIndex: 50,
-                  display: 'flex', flexDirection: 'column'
-                }}>
+                <div
+                  ref={notifPanelRef}
+                  style={{
+                    position: isMobile ? 'fixed' : 'absolute',
+                    top: isMobile ? '76px' : 'calc(100% + 8px)',
+                    right: isMobile ? '12px' : 0,
+                    left: isMobile ? '12px' : 'auto',
+                    width: isMobile ? 'auto' : 'min(360px, calc(100vw - 24px))',
+                    maxHeight: isMobile ? 'min(70vh, calc(100vh - 96px))' : 'calc(100vh - 96px)',
+                    background: '#fff', borderRadius: '16px', boxShadow: '0 12px 40px rgba(0,0,0,.12)',
+                    border: '1px solid #e2e8f0', overflow: 'hidden', zIndex: 120,
+                    display: 'flex', flexDirection: 'column'
+                  }}
+                >
                   <div style={{ padding: '16px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ fontWeight: 700, color: '#0f172a', fontSize: '14px', margin: 0 }}>Notifications</h3>
-                      <span style={{ fontSize: '11px', fontWeight: 700, background: '#eef2ff', color: '#4f46e5', padding: '2px 8px', borderRadius: '10px' }}>
-                        {notifications.length} New
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, background: '#eef2ff', color: '#4f46e5', padding: '2px 8px', borderRadius: '10px' }}>
+                          {notifications.length} New
+                        </span>
+                        {isMobile && (
+                          <button
+                            onClick={() => setNotifOpen(false)}
+                            style={{ padding: '4px', background: 'transparent', border: 'none', color: '#64748b', display: 'flex', cursor: 'pointer' }}
+                            aria-label="Close notifications"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {notifPermission === "default" && (
                       <button
@@ -234,7 +324,7 @@ const StudentLayoutView = ({
             </div>
 
             {/* Profile */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingLeft: '16px', borderLeft: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingLeft: '16px', borderLeft: '1px solid #e2e8f0', minWidth: 0 }}>
               <div className="hidden md:block" style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{studentName}</div>
                 <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>Student</div>
@@ -262,7 +352,7 @@ const StudentLayoutView = ({
           </div>
         </header>
 
-        <main style={{ flex: 1, overflow: 'auto', background: '#D8E2EB', padding: '32px' }}>
+        <main style={{ flex: 1, overflow: 'auto', background: '#D8E2EB', padding: 'clamp(16px, 3vw, 32px)' }}>
           <div style={{ width: '100%', height: '100%' }}>
             <Outlet context={{ studentName, xp }} />
           </div>

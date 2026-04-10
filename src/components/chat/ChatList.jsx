@@ -89,7 +89,7 @@ const ChatList = ({ chats, activeChat, onSelectChat, unreadCounts, currentUserId
                                     onSelectChat({
                                         id: user.existing_chat_id || null,
                                         name: user.name,
-                                        type: 'direct',
+                                        type: 'dm',
                                         recipientId: user.user_id,
                                         photo_url: user.photo_url,
                                         firebase_uid: user.firebase_uid,
@@ -205,7 +205,7 @@ const ChatList = ({ chats, activeChat, onSelectChat, unreadCounts, currentUserId
     const isInSearchMode = searchQuery.trim().length > 0;
 
     return (
-        <div className="chat-sidebar">
+        <div className="chat-list-panel min-h-0 flex flex-col">
             <div className="chat-search">
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
         <input

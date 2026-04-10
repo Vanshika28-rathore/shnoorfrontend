@@ -245,8 +245,8 @@ const CourseDetailView = ({
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-200 overflow-hidden">
-                <table className="w-full text-left text-sm whitespace-nowrap">
+              <div className="rounded-xl border border-slate-200 overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left text-sm whitespace-nowrap">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
                       <th className="px-6 py-4 font-bold text-slate-600">Module</th>
@@ -355,7 +355,7 @@ const CourseDetailView = ({
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden sticky top-24">
             {/* Preview Area */}
             <div
-              onClick={() => navigate(`/preview/${course.id}`)}
+              onClick={handleContinue}
               className="h-48 bg-primary-900 relative group cursor-pointer flex items-center justify-center"
             >
               <div className="absolute inset-0 bg-indigo-600/20 group-hover:bg-indigo-600/30 transition-colors"></div>

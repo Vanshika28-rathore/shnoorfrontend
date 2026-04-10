@@ -4,6 +4,8 @@ import { auth } from "../../../auth/firebase";
 import api from "../../../api/axios";
 import CourseDetailView from "./view";
 
+const getCourseCacheKey = (courseId) => `student-course-detail-${courseId}`;
+
 const CourseDetail = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -21,14 +23,23 @@ const CourseDetail = () => {
       if (!auth.currentUser) return;
 
       const token = await auth.currentUser.getIdToken(true);
+      const cacheKey = getCourseCacheKey(courseId);
 
-      const statusRes = await api.get(`/api/student/${courseId}/status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [statusRes, publicCourseRes] = await Promise.all([
+        api.get(`/api/student/${courseId}/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        api.get(`/api/courses/${courseId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
       const enrolled = statusRes.data.enrolled;
+      const publicCourseData = publicCourseRes.data;
       setIsEnrolled(enrolled);
+      setCourse((prev) => prev || publicCourseData);
 
-      let courseData;
+      let courseData = publicCourseData;
       if (enrolled) {
         try {
           const courseRes = await api.get(`/api/student/courses/${courseId}`, {
@@ -37,19 +48,11 @@ const CourseDetail = () => {
           courseData = courseRes.data;
         } catch (err) {
           console.warn("Detailed progress fetch failed, falling back to public course data:", err);
-          const courseRes = await api.get(`/api/courses/${courseId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          courseData = courseRes.data;
         }
-      } else {
-        const courseRes = await api.get(`/api/courses/${courseId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        courseData = courseRes.data;
       }
 
       setCourse(courseData);
+      sessionStorage.setItem(cacheKey, JSON.stringify(courseData));
     } catch (err) {
       console.error("Error loading course:", err);
     } finally {
@@ -61,6 +64,15 @@ const CourseDetail = () => {
 
   // Fetch course + enrollment status
   useEffect(() => {
+    try {
+      const cachedCourse = sessionStorage.getItem(getCourseCacheKey(courseId));
+      if (cachedCourse) {
+        setCourse(JSON.parse(cachedCourse));
+      }
+    } catch (error) {
+      console.warn("Failed to read cached course detail:", error);
+    }
+
     fetchCourseAndStatus({ withLoader: true });
   }, [fetchCourseAndStatus]);
 

@@ -126,20 +126,20 @@ const StudentDashboardView = ({
     };
 
     return (
-        <div className="space-y-6 font-sans max-w-[1440px] mx-auto">
+        <div className="space-y-6 font-sans max-w-[1440px] mx-auto relative z-0">
 
             {/* WELCOME BANNER */}
             <div className="relative rounded-2xl p-4 sm:p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
-                <div className="relative z-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <p className="text-indigo-300 text-sm font-medium mb-1">👋 {greeting}, {studentName}</p>
                         <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">Student Dashboard</h1>
                         <p className="text-slate-400 mt-1 text-sm">Track your progress, deadlines, and achievements.</p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
                         {/* Search */}
-                        <div className="relative z-50">
+                        <div className="relative z-20 w-full sm:w-auto">
                             <div className={`relative transition-all duration-300 ${isSearchExpanded ? 'w-full sm:w-80 md:w-96' : 'w-full sm:w-64'}`}>
                                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                 <input
@@ -159,7 +159,7 @@ const StudentDashboardView = ({
                             {/* Search Results Dropdown */}
                             {isSearchExpanded && searchQuery && (
                                 <div
-                                    className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-96 overflow-y-auto overscroll-contain z-[60]"
+                                    className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-96 overflow-y-auto overscroll-contain z-30"
                                     onWheel={(e) => e.stopPropagation()}
                                     onTouchMove={(e) => e.stopPropagation()}
                                     style={{ touchAction: 'pan-y' }}
@@ -250,7 +250,7 @@ const StudentDashboardView = ({
 
                 {/* Click outside overlay */}
                 {isSearchExpanded && (
-                    <div className="fixed inset-0 z-40" onClick={() => setIsSearchExpanded(false)} />
+                    <div className="fixed inset-0 z-10" onClick={() => setIsSearchExpanded(false)} />
                 )}
 
                 {/* Decorative glows */}

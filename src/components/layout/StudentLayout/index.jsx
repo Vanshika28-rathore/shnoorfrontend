@@ -19,7 +19,7 @@ const StudentLayout = () => {
   const [studentName, setStudentName] = useState("");
   const [xp, setXp] = useState(0);
   const [rank, setRank] = useState("Novice");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
 
   // Chat Unread Count
   const { unreadCounts } = useSocket();
@@ -28,6 +28,25 @@ const StudentLayout = () => {
   const [notifPermission, setNotifPermission] = useState(
     "Notification" in window ? Notification.permission : "default",
   );
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Keep current desktop state, same pattern as admin layout.
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (window.innerWidth >= 1024) return undefined;
+
+    document.body.style.overflow = isSidebarOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSidebarOpen]);
 
   // Push Subscription Logic
   const subscribeUserToPush = async () => {
@@ -254,6 +273,13 @@ const StudentLayout = () => {
     navigate("/");
   };
 
+  const handleNavigate = (path) => {
+    navigate(path);
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
+
   return (
     <>
     <StudentLayoutView
@@ -265,6 +291,7 @@ const StudentLayout = () => {
       setIsSidebarOpen={setIsSidebarOpen}
       handleLogout={handleLogout}
       navigate={navigate}
+      handleNavigate={handleNavigate}
       location={location}
       totalUnread={totalUnread}
       notifications={notifications}

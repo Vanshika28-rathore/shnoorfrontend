@@ -13,6 +13,41 @@ import ReactPlayer from "react-player";
 import { getEmbedUrl } from "../../../utils/urlHelper";
 
 const isGoogleDriveUrl = (url) => typeof url === "string" && url.includes("drive.google.com");
+const getGoogleDriveFileId = (url) => {
+  if (!url || typeof url !== "string") return "";
+
+  const matchers = [
+    /\/file\/d\/([^/]+)/i,
+    /[?&]id=([^&]+)/i,
+    /\/document\/d\/([^/]+)/i,
+  ];
+
+  for (const pattern of matchers) {
+    const match = url.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+
+  return "";
+};
+
+function normalizeExternalPublicUrl(url) {
+  if (!url || typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("//")) return `https:${trimmed}`;
+  if (/^(www\.|youtube\.com|youtu\.be|m\.youtube\.com)/i.test(trimmed)) return `https://${trimmed}`;
+  return trimmed;
+}
+
+const getGoogleDrivePreviewUrl = (url) => {
+  const fileId = getGoogleDriveFileId(url);
+  if (!fileId) {
+    console.warn("Invalid Google Drive URL:", url);
+    return normalizeExternalPublicUrl(url);
+  }
+  return `https://drive.google.com/file/d/${fileId}/preview`;
+};
+
 const isLocalOrMp4Url = (url) => {
   if (!url || typeof url !== "string") return false;
   const lowerUrl = url.toLowerCase();
@@ -47,6 +82,7 @@ const normalizeGammaUrl = (url) => {
 const normalizeExternalUrl = (url) => {
   if (!url || typeof url !== "string") return "";
   const trimmed = url.trim();
+  if (isGoogleDriveUrl(trimmed)) return getGoogleDrivePreviewUrl(trimmed);
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   if (trimmed.startsWith("//")) return `https:${trimmed}`;
   if (/^(www\.|youtube\.com|youtu\.be|m\.youtube\.com)/i.test(trimmed)) return `https://${trimmed}`;
@@ -62,14 +98,161 @@ const normalizeExternalUrl = (url) => {
 
 const buildPdfViewerUrl = (url, authToken) => {
   if (!url || typeof url !== "string") return "";
-  let norm = url;
-  if (isGammaUrl(norm)) norm = normalizeGammaUrl(norm);
-  if (norm.startsWith("/api/") || norm.startsWith("/uploads/")) {
-    norm = window.location.origin.replace(":5173", ":5000") + norm;
+  if (isGoogleDriveUrl(url)) return getGoogleDrivePreviewUrl(url);
+  return normalizeExternalUrl(url);
+};
+
+const getRenderableVideoUrl = (url) => {
+  if (!url || typeof url !== "string") return "";
+
+  const normalizedUrl = normalizeExternalPublicUrl(url);
+
+  if (isGoogleDriveUrl(normalizedUrl)) {
+    return getGoogleDrivePreviewUrl(normalizedUrl);
   }
 
-  // Native Browser PDF Rendering: Bypasses the slow Google Docs Viewer
-  return authToken ? `${norm}${norm.includes("?") ? "&" : "?"}token=${authToken}` : norm;
+  if (isYouTubeUrl(normalizedUrl)) {
+    return getEmbedUrl(normalizedUrl);
+  }
+
+  if (isGammaUrl(normalizedUrl)) {
+    return normalizeGammaUrl(normalizedUrl);
+  }
+
+  return normalizeExternalUrl(normalizedUrl);
+};
+
+const getApiOrigin = () =>
+  (import.meta.env.VITE_API_URL || window.location.origin.replace(":5173", ":5000")).replace(/\/$/, "");
+
+const isExternalUrl = (url) => {
+  if (!url || !/^https?:\/\//i.test(url)) return false;
+
+  try {
+    return new URL(url).hostname !== window.location.hostname;
+  } catch (_) {
+    return false;
+  }
+};
+
+const isBackendDocumentUrl = (url) => {
+  if (!url) return false;
+  if (isGoogleDriveUrl(url)) return false;
+  if (/^https?:\/\//i.test(url) || url.startsWith("//") || /^www\./i.test(url)) {
+    try {
+      return new URL(normalizeExternalPublicUrl(url)).origin === new URL(getApiOrigin()).origin;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  try {
+    const resolvedUrl = new URL(buildPdfViewerUrl(url), window.location.origin);
+    return resolvedUrl.origin === new URL(getApiOrigin()).origin;
+  } catch (_) {
+    return typeof url === "string" && (url.startsWith("/api/") || url.startsWith("/uploads/"));
+  }
+};
+
+const useSecureAssetUrl = ({ src, authToken, enabled }) => {
+  const [blobUrl, setBlobUrl] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [loadError, setLoadError] = React.useState("");
+  const resolvedUrl = React.useMemo(() => buildPdfViewerUrl(src, authToken), [src, authToken]);
+
+  React.useEffect(() => {
+    if (!resolvedUrl || !enabled) {
+      setBlobUrl("");
+      setLoadError("");
+      setIsLoading(false);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    let objectUrl = "";
+
+    const loadSecureAsset = async () => {
+      setIsLoading(true);
+      setLoadError("");
+
+      try {
+        const isExternal = isExternalUrl(resolvedUrl);
+        const response = await fetch(resolvedUrl, {
+          headers: isExternal ? {} : { Authorization: `Bearer ${authToken}` },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load asset (${response.status})`);
+        }
+
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setBlobUrl(objectUrl);
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        console.error("Failed to load secure asset:", error);
+        setLoadError("We couldn't load this file right now.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSecureAsset();
+
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [resolvedUrl, authToken, enabled]);
+
+  return { resolvedUrl, blobUrl, isLoading, loadError };
+};
+
+const SecureDocumentFrame = ({ src, authToken, title, className = "w-full h-full border-0" }) => {
+  const shouldFetchWithAuth =
+    Boolean(authToken && isBackendDocumentUrl(src)) &&
+    !isGoogleDriveUrl(src);
+  const { resolvedUrl, blobUrl, isLoading, loadError } = useSecureAssetUrl({
+    src,
+    authToken,
+    enabled: shouldFetchWithAuth,
+  });
+
+  if (!resolvedUrl) {
+    return (
+      <div className="flex h-full items-center justify-center p-6 text-center text-slate-500">
+        Document URL is missing.
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-slate-500">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-500" />
+        <p className="text-sm font-medium">Loading document...</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-slate-500">
+        <FileText size={28} className="text-slate-400" />
+        <p className="max-w-md text-sm">{loadError}</p>
+      </div>
+    );
+  }
+
+  return (
+    <iframe
+      src={blobUrl || resolvedUrl}
+      className={className}
+      title={title}
+      allow="fullscreen"
+    />
+  );
 };
 
 const SEEK_TOLERANCE_SECONDS = 1;
@@ -104,6 +287,7 @@ const CoursePlayerView = ({
   const [videoProgressPercent, setVideoProgressPercent] = React.useState(0);
   const lastSyncRef = React.useRef(currentModule?.last_position_seconds || 0);
   const normalizedModuleUrl = normalizeExternalUrl(currentModule?.url || "");
+  const renderableVideoUrl = getRenderableVideoUrl(currentModule?.url || "");
 
   const seekToPosition = React.useCallback((seconds) => {
     if (!playerRef.current) return;
@@ -196,7 +380,7 @@ const CoursePlayerView = ({
     // Only apply pause/play sync if we're not just switching to a new module
     // which starts at 0 and is already paused. This prevents issues with
     // calling pause() too early on some players.
-    if (playerRef.current && isLocalOrMp4Url(normalizedModuleUrl) && playerRef.current.tagName === "VIDEO") {
+    if (playerRef.current && isLocalOrMp4Url(renderableVideoUrl) && playerRef.current.tagName === "VIDEO") {
       if (isPlaying) {
         playerRef.current.play().catch((err) => {
           if (err.name !== "NotAllowedError") {
@@ -210,7 +394,7 @@ const CoursePlayerView = ({
         }
       }
     }
-  }, [isPlaying, normalizedModuleUrl]);
+  }, [isPlaying, renderableVideoUrl]);
 
   React.useEffect(() => {
     maxPlayedRef.current = maxPlayedSeconds;
@@ -236,7 +420,9 @@ const CoursePlayerView = ({
         onSyncVideoProgress &&
         currentModule?.id &&
         currentModule?.type === "video" &&
-        !isGoogleDriveUrl(normalizedModuleUrl)
+        !isGoogleDriveUrl(renderableVideoUrl) &&
+        !isYouTubeUrl(renderableVideoUrl) &&
+        !isGammaUrl(renderableVideoUrl)
       ) {
         const lastKnown = Math.floor(maxPlayedRef.current);
         if (lastKnown > Math.floor(lastSyncRef.current)) {
@@ -244,7 +430,7 @@ const CoursePlayerView = ({
         }
       }
     };
-  }, [currentModule?.id, currentModule?.type, normalizedModuleUrl, onSyncVideoProgress, syncProgress]);
+  }, [currentModule?.id, currentModule?.type, renderableVideoUrl, onSyncVideoProgress, syncProgress]);
 
   const handleVideoReady = (duration) => {
     if (!duration || duration <= 0) return;
@@ -328,6 +514,9 @@ const CoursePlayerView = ({
     const moduleSeconds = moduleTimes[module.id] ?? module.time_spent_seconds ?? 0;
     return acc + (Number(moduleSeconds) || 0);
   }, 0);
+  const mainViewerHeightClass = currentModule?.notes
+    ? "min-h-[70vh] lg:min-h-[72vh]"
+    : "min-h-[78vh] lg:min-h-[calc(100vh-9rem)]";
 
   if (loading)
     return (
@@ -426,7 +615,7 @@ const CoursePlayerView = ({
                 ))}
               {course.prereq_pdf_url && (
                 <a
-                  href={course.prereq_pdf_url}
+                  href={buildPdfViewerUrl(course.prereq_pdf_url, authToken)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold transition text-[11px]"
@@ -439,13 +628,12 @@ const CoursePlayerView = ({
           </div>
         )}
 
-      <div className="flex-1 flex min-h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-[calc(100vh-4rem)] overflow-hidden">
         { }
         {/* UPDATED: added overflow-y-auto custom-scrollbar */}
-        <div className="flex-1 flex flex-col relative bg-black overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col bg-black overflow-y-auto custom-scrollbar min-h-0">
           { }
-          {/* UPDATED: dynamic height based on currentModule?.notes */}
-          <div className={`${currentModule?.notes ? "min-h-[70vh]" : "flex-1"} relative`}>
+          <div className={`flex-1 bg-black ${mainViewerHeightClass}`}>
 
             {/* TEXT STREAM, HTML, TXT, MD */}
             {currentModule?.type === "text_stream" ||
@@ -454,7 +642,7 @@ const CoursePlayerView = ({
               currentModule?.url?.toLowerCase()?.endsWith(".html") ||
               currentModule?.url?.toLowerCase()?.endsWith(".txt") ||
               currentModule?.url?.toLowerCase()?.endsWith(".md") ? (
-              <div className="absolute inset-0 w-full h-full overflow-y-auto">
+              <div className={`w-full ${mainViewerHeightClass} overflow-y-auto bg-white`}>
                 <TextStreamPlayer
                   moduleId={currentModule.id}
                   url={currentModule.url}
@@ -464,37 +652,45 @@ const CoursePlayerView = ({
 
             ) : currentModule?.type === "video" ? (
               /* VIDEO PLAYER */
-              <div className="absolute inset-0 w-full h-full bg-black">
+              <div className={`w-full ${mainViewerHeightClass} bg-black`}>
                 {!currentModule?.url ? (
-                  <div className="flex flex-col items-center justify-center h-full text-white p-8">
+                  <div className={`flex flex-col items-center justify-center ${mainViewerHeightClass} text-white p-8`}>
                     <div className="text-6xl mb-4">⚠️</div>
                     <h3 className="text-2xl font-bold mb-2">Video Not Available</h3>
                     <p className="text-slate-400 text-center max-w-md">The video URL for this module is missing or invalid.</p>
                   </div>
-                ) : isGoogleDriveUrl(normalizedModuleUrl) ? (
-                  <iframe src={normalizedModuleUrl} className="w-full h-full border-0" allow="fullscreen" />
-                ) : isGammaUrl(normalizedModuleUrl) ? (
-                  <iframe src={normalizeGammaUrl(normalizedModuleUrl)} className="w-full h-full border-0" allow="fullscreen" />
-                ) : isYouTubeUrl(normalizedModuleUrl) || !isLocalOrMp4Url(normalizedModuleUrl) ? (
-                  <ReactPlayer
-                    ref={playerRef}
-                    url={normalizedModuleUrl}
-                    width="100%"
-                    height="100%"
-                    controls
-                    playing={isPlaying}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                    onDuration={handleVideoReady}
-                    onProgress={handleProgress}
-                    onSeek={handleSeekAttempt}
-                    onEnded={handleVideoEnded}
+                ) : isGoogleDriveUrl(renderableVideoUrl) || isYouTubeUrl(renderableVideoUrl) || isGammaUrl(renderableVideoUrl) ? (
+                  <iframe
+                    src={renderableVideoUrl}
+                    className={`w-full ${mainViewerHeightClass} border-0`}
+                    title={currentModule?.title || "Video lesson"}
+                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                    allowFullScreen
                   />
+                ) : !isLocalOrMp4Url(renderableVideoUrl) ? (
+                  <div className={`w-full ${mainViewerHeightClass} flex items-center justify-center bg-black p-2 sm:p-4`}>
+                    <div className="w-full h-full max-w-6xl">
+                    <ReactPlayer
+                      ref={playerRef}
+                      url={renderableVideoUrl}
+                      width="100%"
+                      height="100%"
+                      controls
+                      playing={isPlaying}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                      onDuration={handleVideoReady}
+                      onProgress={handleProgress}
+                      onSeek={handleSeekAttempt}
+                      onEnded={handleVideoEnded}
+                    />
+                    </div>
+                  </div>
                 ) : (
                   <video
                     ref={playerRef}
-                    src={normalizedModuleUrl}
-                    className="w-full h-full object-contain"
+                    src={renderableVideoUrl}
+                    className={`w-full ${mainViewerHeightClass} object-contain bg-black`}
                     controls
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
@@ -510,18 +706,18 @@ const CoursePlayerView = ({
               currentModule?.url?.toLowerCase().includes(".pdf") ||
               isGammaUrl(currentModule?.url) ? (
               /* PDF or GAMMA */
-              <div className="absolute inset-0 w-full h-full bg-slate-100">
-                <iframe
-                  src={isGammaUrl(currentModule.url) ? normalizeGammaUrl(currentModule.url) : buildPdfViewerUrl(currentModule.url, authToken)}
-                  className="w-full h-full border-0"
+              <div className={`w-full ${mainViewerHeightClass} bg-slate-100`}>
+                <SecureDocumentFrame
+                  src={isGammaUrl(currentModule.url) ? normalizeGammaUrl(currentModule.url) : currentModule.url}
+                  authToken={authToken}
+                  className={`w-full ${mainViewerHeightClass} border-0`}
                   title={currentModule.title || "Document"}
-                  allow="fullscreen"
                 />
               </div>
 
             ) : (
               /* FALLBACK View */
-              <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-slate-800 text-slate-300 p-8">
+              <div className={`w-full ${mainViewerHeightClass} flex flex-col items-center justify-center bg-slate-800 text-slate-300 p-8`}>
                 <FileText size={64} className="text-slate-500 mb-6" />
                 <h3 className="text-2xl font-bold text-white mb-2">Document Viewer</h3>
                 <p className="text-lg mb-8">{currentModule?.title}</p>
@@ -541,9 +737,9 @@ const CoursePlayerView = ({
 
           {/* ADDED: Embedded PDF Notes section below content */}
           {currentModule?.notes && (
-            <div className="w-full bg-slate-900 border-t border-slate-800 p-8">
+            <div className="w-full bg-slate-900 border-t border-slate-800 p-4 sm:p-8">
               <div className="max-w-4xl mx-auto">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                       <FileText size={20} className="text-emerald-400" />
@@ -557,7 +753,7 @@ const CoursePlayerView = ({
                     </div>
                   </div>
                   <a
-                    href={currentModule.notes}
+                    href={buildPdfViewerUrl(currentModule.notes, authToken)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 transition-all"
@@ -566,20 +762,20 @@ const CoursePlayerView = ({
                   </a>
                 </div>
 
-                <div className="rounded-2xl border border-slate-700 overflow-hidden shadow-2xl h-[800px] bg-slate-800">
-                  <iframe
-                    src={buildPdfViewerUrl(currentModule.notes, authToken)}
+                <div className="rounded-2xl border border-slate-700 overflow-hidden shadow-2xl h-[420px] sm:h-[640px] lg:h-[800px] bg-slate-800">
+                  <SecureDocumentFrame
+                    src={currentModule.notes}
+                    authToken={authToken}
                     className="w-full h-full"
                     title="Module Notes PDF"
-                    allow="fullscreen"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          <div className="h-20 bg-slate-800 border-t border-slate-700 flex items-center justify-between px-8 flex-shrink-0">
-            <div>
+          <div className="bg-slate-800 border-t border-slate-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 sm:px-8 py-4 flex-shrink-0">
+            <div className="min-w-0">
               <h2 className="text-lg font-bold text-white">
                 {currentModule?.title}
               </h2>
@@ -587,7 +783,7 @@ const CoursePlayerView = ({
                 {currentModule?.type === "video"
                   ? "Video Lesson"
                   : "Reading Material"}
-                {currentModule?.type === "video" && !isGoogleDriveUrl(normalizedModuleUrl) && (
+                {currentModule?.type === "video" && !isGoogleDriveUrl(renderableVideoUrl) && !isYouTubeUrl(renderableVideoUrl) && !isGammaUrl(renderableVideoUrl) && (
                   <>
                     {" • "}
                     <span className="text-cyan-400 font-mono mr-2">
@@ -599,7 +795,7 @@ const CoursePlayerView = ({
               {/* ADDED: PDF Notes link in bottom bar */}
               {currentModule?.notes && (
                 <a
-                  href={currentModule.notes}
+                  href={buildPdfViewerUrl(currentModule.notes, authToken)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
@@ -614,11 +810,11 @@ const CoursePlayerView = ({
               disabled={
                 markingComplete ||
                 isModuleCompleted(currentModule?.id) ||
-                (currentModule?.type === "video" && !isGoogleDriveUrl(normalizedModuleUrl) && !isVideoFinished)
+                (currentModule?.type === "video" && !isGoogleDriveUrl(renderableVideoUrl) && !isYouTubeUrl(renderableVideoUrl) && !isGammaUrl(renderableVideoUrl) && !isVideoFinished)
               }
-              className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all ${isModuleCompleted(currentModule?.id)
+              className={`w-full sm:w-auto justify-center px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all ${isModuleCompleted(currentModule?.id)
                 ? "bg-green-500/10 text-green-500 border border-green-500/20 cursor-default"
-                : markingComplete || (currentModule?.type === "video" && !isGoogleDriveUrl(normalizedModuleUrl) && !isVideoFinished)
+                : markingComplete || (currentModule?.type === "video" && !isGoogleDriveUrl(renderableVideoUrl) && !isYouTubeUrl(renderableVideoUrl) && !isGammaUrl(renderableVideoUrl) && !isVideoFinished)
                   ? "bg-slate-700 text-slate-400 cursor-not-allowed" // Disabled state
                   : "bg-primary-900 hover:bg-slate-800 text-white shadow-lg shadow-primary-900/20"
                 }`}
@@ -636,7 +832,7 @@ const CoursePlayerView = ({
           </div>
         </div>
 
-        <div className="w-80 bg-primary-900 border-l border-slate-700 flex flex-col shadow-2xl z-10">
+        <div className="w-full lg:w-80 bg-primary-900 border-t lg:border-t-0 lg:border-l border-slate-700 flex flex-col shadow-2xl z-10 max-h-[50vh] lg:max-h-none">
           <div className="p-4 bg-slate-800 border-b border-slate-700">
             <h3 className="font-bold text-slate-100 uppercase tracking-wider text-xs">
               Course Content

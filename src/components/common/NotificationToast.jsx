@@ -5,11 +5,11 @@ const NotificationToast = ({ notifications, onDismiss }) => {
     if (!notifications || notifications.length === 0) return null;
 
     return (
-        <div className="fixed top-24 right-6 z-50 flex flex-col gap-3 w-80">
+        <div className="fixed top-20 right-3 left-3 sm:left-auto sm:right-6 z-[140] flex flex-col gap-3 w-auto sm:w-80 pointer-events-none">
             {notifications.map((notif) => (
                 <div
                     key={notif.id}
-                    className="bg-white border-l-4 border-indigo-600 shadow-xl rounded-r-lg p-4 animate-in slide-in-from-right duration-300 flex items-start gap-3 relative"
+                    className="bg-white border-l-4 border-indigo-600 shadow-xl rounded-r-lg p-4 animate-in slide-in-from-right duration-300 flex items-start gap-3 relative pointer-events-auto"
                 >
                     <div className="p-2 bg-indigo-50 text-indigo-600 rounded-full shrink-0">
                         <Bell size={18} />

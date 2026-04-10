@@ -149,7 +149,7 @@ const StudentBot = () => {
   };
 
   return (
-    <div className="fixed left-6 bottom-6 z-50">
+    <div className="fixed right-3 sm:right-6 bottom-3 sm:bottom-6 z-[130] max-w-[calc(100vw-1.5rem)] sm:max-w-none">
       <style>{`
         @keyframes fadeInUp { from { transform: translateY(8px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
         @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(24, 27, 155, 0.35); } 70% { box-shadow: 0 0 0 8px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
@@ -168,7 +168,7 @@ const StudentBot = () => {
           <button
             aria-label="Open Study Assistant"
             onClick={() => setOpen(true)}
-            className="group w-18 h-18 rounded-full p-[4px] bg-gradient-to-br from-purple-600 via-fuchsia-500 to-indigo-600 shadow-2xl flex items-center justify-center hover:scale-[1.03] transition-transform"
+            className="group w-12 h-12 rounded-full p-[4px] bg-gradient-to-br from-purple-600 via-fuchsia-500 to-indigo-600 shadow-2xl flex items-center justify-center hover:scale-[1.03] transition-transform"
             style={{ boxShadow: "0 8px 22px rgba(15,23,42,0.12)" }}
           >
             {/* white spacer ring */}
@@ -195,7 +195,7 @@ const StudentBot = () => {
 
           {/* Hover preview */}
           <div
-            className={`absolute -left-0 -top-20 w-40 bg-white rounded-lg shadow-xl p-2 z-50 transform origin-bottom-left ${showPreview ? "preview-fade show" : "preview-fade"}`}
+            className={`hidden md:block absolute right-0 -top-20 w-40 bg-white rounded-lg shadow-xl p-2 z-50 transform origin-bottom-right ${showPreview ? "preview-fade show" : "preview-fade"}`}
           >
             <div className="w-full flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-slate-900 overflow-hidden flex items-center justify-center">
@@ -220,7 +220,7 @@ const StudentBot = () => {
       {/* Expanded chat box */}
       {open && (
         <div
-          className={`w-96 h-96 transition-all duration-300 shadow-2xl rounded-2xl bg-white overflow-hidden border border-slate-200 flex flex-col`}
+          className={`w-[min(24rem,calc(100vw-1.5rem))] sm:w-96 h-[min(70vh,32rem)] sm:h-96 transition-all duration-300 shadow-2xl rounded-2xl bg-white overflow-hidden border border-slate-200 flex flex-col`}
         >
           <div className="flex items-center gap-3 p-4 rounded-t-2xl bg-gradient-to-r from-[#1f2937]/80 via-[#111827]/70 to-[#0f172a]/80 text-white backdrop-blur-sm shadow-2xl">
             <div className="relative">
@@ -255,7 +255,7 @@ const StudentBot = () => {
 
           <div
             ref={listRef}
-            className="flex-1 p-4 overflow-auto space-y-4 bg-gradient-to-b from-white to-slate-50"
+            className="flex-1 p-3 sm:p-4 overflow-auto space-y-4 bg-gradient-to-b from-white to-slate-50"
           >
             {messages.map((m, i) => (
               <div
@@ -275,7 +275,7 @@ const StudentBot = () => {
                           borderColor: THEME.BOT_BORDER,
                         }
                   }
-                  className={`message-enter max-w-[80%] relative px-4 py-3 rounded-[18px] ${m.from === "user" ? "text-white shadow-md" : "text-blue-900 border shadow-sm"}`}
+                  className={`message-enter max-w-[88%] sm:max-w-[80%] relative px-3 sm:px-4 py-3 rounded-[18px] ${m.from === "user" ? "text-white shadow-md" : "text-blue-900 border shadow-sm"}`}
                 >
                   {m.text}
                   <div
@@ -346,7 +346,7 @@ const StudentBot = () => {
             )}
           </div>
 
-          <div className="px-4 pb-4 pt-2 border-t border-slate-100 bg-white">
+          <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-slate-100 bg-white">
             <form
               onSubmit={(e) => {
                 e.preventDefault();

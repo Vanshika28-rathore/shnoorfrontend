@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaPaperPlane, FaPaperclip, FaTimes, FaFileAlt, FaImage, FaVideo, FaSmile, FaEllipsisV, FaEdit, FaTrash, FaCheck, FaReply, FaSmileBeam } from 'react-icons/fa';
+import { FaPaperPlane, FaPaperclip, FaTimes, FaFileAlt, FaImage, FaVideo, FaSmile, FaEllipsisV, FaEdit, FaTrash, FaCheck, FaReply, FaSmileBeam, FaArrowLeft } from 'react-icons/fa';
 import EmojiPicker from 'emoji-picker-react';
 import GroupInfoDrawer from './GroupInfoDrawer';
 import { formatChatTime } from '../../utils/chatDateTime';
@@ -174,9 +174,10 @@ const ChatWindow = ({
                     <button
                         onClick={() => onClose && onClose()}
                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                        title="Close chat"
+                        title="Back to conversations"
                     >
-                        <FaTimes size={20} />
+                        <span className="hidden sm:inline"><FaTimes size={20} /></span>
+                        <span className="sm:hidden"><FaArrowLeft size={18} /></span>
                     </button>
                     {activeChat.type === 'group' && (
                         <>
@@ -624,7 +625,7 @@ const MessageItem = ({ messageId, msg, showName, onEdit, onDelete, onReply, onRe
 
                 {/* Hover Actions Menu */}
                 {!isEditing && (
-                    <div className={`flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 ${isMe ? 'items-end' : 'items-start'}`} ref={menuRef}>
+                    <div className={`flex flex-col gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity p-1 ${isMe ? 'items-end' : 'items-start'}`} ref={menuRef}>
                         <div className="flex items-center gap-1 bg-white shadow-lg border border-slate-100 p-1.5 rounded-full ring-1 ring-slate-900/5">
                             <button
                                 onClick={(e) => { e.stopPropagation(); setShowReactionPicker(!showReactionPicker); }}
