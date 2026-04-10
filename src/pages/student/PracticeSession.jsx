@@ -184,12 +184,12 @@ const PracticeSession = ({ question: propQuestion, value, onChange }) => {
     }
 
     const content = (
-        <div className="flex h-full overflow-hidden bg-slate-100/70">
-            <div className="w-[40%] h-full border-r border-slate-200 bg-white">
+        <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-slate-100/70">
+            <div className="w-full lg:w-[40%] lg:h-full border-b lg:border-b-0 lg:border-r border-slate-200 bg-white">
                 <ProblemDescription question={question} />
             </div>
 
-            <div className="w-[60%] h-full relative flex flex-col bg-slate-950">
+            <div className="w-full lg:w-[60%] lg:h-full relative flex flex-col bg-slate-950">
                 {/* Submit message banner */}
                 {submitMessage && (
                     <div className={`px-4 py-2 text-sm font-semibold flex items-center justify-between border-b ${submitMessage.type === 'success'
@@ -229,15 +229,15 @@ const PracticeSession = ({ question: propQuestion, value, onChange }) => {
 
     if (isEmbedded) {
         return (
-            <div className="h-full bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="h-full bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col">
                 {content}
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-6rem)] bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden m-6">
-            <div className="px-6 py-3 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50 flex items-center justify-between">
+        <div className="flex flex-col h-full lg:h-[calc(100vh-6rem)] bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div className="px-4 lg:px-6 py-3 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50 flex items-center justify-between">
                 <button
                     onClick={() => navigate('/student/practice')}
                     className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2"

@@ -95,11 +95,16 @@ const MyCertificates = () => {
 
   if (selectedCert) {
     return (
-      <div className="certificate-view-container">
-        <div className="certificate-actions no-print">
-          <button className="back-btn" onClick={() => setSelectedCert(null)}>Back to My Certificates</button>
+      <div className="w-full min-h-screen bg-slate-50 p-3 sm:p-6 flex flex-col">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-4xl mx-auto mb-6 sm:mb-8">
+          <button 
+            className="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-lg font-semibold hover:bg-slate-50 transition-colors flex items-center justify-center gap-2" 
+            onClick={() => setSelectedCert(null)}
+          >
+            Back to My Certificates
+          </button>
           <button
-            className="download-pdf-btn"
+            className="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
             onClick={() => exportToPDF("certificate-to-print", `Certificate_${selectedCert.course.replace(/\s+/g, '_')}.pdf`)}
           >
             <FaDownload /> Download PDF
