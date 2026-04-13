@@ -214,11 +214,29 @@ const buildRandomizedSections = () =>
 
 // ── CHANGE 2: AI violation modal metadata ─────────────────────────────────────
 const AI_VIOLATION_META = {
-  "multiple-faces": {
+  "no-face": {
     icon:   <Users size={20} className="text-rose-500" />,
-    title:  "Multiple / No Face Detected",
+    title:  "Face Not Visible",
     border: "border-rose-400",
     btn:    "bg-rose-500 hover:bg-rose-600",
+  },
+  "no-face-warning": {
+    icon:   <Users size={20} className="text-amber-500" />,
+    title:  "Face Visibility Warning",
+    border: "border-amber-400",
+    btn:    "bg-amber-500 hover:bg-amber-600",
+  },
+  "multiple-faces": {
+    icon:   <Users size={20} className="text-rose-500" />,
+    title:  "Multiple Faces Detected",
+    border: "border-rose-400",
+    btn:    "bg-rose-500 hover:bg-rose-600",
+  },
+  "multiple-faces-warning": {
+    icon:   <Users size={20} className="text-amber-500" />,
+    title:  "Multiple Faces Warning",
+    border: "border-amber-400",
+    btn:    "bg-amber-500 hover:bg-amber-600",
   },
   "phone-detected": {
     icon:   <Smartphone size={20} className="text-orange-500" />,
@@ -226,11 +244,23 @@ const AI_VIOLATION_META = {
     border: "border-orange-400",
     btn:    "bg-orange-500 hover:bg-orange-600",
   },
+  "phone-detected-warning": {
+    icon:   <Smartphone size={20} className="text-amber-500" />,
+    title:  "Device Detection Warning",
+    border: "border-amber-400",
+    btn:    "bg-amber-500 hover:bg-amber-600",
+  },
   "loud-audio": {
     icon:   <Volume2 size={20} className="text-purple-500" />,
     title:  "Noise / Voice Detected",
     border: "border-purple-400",
     btn:    "bg-purple-500 hover:bg-purple-600",
+  },
+  "loud-audio-warning": {
+    icon:   <Volume2 size={20} className="text-amber-500" />,
+    title:  "Audio Warning",
+    border: "border-amber-400",
+    btn:    "bg-amber-500 hover:bg-amber-600",
   },
 };
 
@@ -244,7 +274,7 @@ const ViolationModal = ({ warning, onDismiss }) => {
 
   if (ai) {
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div className={`bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 border-t-4 ${ai.border}`}>
           <div className="flex items-center gap-3 mb-3">
             {ai.icon}
@@ -268,7 +298,7 @@ const ViolationModal = ({ warning, onDismiss }) => {
 
   // Default amber style — unchanged from original
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 border-t-4 border-amber-400">
         <div className="flex items-center gap-3 mb-3">
           <AlertTriangle className="text-amber-500 shrink-0" size={24} />
@@ -292,7 +322,7 @@ const ViolationModal = ({ warning, onDismiss }) => {
 
 // ─── Submitted Screen ─────────────────────────────────────────────────────────
 const SubmittedScreen = ({ navigate }) => (
-  <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100">
+  <div className="fixed inset-0 z-300 flex flex-col items-center justify-center bg-linear-to-br from-emerald-50 to-teal-100">
     <div className="flex flex-col items-center gap-5 animate-[fadeIn_0.5s_ease-out]">
       <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-300">
         <CheckCircle size={52} className="text-white" strokeWidth={2.5} />
@@ -409,7 +439,7 @@ const RichTextEditor = ({ qId, value, onChange }) => {
         contentEditable
         suppressContentEditableWarning
         onInput={() => onChange(qId, editorRef.current?.innerHTML || "")}
-        className="min-h-[140px] p-3 text-sm text-slate-700 focus:outline-none"
+        className="min-h-35 p-3 text-sm text-slate-700 focus:outline-none"
         style={{ userSelect: "text", WebkitUserSelect: "text" }}
         data-placeholder="Type your answer here..."
       />
@@ -445,7 +475,7 @@ const Timer = ({ secondsLeft }) => {
 };
 
 // ─── Question Navigator ───────────────────────────────────────────────────────
-const QuestionNav = ({ section, answers, statuses, activeQuestion, onSelect }) => {
+const QuestionNav = ({ section, answers, statuses, activeQuestion, onSelect, compact = false }) => {
   const getStyle = (qId, idx, isActive) => {
     if (isActive) return "bg-indigo-600 text-white border-indigo-600 shadow-sm";
     const status = statuses[qId] || STATUS.UNATTEMPTED;
@@ -457,6 +487,39 @@ const QuestionNav = ({ section, answers, statuses, activeQuestion, onSelect }) =
       return "bg-slate-100 text-slate-400 border-slate-300 border-dashed";
     return "bg-white text-slate-500 border-slate-200 hover:border-indigo-300";
   };
+
+  if (compact) {
+    return (
+      <div className="px-3 py-3 bg-white border-b border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Question Navigator
+          </span>
+          <span className="text-[11px] text-slate-400">
+            Tap to jump between questions
+          </span>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          {section.questions.map((q, idx) => {
+            const isActive = idx === activeQuestion;
+            const status = statuses[q.id] || STATUS.UNATTEMPTED;
+            return (
+              <button
+                key={q.id}
+                onClick={() => onSelect(idx)}
+                className={`relative h-11 rounded-xl border text-sm font-semibold transition-all ${getStyle(q.id, idx, isActive)}`}
+              >
+                {idx + 1}
+                {(status === STATUS.MARKED || status === STATUS.MARKED_ANSWERED) && !isActive && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border-2 border-white" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col justify-between h-full px-4 py-6">
@@ -529,6 +592,7 @@ const MockExam = () => {
   const [consoleOutput, setConsoleOutput]   = useState({});
   const [secondsLeft, setSecondsLeft]       = useState(TOTAL_SECONDS);
   const [isHydrated, setIsHydrated]         = useState(false);
+  const [isMobile, setIsMobile]             = useState(false);
   const timerRef = useRef(null);
 
   // ── CHANGE 4a: videoRef — forwarded to <VideoStreamWidget> so
@@ -537,6 +601,13 @@ const MockExam = () => {
 
   // ── Randomized sections — hydrated ONCE on mount, never change again ───────
   const [SECTIONS, setSECTIONS] = useState([]);
+
+  useEffect(() => {
+    const updateViewport = () => setIsMobile(window.innerWidth < 768);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   useEffect(() => {
     const cachedData = localStorage.getItem(STORAGE_KEY);
@@ -584,6 +655,14 @@ const MockExam = () => {
       blur:                "You switched windows. Please stay on the exam tab.",
       "visibility-hidden": "You navigated away from the exam tab.",
       "copy-paste":        "Copy/paste actions are disabled during the exam.",
+      "no-face":           "No face detected. Please ensure your face is visible to the camera.",
+      "no-face-warning":   "No face detected for a sustained period. Please ensure your face is visible.",
+      "multiple-faces":    "Multiple faces detected continuously. Only the candidate should be visible.",
+      "multiple-faces-warning": "Multiple faces detected continuously. This is a warning.",
+      "phone-detected":    "Prohibited object detected continuously in frame.",
+      "phone-detected-warning": "Prohibited object detected continuously. This is a warning.",
+      "loud-audio":        "Sustained background noise detected.",
+      "loud-audio-warning": "Sustained background noise detected. This is a warning only.",
     };
     setWarning({
       type,                                              // needed by ViolationModal to pick AI style
@@ -830,25 +909,25 @@ const MockExam = () => {
       {...securityHandlers}
     >
       {/* ── Top Bar ── */}
-      <header className="shrink-0 bg-white border-b border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between px-4 py-2.5 gap-3">
-          <div className="flex items-center gap-2">
-            <Video size={18} className="text-indigo-600" />
-            <span className="font-bold text-slate-800 text-base">Mock Exam</span>
+      <header className="shrink-0 bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Video size={18} className="text-indigo-600 shrink-0" />
+            <span className="font-bold text-slate-800 text-sm sm:text-base truncate">Mock Exam</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Timer secondsLeft={secondsLeft} />
             <button
               onClick={handleSubmitExam}
               className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
             >
               <Send size={13} />
-              Submit
+              <span className="hidden sm:inline">Submit</span>
             </button>
           </div>
         </div>
 
-        <div className="flex border-t border-slate-100">
+        <div className="flex border-t border-slate-100 overflow-x-auto no-scrollbar">
           {SECTIONS.map((sec, idx) => {
             const sectionAnswered = sec.questions.filter(
               (q) =>
@@ -884,8 +963,8 @@ const MockExam = () => {
       </header>
 
       {/* ── Sidebar + Question area ── */}
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-40 flex-shrink-0 bg-slate-50 border-r border-slate-200 h-full">
+      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
+        <aside className="hidden lg:block w-40 shrink-0 bg-slate-50 border-r border-slate-200 h-full">
           <QuestionNav
             section={currentSection}
             answers={answers}
@@ -895,14 +974,27 @@ const MockExam = () => {
           />
         </aside>
 
-        <main className="flex-1 overflow-y-auto px-4 md:px-8 py-6 min-h-0">
+        <main className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-8 py-4 md:py-6 min-h-0 pb-28 lg:pb-6">
+          {isMobile && (
+            <div className="lg:hidden -mx-3 sm:-mx-4 mb-4">
+              <QuestionNav
+                section={currentSection}
+                answers={answers}
+                statuses={statuses}
+                activeQuestion={activeQuestion}
+                onSelect={setActiveQuestion}
+                compact
+              />
+            </div>
+          )}
+
           {currentSection.questions.map((q, qIdx) => {
             if (qIdx !== activeQuestion) return null;
             return (
               <div
                 id={`question-${q.id}`}
                 key={q.id}
-                className={`bg-white border rounded-xl p-5 shadow-sm transition-colors ${
+                className={`bg-white border rounded-2xl p-4 sm:p-5 shadow-sm transition-colors ${
                   marked
                     ? "border-amber-300 ring-1 ring-amber-200"
                     : "border-slate-200"
@@ -914,7 +1006,7 @@ const MockExam = () => {
                     <span className="shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">
                       {qIdx + 1}
                     </span>
-                    <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                    <p className="text-[15px] sm:text-sm font-semibold text-slate-700 leading-relaxed">
                       {q.text}
                     </p>
                   </div>
@@ -994,31 +1086,30 @@ const MockExam = () => {
           })}
 
           {/* ── Action bar: Prev / Skip / Mark / Next ── */}
-          <div className="flex items-center justify-between mt-5 gap-2 flex-wrap">
-            <button
-              onClick={goToPrev}
-              disabled={isFirstQuestion}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft size={15} />
-              Previous
-            </button>
+          <div className="sticky bottom-0 z-20 mt-5 -mx-3 sm:-mx-4 md:-mx-8 border-t border-slate-200 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80 px-3 sm:px-4 md:px-8 py-3 shadow-[0_-8px_30px_rgba(15,23,42,0.08)]">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between">
+              <button
+                onClick={goToPrev}
+                disabled={isFirstQuestion}
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={15} />
+                Previous
+              </button>
 
-            <div className="flex items-center gap-2">
-              {!isLastQuestion && (
-                <button
-                  onClick={handleSkip}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-colors"
-                  title="Skip this question and move to the next"
-                >
-                  <SkipForward size={14} />
-                  Skip
-                </button>
-              )}
+              <button
+                onClick={handleSkip}
+                disabled={isLastQuestion}
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Skip this question and move to the next"
+              >
+                <SkipForward size={14} />
+                Skip
+              </button>
 
               <button
                 onClick={handleMarkForReview}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
                   marked
                     ? "bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100"
                     : "border-slate-200 text-slate-500 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-600"
@@ -1028,25 +1119,25 @@ const MockExam = () => {
                 <Bookmark size={14} fill={marked ? "currentColor" : "none"} />
                 {marked ? "Marked" : "Mark for Review"}
               </button>
-            </div>
 
-            {isLastQuestion ? (
-              <button
-                onClick={handleSubmitExam}
-                className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2 rounded-lg text-sm transition-colors shadow-sm"
-              >
-                <Send size={13} />
-                Submit Exam
-              </button>
-            ) : (
-              <button
-                onClick={goToNext}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors shadow-sm"
-              >
-                Next
-                <ChevronRight size={15} />
-              </button>
-            )}
+              {isLastQuestion ? (
+                <button
+                  onClick={handleSubmitExam}
+                  className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-sm col-span-2 sm:col-span-1"
+                >
+                  <Send size={13} />
+                  Submit Exam
+                </button>
+              ) : (
+                <button
+                  onClick={goToNext}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors shadow-sm col-span-2 sm:col-span-1"
+                >
+                  Next
+                  <ChevronRight size={15} />
+                </button>
+              )}
+            </div>
           </div>
         </main>
       </div>

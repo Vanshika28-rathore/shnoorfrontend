@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { PROCTORING_POLICY } from "../config/proctoringPolicy";
 
 // 🔊 VOICE DETECTION TOGGLE — set to false to disable, true to enable
 const VOICE_DETECTION_ENABLED = true;
@@ -8,7 +9,11 @@ const VOICE_DETECTION_ENABLED = true;
  * Monitors audio stream for loud noises or speech that exceed a threshold.
  * Toggle VOICE_DETECTION_ENABLED above to enable/disable.
  */
-export const useVoiceDetection = (stream, threshold = 0.15, duration = 2000) => {
+export const useVoiceDetection = (
+    stream,
+    threshold = PROCTORING_POLICY.audio.voiceThreshold,
+    duration = PROCTORING_POLICY.audio.voiceDurationMs,
+) => {
     // ✅ Hooks must always be called — never put early return before these
     const [isVoiceSuspicious, setIsVoiceSuspicious] = useState(false);
     const [isLoudNoise, setIsLoudNoise] = useState(false);
@@ -17,6 +22,10 @@ export const useVoiceDetection = (stream, threshold = 0.15, duration = 2000) => 
     const dataArrayRef = useRef(null);
     const rafIdRef = useRef(null);
     const suspiciousStartTimeRef = useRef(null);
+    const loudStartTimeRef = useRef(null);
+    const loudEventCountRef = useRef(0);
+    const loudEventRaisedRef = useRef(false);
+    const loudCooldownUntilRef = useRef(0);
 
     useEffect(() => {
         // If disabled, do nothing
@@ -54,12 +63,14 @@ export const useVoiceDetection = (stream, threshold = 0.15, duration = 2000) => 
                         sum += dataArray[i];
                     }
                     const average = sum / bufferLength / 255;
+                    const now = Date.now();
+                    const loudThreshold = threshold * PROCTORING_POLICY.audio.loudMultiplier;
 
                     // 1. Check for sustained voice/noise
                     if (average > threshold) {
                         if (!suspiciousStartTimeRef.current) {
-                            suspiciousStartTimeRef.current = Date.now();
-                        } else if (Date.now() - suspiciousStartTimeRef.current > duration) {
+                            suspiciousStartTimeRef.current = now;
+                        } else if (now - suspiciousStartTimeRef.current > duration) {
                             setIsVoiceSuspicious(true);
                         }
                     } else {
@@ -67,10 +78,31 @@ export const useVoiceDetection = (stream, threshold = 0.15, duration = 2000) => 
                         setIsVoiceSuspicious(false);
                     }
 
-                    // 2. Check for sudden loud noise (Threshold x 2.5)
-                    if (average > threshold * 2.5) {
-                        setIsLoudNoise(true);
-                        setTimeout(() => setIsLoudNoise(false), 3000); // Reset after 3s
+                    // 2. Check for sustained loud noise only (ignore short spikes).
+                    // First two sustained events are warning-only and do not raise violation flags.
+                    const isLoudSample = average > loudThreshold;
+                    if (!isLoudSample) {
+                        loudStartTimeRef.current = null;
+                        loudEventRaisedRef.current = false;
+                    } else {
+                        if (!loudStartTimeRef.current) loudStartTimeRef.current = now;
+                        const isSustained = now - loudStartTimeRef.current >= PROCTORING_POLICY.audio.loudSustainMs;
+
+                        if (
+                            isSustained &&
+                            !loudEventRaisedRef.current &&
+                            now >= loudCooldownUntilRef.current
+                        ) {
+                            loudEventRaisedRef.current = true;
+                            loudCooldownUntilRef.current = now + PROCTORING_POLICY.audio.loudCooldownMs;
+                            loudEventCountRef.current += 1;
+
+                            // Warning ladder: only 3rd sustained event becomes formal loud-noise signal.
+                            if (loudEventCountRef.current > PROCTORING_POLICY.audio.loudWarningEventsBeforeFlag) {
+                                setIsLoudNoise(true);
+                                setTimeout(() => setIsLoudNoise(false), 3000);
+                            }
+                        }
                     }
 
                     rafIdRef.current = requestAnimationFrame(monitor);
@@ -87,6 +119,11 @@ export const useVoiceDetection = (stream, threshold = 0.15, duration = 2000) => 
         return () => {
             if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
             if (audioContextRef.current) audioContextRef.current.close();
+            suspiciousStartTimeRef.current = null;
+            loudStartTimeRef.current = null;
+            loudEventRaisedRef.current = false;
+            loudCooldownUntilRef.current = 0;
+            loudEventCountRef.current = 0;
             console.log("[VOICE] Audio analysis stopped.");
         };
     }, [stream, threshold, duration]);

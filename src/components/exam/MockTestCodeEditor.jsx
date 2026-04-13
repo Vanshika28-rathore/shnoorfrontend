@@ -110,6 +110,7 @@ const MockTestCodeEditor = ({
 
   return (
     <div
+      className="mocktest-code-editor-shell"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -123,6 +124,7 @@ const MockTestCodeEditor = ({
     >
       {/* ── Toolbar ── */}
       <div
+        className="mocktest-code-editor-toolbar"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -151,7 +153,7 @@ const MockTestCodeEditor = ({
           ))}
         </select>
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="mocktest-code-editor-actions" style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={onRun}
             disabled={isRunning}
@@ -190,6 +192,7 @@ const MockTestCodeEditor = ({
 
       {/* ── Editor ── */}
       <div
+        className="mocktest-code-editor-editor"
         style={{
           flex: 1,
           display: 'flex',
@@ -203,6 +206,7 @@ const MockTestCodeEditor = ({
         <div
           ref={lineNumbersRef}
           aria-hidden="true"
+          className="mocktest-code-editor-line-numbers"
           style={{
             width: 44,
             minWidth: 44,
@@ -227,6 +231,7 @@ const MockTestCodeEditor = ({
         {/* Textarea */}
         <textarea
           ref={textareaRef}
+          className="mocktest-code-editor-textarea"
           value={localCode}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
@@ -258,6 +263,7 @@ const MockTestCodeEditor = ({
 
       {/* ── Bottom Panel ── */}
       <div
+        className="mocktest-code-editor-bottom-panel"
         style={{
           borderTop: '1px solid #e2e8f0',
           background: '#fff',

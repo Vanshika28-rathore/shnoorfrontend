@@ -48,3 +48,66 @@
   bottom: 0;
   z-index: 10;
 }
+
+@media (max-width: 767px) {
+  .mocktest-coding {
+    min-height: 0;
+  }
+
+  .mocktest-code-editor-shell {
+    min-height: 0 !important;
+  }
+
+  .mocktest-code-editor-toolbar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px;
+  }
+
+  .mocktest-code-editor-toolbar select {
+    width: 100%;
+  }
+
+  .mocktest-code-editor-actions {
+    width: 100%;
+  }
+
+  .mocktest-code-editor-actions button {
+    flex: 1;
+  }
+
+  .mocktest-code-editor-editor {
+    min-height: 240px !important;
+  }
+
+  .mocktest-code-editor-line-numbers {
+    width: 34px !important;
+    min-width: 34px !important;
+    font-size: 12px !important;
+    padding: 10px 6px !important;
+  }
+
+  .mocktest-code-editor-textarea {
+    font-size: 12px !important;
+    line-height: 18px !important;
+    padding: 10px 12px !important;
+  }
+
+  .mocktest-code-editor-bottom-panel {
+    font-size: 11px;
+  }
+
+  .mocktest-code-editor-bottom-panel > div:last-child {
+    max-height: 110px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .mocktest-code-editor-actions {
+    flex-direction: column;
+  }
+
+  .mocktest-code-editor-actions button {
+    width: 100%;
+  }
+}

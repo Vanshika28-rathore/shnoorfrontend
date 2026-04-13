@@ -49,7 +49,7 @@ export default function VideoStreamWidget({
   videoRef: externalVideoRef = null,   // ← external ref from MockExam for AI detection
   aiDebugInfo = null,
 }) {
-  const [minimized, setMinimized]     = useState(false);
+  const [minimized, setMinimized]     = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const [corner, setCorner]           = useState(initialCorner);
   const [pos, setPos]                 = useState(() => cornerPosition(initialCorner, WIDGET_W, WIDGET_H));
   const [dragging, setDragging]       = useState(false);
@@ -218,6 +218,7 @@ export default function VideoStreamWidget({
   return (
     <div
       ref={widgetRef}
+      data-video-widget="mobile"
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
       style={{
@@ -354,6 +355,13 @@ export default function VideoStreamWidget({
         @keyframes livePulse {
           0%, 100% { opacity: 1; }
           50%       { opacity: 0.3; }
+        }
+
+        @media (max-width: 767px) {
+          [data-video-widget="mobile"] {
+            transform: scale(0.88);
+            transform-origin: bottom right;
+          }
         }
       `}</style>
     </div>

@@ -6,7 +6,7 @@ import {
   Globe, Zap, GraduationCap, Layout, BookOpen, Video, Award
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import markLogo from '../../assets/shnoor_logo.png';
+import markLogo from '../../assets/SHnoor_logo_1.jpg';
 import nasscomLogo from '../../assets/nascom.jpg';
 
 import instructorIcon from '../../assets/instructor.png';

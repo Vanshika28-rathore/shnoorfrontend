@@ -70,11 +70,15 @@ const MockTestView = ({ navigate }) => {
           </li>
           <li className="flex items-start gap-2">
             <SkipForward size={15} className="text-slate-400 mt-0.5 shrink-0" />
-            You can <span className="font-semibold text-slate-700">Skip</span> a question to move to the next one and return to it later.
+            <p>
+              You can <span className="font-semibold text-slate-700">Skip</span> a question to move to the next one and return to it later.
+            </p>
           </li>
           <li className="flex items-start gap-2">
             <Bookmark size={15} className="text-amber-500 mt-0.5 shrink-0" />
-            Use <span className="font-semibold text-slate-700">Mark for Review</span> to flag questions you want to revisit before submitting. Marked questions appear highlighted in the question navigator.
+            <p>
+              Use <span className="font-semibold text-slate-700">Mark for Review</span> to flag questions you want to revisit before submitting. Marked questions appear highlighted in the question navigator.
+            </p>
           </li>
           <li className="flex items-start gap-2">
             <BotOff size={15} className="text-slate-400 mt-0.5 shrink-0" />

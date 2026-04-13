@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { PROCTORING_POLICY } from '../config/proctoringPolicy';
 
 /**
  * useFaceDetection Hook
@@ -8,10 +9,13 @@ export const useFaceDetection = (stream) => {
     console.log("[FACE] useFaceDetection hook called. Stream present:", !!stream);
     const [detector, setDetector] = useState(null);
     const [multipleFacesDetected, setMultipleFacesDetected] = useState(false);
+    const [noFaceDetected, setNoFaceDetected] = useState(false);
     const [faceCount, setFaceCount] = useState(0);
     const [error, setError] = useState(null);
 
     const lastCountRef = useRef(0);
+    const noFaceStreakRef = useRef(0);
+    const multipleFaceStreakRef = useRef(0);
 
     const videoRef = useRef(null);
     const requestRef = useRef();
@@ -127,6 +131,7 @@ export const useFaceDetection = (stream) => {
             try {
                 const faces = await detector.estimateFaces(video, { flipHorizontal: false });
                 const count = faces.length;
+                const REQUIRED_CONSECUTIVE_CHECKS = PROCTORING_POLICY.visual.consecutiveChecksRequired;
 
                 if (count !== lastCountRef.current) {
                     console.log(`[FACE] Detected faces: ${count}`);
@@ -140,14 +145,27 @@ export const useFaceDetection = (stream) => {
                 }
 
                 setFaceCount(count);
-                const isMulti = count > 1;
-                const isNone = count === 0;
-                setMultipleFacesDetected(isMulti);
+                if (count === 0) {
+                    noFaceStreakRef.current += 1;
+                    multipleFaceStreakRef.current = 0;
+                    setNoFaceDetected(noFaceStreakRef.current >= REQUIRED_CONSECUTIVE_CHECKS);
+                    setMultipleFacesDetected(false);
+                } else if (count > 1) {
+                    multipleFaceStreakRef.current += 1;
+                    noFaceStreakRef.current = 0;
+                    setMultipleFacesDetected(multipleFaceStreakRef.current >= REQUIRED_CONSECUTIVE_CHECKS);
+                    setNoFaceDetected(false);
+                } else {
+                    noFaceStreakRef.current = 0;
+                    multipleFaceStreakRef.current = 0;
+                    setNoFaceDetected(false);
+                    setMultipleFacesDetected(false);
+                }
 
-                if (isMulti) {
+                if (multipleFaceStreakRef.current >= REQUIRED_CONSECUTIVE_CHECKS) {
                     console.warn(`[FACE] 🚨 MULTIPLE FACES DETECTED: ${count}`);
                 }
-                if (isNone) {
+                if (noFaceStreakRef.current >= REQUIRED_CONSECUTIVE_CHECKS) {
                     console.warn(`[FACE] 🚨 NO FACE DETECTED!`);
                 }
             } catch (err) {
@@ -157,7 +175,7 @@ export const useFaceDetection = (stream) => {
             // Continuous loop
             setTimeout(() => {
                 requestRef.current = requestAnimationFrame(detect);
-            }, 500); // Check every 500ms
+            }, PROCTORING_POLICY.visual.faceLoopDelayMs);
         };
 
         console.log("[FACE] Starting detection loop...");
@@ -165,8 +183,10 @@ export const useFaceDetection = (stream) => {
 
         return () => {
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
+            noFaceStreakRef.current = 0;
+            multipleFaceStreakRef.current = 0;
         };
     }, [detector, stream]);
 
-    return { multipleFacesDetected, noFaceDetected: faceCount === 0, faceCount, error };
+    return { multipleFacesDetected, noFaceDetected, faceCount, error };
 };

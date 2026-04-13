@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { PROCTORING_POLICY, getSecurityPolicy } from '../config/proctoringPolicy';
 
 // ─── CDN ──────────────────────────────────────────────────────────────────────
 // ✅ KEY FIX: Load ONE shared TF.js first, then both ML libraries use it.
@@ -79,13 +80,29 @@ const useMockSecurity = (
   videoRef        = null,
   mediaStream     = null,
 ) => {
+  const detectMobileDevice = () => {
+    if (typeof window === 'undefined') return false;
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    const coarsePointer = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false;
+    return coarsePointer || /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+  };
+  const securityPolicyRef = useRef(getSecurityPolicy({ isMobile: detectMobileDevice(), isMock: true }));
+  const securityPolicy = securityPolicyRef.current;
+
   const violationsRef   = useRef(0);
   const [violationCount, setViolationCount] = useState(0);
   const [isTerminated, setIsTerminated]     = useState(false);
   const isTerminatedRef = useRef(false);
-  const processingRef   = useRef(false);
   const isHiddenRef     = useRef(false);
-  const MAX_VIOLATIONS  = 3;
+  const hiddenTimerRef  = useRef(null);
+  const blurTimerRef    = useRef(null);
+  const fullscreenTimerRef = useRef(null);
+  const recentTouchTsRef = useRef(0);
+  const lastViolationAtRef = useRef({});
+  const actionWarningCountRef = useRef({});
+  const MAX_VIOLATIONS  = securityPolicy.maxViolations;
 
   const onAutoSubmitRef    = useRef(onAutoSubmit);
   const onWarningRef       = useRef(onWarning);
@@ -101,8 +118,20 @@ const useMockSecurity = (
   const isDescriptive = () => activeSectionIdRef.current === 'descriptive';
 
   // ── Core violation counter ─────────────────────────────────────────────────
-  const handleViolation = useCallback((type, message) => {
+  const handleViolation = useCallback((type, message, options = {}) => {
+    const { warnOnly = false } = options;
     if (isTerminatedRef.current) return;
+
+    const now = Date.now();
+    const lastAt = lastViolationAtRef.current[type] || 0;
+    if (now - lastAt < securityPolicy.violationCooldownMs) return;
+    lastViolationAtRef.current[type] = now;
+
+    if (warnOnly) {
+      onWarningRef.current?.(type, violationsRef.current, message);
+      return;
+    }
+
     const newCount = violationsRef.current + 1;
     violationsRef.current = newCount;
     setViolationCount(newCount);
@@ -117,32 +146,33 @@ const useMockSecurity = (
 
   // ── Tab / window visibility ────────────────────────────────────────────────
   const handleVisibilityChange = useCallback(() => {
-    if (processingRef.current) return;
     if (document.hidden) {
-      if (!isHiddenRef.current) {
-        processingRef.current = true;
-        isHiddenRef.current   = true;
-        handleViolation('visibility-hidden');
-        setTimeout(() => { processingRef.current = false; }, 100);
-      }
+      if (isHiddenRef.current || hiddenTimerRef.current) return;
+      hiddenTimerRef.current = setTimeout(() => {
+        hiddenTimerRef.current = null;
+        if (document.hidden && !isTerminatedRef.current) {
+          isHiddenRef.current = true;
+          handleViolation('visibility-hidden');
+        }
+      }, securityPolicy.visibilityGraceMs);
     } else {
       isHiddenRef.current = false;
+      if (hiddenTimerRef.current) {
+        clearTimeout(hiddenTimerRef.current);
+        hiddenTimerRef.current = null;
+      }
     }
   }, [handleViolation]);
 
-  // Grace period: DevTools / OS dialogs won't count as blur violations
-  const blurTimerRef  = useRef(null);
-  const BLUR_GRACE_MS = 1_500;
-
   const handleWindowBlur = useCallback(() => {
-    if (processingRef.current || document.hidden || isHiddenRef.current) return;
+    if (document.hidden || isHiddenRef.current) return;
+    if (blurTimerRef.current) return;
     blurTimerRef.current = setTimeout(() => {
-      if (!document.hidden && !isHiddenRef.current) {
-        processingRef.current = true;
+      blurTimerRef.current = null;
+      if (!document.hidden && !isHiddenRef.current && !document.hasFocus()) {
         handleViolation('blur');
-        setTimeout(() => { processingRef.current = false; }, 100);
       }
-    }, BLUR_GRACE_MS);
+    }, securityPolicy.blurGraceMs);
   }, [handleViolation]);
 
   const handleWindowFocus = useCallback(() => {
@@ -152,17 +182,27 @@ const useMockSecurity = (
     }
   }, []);
 
+  const handlePointerActivity = useCallback(() => {
+    recentTouchTsRef.current = Date.now();
+  }, []);
+
   useEffect(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur',  handleWindowBlur);
     window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener('pointerdown', handlePointerActivity, { passive: true });
+    window.addEventListener('touchstart', handlePointerActivity, { passive: true });
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur',  handleWindowBlur);
       window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('pointerdown', handlePointerActivity);
+      window.removeEventListener('touchstart', handlePointerActivity);
       if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+      if (hiddenTimerRef.current) clearTimeout(hiddenTimerRef.current);
+      if (fullscreenTimerRef.current) clearTimeout(fullscreenTimerRef.current);
     };
-  }, [handleVisibilityChange, handleWindowBlur, handleWindowFocus]);
+  }, [handleVisibilityChange, handleWindowBlur, handleWindowFocus, handlePointerActivity]);
 
   // ── Fullscreen ─────────────────────────────────────────────────────────────
   const triggerFullscreen = useCallback(async () => {
@@ -182,9 +222,18 @@ const useMockSecurity = (
   }, []);
 
   const handleFullscreenChange = useCallback(() => {
-    if (!document.fullscreenElement && !isTerminatedRef.current) {
-      handleViolation('fullscreen-exit');
-      triggerFullscreen();
+    if (!document.fullscreenElement) {
+      if (fullscreenTimerRef.current) return;
+      fullscreenTimerRef.current = setTimeout(() => {
+        fullscreenTimerRef.current = null;
+        if (!document.fullscreenElement && !isTerminatedRef.current) {
+          handleViolation('fullscreen-exit');
+          triggerFullscreen();
+        }
+      }, securityPolicy.fullscreenExitGraceMs);
+    } else if (fullscreenTimerRef.current) {
+      clearTimeout(fullscreenTimerRef.current);
+      fullscreenTimerRef.current = null;
     }
   }, [handleViolation, triggerFullscreen]);
 
@@ -193,10 +242,27 @@ const useMockSecurity = (
     if (isDescriptive()) return;
     const sel = window.getSelection();
     if (sel && !sel.isCollapsed) {
-      handleViolation('text-selection');
+      const selectedText = sel.toString().trim();
+      const isRecentTouch = Date.now() - recentTouchTsRef.current <= securityPolicy.accidentalTouchGraceMs;
+      if (isRecentTouch && selectedText.length < securityPolicy.minSelectionChars) {
+        sel.removeAllRanges();
+        return;
+      }
+
+      const warnCount = actionWarningCountRef.current['text-selection'] || 0;
+      if (warnCount < securityPolicy.actionWarningBeforeStrike) {
+        actionWarningCountRef.current['text-selection'] = warnCount + 1;
+        handleViolation(
+          'text-selection-warning',
+          'Text selection was blocked. Repeated selection attempts will count as violations.',
+          { warnOnly: true },
+        );
+      } else {
+        handleViolation('text-selection');
+      }
       sel.removeAllRanges();
     }
-  }, [handleViolation]);
+  }, [handleViolation, securityPolicy.accidentalTouchGraceMs, securityPolicy.minSelectionChars, securityPolicy.actionWarningBeforeStrike]);
 
   useEffect(() => {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -208,16 +274,38 @@ const useMockSecurity = (
   }, [handleFullscreenChange, handleSelectionChange]);
 
   // ── Copy / paste / right-click ─────────────────────────────────────────────
-  const preventCopyAction = useCallback((e) => {
+  const preventCopyAction = useCallback((e, actionType) => {
     e.preventDefault();
-    onWarningRef.current?.('copy-paste', violationsRef.current);
-  }, []);
+
+    const isRecentTouch = Date.now() - recentTouchTsRef.current <= securityPolicy.accidentalTouchGraceMs;
+    if (actionType === 'context-menu' && isRecentTouch) {
+      handleViolation(
+        'context-menu-warning',
+        'Context menu was blocked (likely accidental long-press). This is a warning only.',
+        { warnOnly: true },
+      );
+      return;
+    }
+
+    const warnCount = actionWarningCountRef.current['copy-paste'] || 0;
+    if (warnCount < securityPolicy.actionWarningBeforeStrike) {
+      actionWarningCountRef.current['copy-paste'] = warnCount + 1;
+      handleViolation(
+        'copy-paste-warning',
+        'Copy/paste action blocked. Repeated attempts will count as violations.',
+        { warnOnly: true },
+      );
+      return;
+    }
+
+    handleViolation('copy-paste');
+  }, [handleViolation, securityPolicy.accidentalTouchGraceMs, securityPolicy.actionWarningBeforeStrike]);
 
   const securityHandlers = {
-    onCopy:        (e) => preventCopyAction(e),
-    onCut:         (e) => preventCopyAction(e),
-    onPaste:       (e) => preventCopyAction(e),
-    onContextMenu: (e) => preventCopyAction(e),
+    onCopy:        (e) => preventCopyAction(e, 'copy'),
+    onCut:         (e) => preventCopyAction(e, 'cut'),
+    onPaste:       (e) => preventCopyAction(e, 'paste'),
+    onContextMenu: (e) => preventCopyAction(e, 'context-menu'),
   };
 
   // ===========================================================================
@@ -225,11 +313,7 @@ const useMockSecurity = (
   // ===========================================================================
 
   const aiCooldownRef  = useRef({});
-  const AI_COOLDOWN_MS = {
-    'multiple-faces': 15_000,
-    'phone-detected': 20_000,
-    'loud-audio':     10_000,
-  };
+  const AI_COOLDOWN_MS = PROCTORING_POLICY.aiCooldownMs;
 
   const handleViolationRef = useRef(handleViolation);
   useEffect(() => { handleViolationRef.current = handleViolation; }, [handleViolation]);
@@ -251,6 +335,12 @@ const useMockSecurity = (
   const audioCtxRef      = useRef(null);
   const cocoModelRef     = useRef(null);
   const faceApiReadyRef  = useRef(false);
+  const audioSustainedEventCountRef = useRef(0);
+  const visualSustainedEventCountRef = useRef({
+    'phone-detected': 0,
+    'no-face': 0,
+    'multiple-faces': 0,
+  });
 
   const getVideoEl = useCallback((fallback) => {
     const el = videoRefRef.current?.current;
@@ -258,6 +348,23 @@ const useMockSecurity = (
   }, []);
 
   const [aiDebugInfo, setAiDebugInfo] = useState({ faces: 0, objects: [], audioRms: 0 });
+
+  const handleVisualSustainedEvent = useCallback((type, warningMessage, violationMessage) => {
+    const current = visualSustainedEventCountRef.current[type] ?? 0;
+    const next = current + 1;
+    visualSustainedEventCountRef.current[type] = next;
+
+    if (next === 1) {
+      onWarningRef.current?.(
+        `${type}-warning`,
+        violationsRef.current,
+        warningMessage,
+      );
+      return;
+    }
+
+    fireAiViolationRef.current(type, violationMessage);
+  }, []);
 
   // ── 1. Face detection ──────────────────────────────────────────────────────
   const startFaceDetection = useCallback(async (videoEl) => {
@@ -273,8 +380,11 @@ const useMockSecurity = (
         inputSize: 224, scoreThreshold: 0.4,
       });
 
-      let noFaceStreak       = 0;
-      const NO_FACE_THRESHOLD = 2;
+      const REQUIRED_VISUAL_CONSECUTIVE_CHECKS = PROCTORING_POLICY.visual.consecutiveChecksRequired;
+      let noFaceStreak = 0;
+      let multipleFacesStreak = 0;
+      let noFaceHandledInCurrentStreak = false;
+      let multipleFacesHandledInCurrentStreak = false;
 
       console.log('[AI Proctor] face detection interval started');
       faceIntervalRef.current = setInterval(async () => {
@@ -288,30 +398,44 @@ const useMockSecurity = (
 
           if (detections.length === 0) {
             noFaceStreak++;
-            if (noFaceStreak >= NO_FACE_THRESHOLD) {
-              noFaceStreak = 0;
-              fireAiViolationRef.current(
-                'multiple-faces',
-                'No face detected. Please ensure your face is visible to the camera.'
+            multipleFacesStreak = 0;
+            multipleFacesHandledInCurrentStreak = false;
+
+            if (!noFaceHandledInCurrentStreak && noFaceStreak >= REQUIRED_VISUAL_CONSECUTIVE_CHECKS) {
+              noFaceHandledInCurrentStreak = true;
+              handleVisualSustainedEvent(
+                'no-face',
+                'No face detected for a sustained period. Please ensure your face is visible to the camera. This is a warning only.',
+                'No face detected for a sustained period. Please ensure your face is visible to the camera.'
               );
             }
           } else {
             noFaceStreak = 0;
+            noFaceHandledInCurrentStreak = false;
+
             if (detections.length > 1) {
-              fireAiViolationRef.current(
-                'multiple-faces',
-                `${detections.length} faces detected. Only the candidate should be visible.`
-              );
+              multipleFacesStreak++;
+              if (!multipleFacesHandledInCurrentStreak && multipleFacesStreak >= REQUIRED_VISUAL_CONSECUTIVE_CHECKS) {
+                multipleFacesHandledInCurrentStreak = true;
+                handleVisualSustainedEvent(
+                  'multiple-faces',
+                  `${detections.length} faces detected continuously. Only the candidate should be visible. This is a warning only.`,
+                  `${detections.length} faces detected continuously. Only the candidate should be visible.`
+                );
+              }
+            } else {
+              multipleFacesStreak = 0;
+              multipleFacesHandledInCurrentStreak = false;
             }
           }
         } catch (err) {
           console.warn('[AI Proctor] face detection tick error:', err.message);
         }
-      }, 2_000);
+      }, PROCTORING_POLICY.visual.faceDetectionIntervalMs);
     } catch (err) {
       console.warn('[AI Proctor] face detection setup failed:', err.message);
     }
-  }, [getVideoEl]);
+  }, [getVideoEl, handleVisualSustainedEvent]);
 
   // ── 2. Phone / object detection ───────────────────────────────────────────
   const startPhoneDetection = useCallback(async (videoEl) => {
@@ -319,13 +443,12 @@ const useMockSecurity = (
       cocoModelRef.current = await window.cocoSsd.load();
       console.log('[AI Proctor] COCO-SSD ready ✓');
 
-      const PHONE_LABELS = new Set([
-        'cell phone', 'remote', 'mouse', 'book', 'laptop', 'tablet', 'tv',
-        'keyboard', 'microwave', 'suitcase', 'stop sign', 'bottle', 'cup',
-        'clock', 'scissors', 'teddy bear', 'hair drier', 'toothbrush',
-      ]);
+      const PHONE_LABELS = new Set(PROCTORING_POLICY.visual.phoneLabels);
 
-      const MIN_SCORE = 0.35;
+      const MIN_SCORE = PROCTORING_POLICY.visual.phoneMinScore;
+      const REQUIRED_VISUAL_CONSECUTIVE_CHECKS = PROCTORING_POLICY.visual.consecutiveChecksRequired;
+      let phoneDetectedStreak = 0;
+      let phoneHandledInCurrentStreak = false;
 
       const debugCanvas = document.createElement('canvas');
       debugCanvas.width  = 224;
@@ -358,20 +481,28 @@ const useMockSecurity = (
             .sort((a, b) => b.score - a.score)[0];
 
           if (found) {
-            console.log(`[AI Proctor] prohibited object "${found.class}" detected`);
-            fireAiViolationRef.current(
-              'phone-detected',
-              `Prohibited object detected: "${found.class}" (${Math.round(found.score * 100)}% confidence).`
-            );
+            phoneDetectedStreak++;
+            if (!phoneHandledInCurrentStreak && phoneDetectedStreak >= REQUIRED_VISUAL_CONSECUTIVE_CHECKS) {
+              phoneHandledInCurrentStreak = true;
+              console.log(`[AI Proctor] sustained prohibited object "${found.class}" detected`);
+              handleVisualSustainedEvent(
+                'phone-detected',
+                `Prohibited object "${found.class}" was continuously detected. This is a warning only.`,
+                `Prohibited object detected continuously: "${found.class}" (${Math.round(found.score * 100)}% confidence).`
+              );
+            }
+          } else {
+            phoneDetectedStreak = 0;
+            phoneHandledInCurrentStreak = false;
           }
         } catch (err) {
           console.warn('[AI Proctor] phone detection tick error:', err.message);
         }
-      }, 1_500);
+      }, PROCTORING_POLICY.visual.phoneDetectionIntervalMs);
     } catch (err) {
       console.warn('[AI Proctor] phone detection setup failed:', err.message);
     }
-  }, [getVideoEl]);
+  }, [getVideoEl, handleVisualSustainedEvent]);
 
   // ── 3. Audio / noise detection ─────────────────────────────────────────────
   const startAudioDetection = useCallback((stream) => {
@@ -386,12 +517,18 @@ const useMockSecurity = (
       source.connect(analyser);
 
       const dataArray        = new Uint8Array(analyser.frequencyBinCount);
-      const SAMPLE_INTERVAL  = 200;
-      const CALIBRATION_MS   = 3_000;
-      const SPIKE_MULTIPLIER = 1.3;
-      const MIN_RMS          = 10;
+      const SAMPLE_INTERVAL  = PROCTORING_POLICY.mockAudio.sampleIntervalMs;
+      const CALIBRATION_MS   = PROCTORING_POLICY.mockAudio.calibrationMs;
+      const SPIKE_MULTIPLIER = PROCTORING_POLICY.mockAudio.spikeMultiplier;
+      const MIN_RMS          = PROCTORING_POLICY.mockAudio.minRms;
+      const REQUIRED_SUSTAIN_MS = PROCTORING_POLICY.mockAudio.requiredSustainMs;
+      const SUSTAINED_SAMPLES_REQUIRED = Math.ceil(REQUIRED_SUSTAIN_MS / SAMPLE_INTERVAL);
       let baseline = null, calibrated = false;
       const samples = [];
+      let loudConsecutiveSamples = 0;
+      let sustainedEventRaisedInCurrentStreak = false;
+
+      audioSustainedEventCountRef.current = 0;
 
       audioIntervalRef.current = setInterval(() => {
         analyser.getByteFrequencyData(dataArray);
@@ -409,10 +546,34 @@ const useMockSecurity = (
 
         setAiDebugInfo(prev => ({ ...prev, audioRms: rms }));
 
-        if (baseline > 0 && rms > baseline * SPIKE_MULTIPLIER && rms > MIN_RMS) {
+        const isLoudSample = baseline > 0 && rms > baseline * SPIKE_MULTIPLIER && rms > MIN_RMS;
+
+        if (!isLoudSample) {
+          loudConsecutiveSamples = 0;
+          sustainedEventRaisedInCurrentStreak = false;
+          return;
+        }
+
+        loudConsecutiveSamples += 1;
+        if (sustainedEventRaisedInCurrentStreak) return;
+
+        if (loudConsecutiveSamples >= SUSTAINED_SAMPLES_REQUIRED) {
+          sustainedEventRaisedInCurrentStreak = true;
+          audioSustainedEventCountRef.current += 1;
+          const sustainedCount = audioSustainedEventCountRef.current;
+
+          if (sustainedCount <= PROCTORING_POLICY.mockAudio.warningEventsBeforeStrike) {
+            onWarningRef.current?.(
+              'loud-audio-warning',
+              violationsRef.current,
+              'Sustained background noise detected. Please move to a quieter environment. This is a warning only.'
+            );
+            return;
+          }
+
           fireAiViolationRef.current(
             'loud-audio',
-            'Significant background noise or voice activity detected near you.'
+            'Sustained background noise or voice activity detected for over 3 seconds.'
           );
         }
       }, SAMPLE_INTERVAL);
