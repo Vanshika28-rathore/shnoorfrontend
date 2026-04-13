@@ -6,24 +6,55 @@ import {
   Globe, Zap, GraduationCap, Layout, BookOpen, Video, Award
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import markLogo from '../../assets/SHnoor_logo_1.jpg';
-import nasscomLogo from '../../assets/nascom.jpg';
+import markLogo from '../../assets/shnoor_logo.png';
+import nasscomLogo from '../../assets/landing/nascom.jpg';
 
-import instructorIcon from '../../assets/instructor.png';
-import privateIcon from '../../assets/private.png';
-import selfPacedIcon from '../../assets/self_paced.png';
-import labsIcon from '../../assets/labs.png';
-import examIcon from '../../assets/exam.png';
+import instructorIcon from '../../assets/landing/instructor.jpg';
+import privateIcon from '../../assets/landing/private.jpg';
+import selfPacedIcon from '../../assets/landing/self_paced.jpg';
+import labsIcon from '../../assets/landing/labs.jpg';
+import examIcon from '../../assets/landing/exam.jpg';
 import WhatsAppContactButton from "../../components/WhatsAppButton";
 
 const LandingView = ({ onLogin, onRegister, onContact }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showDesktopVisual, setShowDesktopVisual] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    let frameId = null;
+
+    const handleScroll = () => {
+      if (frameId !== null) return;
+
+      frameId = window.requestAnimationFrame(() => {
+        const isScrolled = window.scrollY > 20;
+        setScrolled((prev) => (prev === isScrolled ? prev : isScrolled));
+        frameId = null;
+      });
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const updateDesktopVisual = (event) => {
+      setShowDesktopVisual(event.matches);
+    };
+
+    setShowDesktopVisual(mediaQuery.matches);
+    mediaQuery.addEventListener('change', updateDesktopVisual);
+
+    return () => mediaQuery.removeEventListener('change', updateDesktopVisual);
   }, []);
 
   const scrollToSection = (id) => {
@@ -97,7 +128,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             </button>
           </div>
 
-          {/* Mobile Menu Toggle (With Accessibility from Aditya) */}
+          {/* Mobile Menu Toggle */}
           <button 
             className="lg:hidden flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-slate-900 hover:bg-slate-200 transition-colors shrink-0" 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -169,6 +200,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
           </div>
 
           {/* Right Column: Visual Mockup (LMS DASHBOARD) */}
+          {showDesktopVisual && (
           <div className="hidden lg:block relative h-full min-h-[500px] perspective-[2000px]">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-indigo-100/50 to-slate-100/50 rounded-full blur-3xl -z-10 animate-pulse"></div>
 
@@ -279,9 +311,9 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
 
             {/* Floating Card 3: Mentor (Bottom Right) */}
             <div className="absolute bottom-12 -right-4 bg-white p-3 pr-6 rounded-2xl shadow-xl flex items-center gap-3 z-30 animate-[bounce_5s_infinite] border border-slate-100">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Annie&mouth=smile" alt="Mentor" width="40" height="40" loading="lazy" />
+                <div className="relative">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 overflow-hidden border-2 border-white shadow-sm flex items-center justify-center text-white text-xs font-bold">
+                  AC
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border-2 border-white">
                   <CheckCircle2 size={10} className="text-white" />
@@ -294,6 +326,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             </div>
 
           </div>
+          )}
         </div>
       </section>
 
@@ -313,7 +346,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 1: Instructor-Led */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={instructorIcon} alt="Instructor-Led" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
+                <img src={instructorIcon} alt="Instructor-Led" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Instructor-Led Training</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -324,7 +357,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 2: Private Training */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={privateIcon} alt="Private Training" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
+                <img src={privateIcon} alt="Private Training" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Private Training</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -335,7 +368,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 3: Practice Arena */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={selfPacedIcon} alt="Practice Arena" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
+                <img src={selfPacedIcon} alt="Practice Arena" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Practice Arena</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -346,7 +379,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 4: Facilitated Labs */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={labsIcon} alt="Facilitated Labs" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
+                <img src={labsIcon} alt="Facilitated Labs" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Facilitated Labs</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -357,7 +390,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Card 5: Exam Prep */}
             <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={examIcon} alt="Exam Prep" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" />
+                <img src={examIcon} alt="Exam Prep" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Exam Prep</h3>
               <p className="text-slate-500 leading-relaxed text-sm">
@@ -395,6 +428,8 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
               width="144"
               height="144"
               loading="lazy"
+              decoding="async"
+              fetchPriority="low"
             />
             <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Milestone</div>
           </div>
