@@ -3,6 +3,7 @@ import api from '../../api/axios';
 import { useSocket } from '../../context/SocketContext';
 import ChatWindow from '../../components/chat/ChatWindow';
 import { Search, X, Loader2, MessageSquare } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const ManagerMessages = () => {
   const { socket, dbUser, markChatRead, handleSetActiveChat } = useSocket();
@@ -41,7 +42,7 @@ const ManagerMessages = () => {
         }));
 
         // Potential contacts for manager DMs
-        const usersRes = await api.get('/api/users');
+        const usersRes = await api.get('/api/users/by-role');
         const allContacts = (usersRes.data || []).filter(
           (u) => u.user_id !== dbUser?.id && ['student', 'instructor'].includes(u.role)
         );
@@ -67,6 +68,9 @@ const ManagerMessages = () => {
         setLoadingChats(false);
       } catch (err) {
         console.error('Failed to fetch students/instructors:', err);
+        if (err?.response?.status === 403) {
+          toast.error('Access denied: you do not have permission to view contacts.');
+        }
         setError('Failed to load students/instructors');
         setLoadingChats(false);
       }
@@ -87,11 +91,14 @@ const ManagerMessages = () => {
 
     setLoadingSearch(true);
     try {
-      const res = await api.get(`/api/users?search=${query}`);
+      const res = await api.get(`/api/users/by-role?search=${query}`);
       setSearchResults((res.data || []).filter(u => u.user_id !== dbUser?.id && ['student', 'instructor'].includes(u.role)));
       setShowSearchResults(true);
     } catch (err) {
       console.error('Search failed:', err);
+      if (err?.response?.status === 403) {
+        toast.error('Access denied: you cannot search contacts.');
+      }
     } finally {
       setLoadingSearch(false);
     }
