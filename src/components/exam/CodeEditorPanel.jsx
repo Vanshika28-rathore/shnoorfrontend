@@ -128,7 +128,7 @@ export default CodeEditorPanel;*/}
 
 import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 const Editor = lazy(() => import('@monaco-editor/react'));
-import { FaCog, FaExpand, FaPlay, FaPaperPlane, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaExpand, FaPlay, FaPaperPlane, FaCheck, FaTimes } from 'react-icons/fa';
 
 const CodeEditorPanel = ({
   question,
@@ -145,8 +145,10 @@ const CodeEditorPanel = ({
   isEmbedded
 }) => {
   const [activeTab, setActiveTab] = useState('testcases');
+  const [isMaximized, setIsMaximized] = useState(false);
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
+  const containerRef = useRef(null);
 
   /* 🔒 Detect function signature lines */
   const getReadOnlyRanges = (code) => {
@@ -224,12 +226,24 @@ const CodeEditorPanel = ({
     }
   }, [testResults]);
 
+  // Sync fullscreen state when user exits via ESC key
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsMaximized(!!document.fullscreenElement);
+      if (!document.fullscreenElement && containerRef.current) {
+        containerRef.current.removeAttribute('style');
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   // Compute summary from testResults
   const summary = testResults?.summary || null;
   const results = testResults?.results || [];
 
   return (
-    <div className="flex flex-col h-full bg-[#111318] border-l border-slate-800">
+    <div ref={containerRef} className="flex flex-col h-full bg-[#111318] border-l border-slate-800">
 
       {/* Header */}
       <div className="flex justify-between items-center px-4 py-2 bg-[#181b22] border-b border-slate-800">
@@ -247,8 +261,24 @@ const CodeEditorPanel = ({
           </select>
         </div>
         <div className="flex gap-3 text-slate-500">
-          <FaCog className="hover:text-slate-300 transition-colors cursor-pointer" />
-          <FaExpand className="hover:text-slate-300 transition-colors cursor-pointer" />
+          <FaExpand 
+            className="hover:text-slate-300 transition-colors cursor-pointer" 
+            onClick={() => {
+              if (containerRef.current) {
+                if (!isMaximized) {
+                  containerRef.current.requestFullscreen?.() || 
+                  containerRef.current.setAttribute('style', 'position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;');
+                } else {
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen?.();
+                  }
+                  containerRef.current.removeAttribute('style');
+                }
+              }
+              setIsMaximized(!isMaximized);
+            }}
+            style={{ cursor: 'pointer' }}
+          />
         </div>
       </div>
 

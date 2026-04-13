@@ -67,23 +67,38 @@ const AddPractice = () => {
       return;
     }
 
+    if (!formData.title || !formData.description) {
+      toast.error("Please fill in title and description");
+      return;
+    }
+
+    if (formData.test_cases.length === 0) {
+      toast.error("Please add at least one test case");
+      return;
+    }
+
     setLoading(true);
     try {
-      const token = await auth.currentUser.getIdToken();
-
-      await api.post(
+      const response = await api.post(
         "/api/practice",
-        { ...formData, type: "code" },
-        {
-          headers: { Authorization: `Bearer ${token}` }, // ✅ SAME AS ADDCOURSE
-        },
+        { ...formData, type: "code" }
       );
 
       toast.success("Challenge published!");
       navigate("/instructor/practice");
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to create challenge");
+      console.error("Create challenge error:", error);
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please refresh the page.");
+      } else if (error.response?.status === 403) {
+        toast.error("Access denied. You must be an instructor to publish challenges.");
+      } else if (error.response?.status === 404) {
+        toast.error("User not found. Please contact admin.");
+      } else {
+        toast.error(errorMessage || "Failed to create challenge");
+      }
     } finally {
       setLoading(false);
     }
@@ -98,14 +113,18 @@ const AddPractice = () => {
   };
 
   const handleBulkUpload = async () => {
-    if (!csvFile || !auth.currentUser) {
-      toast.error("Please select a file and ensure you're logged in");
+    if (!csvFile) {
+      toast.error("Please select a file");
+      return;
+    }
+
+    if (!auth.currentUser) {
+      toast.error("Authentication lost. Please refresh.");
       return;
     }
 
     setBulkUploadLoading(true);
     try {
-      const token = await auth.currentUser.getIdToken();
       const formDataObj = new FormData();
       formDataObj.append("csvFile", csvFile);
 
@@ -114,7 +133,6 @@ const AddPractice = () => {
         formDataObj,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         },
@@ -135,7 +153,15 @@ const AddPractice = () => {
       }
     } catch (error) {
       console.error("Bulk upload error:", error);
-      toast.error(error.response?.data?.message || "Failed to upload CSV");
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please refresh the page.");
+      } else if (error.response?.status === 403) {
+        toast.error("Access denied. You must be an instructor to publish challenges.");
+      } else {
+        toast.error(errorMessage || "Failed to upload CSV");
+      }
     } finally {
       setBulkUploadLoading(false);
     }
