@@ -219,12 +219,12 @@ const CodeEditorPanel = ({
     });
   };
 
-  // Auto-switch to results tab when test results arrive
+  // Auto-switch to results tab when test results arrive (only when there are actual results)
   useEffect(() => {
-    if (testResults?.results?.length > 0) {
+    if (testResults?.results && testResults.results.length > 0) {
       setActiveTab('results');
     }
-  }, [testResults]);
+  }, [testResults?.results]);
 
   // Sync fullscreen state when user exits via ESC key
   useEffect(() => {
@@ -456,9 +456,17 @@ const CodeEditorPanel = ({
                     )}
                   </div>
                 ))
-              ) : (
+                ) : (
                 <div className="text-gray-500 italic flex items-center gap-2">
-                  <FaPlay size={10} /> Click "Run" to see test results...
+                  {isRunning ? (
+                    <>
+                      <span className="animate-spin">⟳</span> Running...
+                    </>
+                  ) : (
+                    <>
+                      <FaPlay size={10} /> Click "Run" to see test results...
+                    </>
+                  )}
                 </div>
               )}
             </div>
