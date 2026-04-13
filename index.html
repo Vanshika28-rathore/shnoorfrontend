@@ -8,8 +8,7 @@
     <meta name="theme-color" content="#0f172a" />
     
     <!-- Preload critical assets -->
-    <link rel="preload" href="/shnoor_logo.png" as="image" />
-    <link rel="preconnect" href="https://api.dicebear.com" />
+    <link rel="preload" href="/shnoor_logo.png" as="image" fetchpriority="high" />
     
     <!-- Preload critical fonts -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
@@ -20,6 +19,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx" defer></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
