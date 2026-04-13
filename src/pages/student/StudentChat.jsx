@@ -11,7 +11,7 @@ import { formatChatDate, formatChatTime } from "../../utils/chatDateTime";
 import "../../styles/Chat.css";
 
 const StudentChat = () => {
-  const { socket, dbUser, unreadCounts, handleSetActiveChat, markChatRead } =
+  const { socket, dbUser, unreadCounts, handleSetActiveChat, markChatRead, refreshDbUser } =
     useSocket();
   const { userRole } = useAuth();
   const [chats, setChats] = useState([]);
@@ -81,27 +81,55 @@ const StudentChat = () => {
         });
         setChats(mergedChats);
       } else if (activeTab === "groups") {
-        console.log("📥 Fetching my groups...");
-        const groupsRes = await api.get("/api/chats/groups/my");
-        console.log("📥 Fetched groups raw:", groupsRes.data);
-        const groupsData = Array.isArray(groupsRes.data) ? groupsRes.data : [];
-        console.log("📥 Groups array:", groupsData);
-        setGroups(
-          groupsData.map((g) => ({
-            id: g.group_id,
-            name: g.name,
-            description: g.description,
-            meeting_link: g.meeting_link,
-            creator_id: g.creator_id,
-            created_at: g.created_at,
-            member_count: g.member_count,
-            lastMessage: g.last_message || "No messages yet",
-            unread: 0,
-            exists: true,
-            type: "group",
-            groupType: "student",
-          })),
-        );
+        console.log("📥 Fetching my groups (both college and admin)...");
+        
+        const fetchCollegeGroups = api.get("/api/chats/groups/my");
+        const fetchAdminGroups = api.get("/api/admingroups/my-groups");
+        
+        const [collegeRes, adminRes] = await Promise.allSettled([fetchCollegeGroups, fetchAdminGroups]);
+        
+        const collegeGroups = collegeRes.status === "fulfilled" && Array.isArray(collegeRes.value?.data) 
+          ? collegeRes.value.data.map((g) => ({
+              id: g.group_id,
+              name: g.name,
+              description: g.description,
+              meeting_link: g.meeting_link,
+              creator_id: g.creator_id,
+              created_at: g.created_at,
+              member_count: g.member_count,
+              lastMessage: g.last_message || "No messages yet",
+              unread: 0,
+              exists: true,
+              type: "group",
+              groupType: "student",
+              source: "college",
+            }))
+          : [];
+          
+        const adminGroups = adminRes.status === "fulfilled" && Array.isArray(adminRes.value?.data)
+          ? adminRes.value.data.map((g) => ({
+              id: g.group_id,
+              name: g.name,
+              description: g.description,
+              meeting_link: g.meeting_link,
+              creator_id: g.creator_id,
+              created_at: g.created_at,
+              member_count: g.member_count,
+              lastMessage: g.last_message || "No messages yet",
+              unread: 0,
+              exists: true,
+              type: "group",
+              groupType: "admin",
+              source: "admin",
+            }))
+          : [];
+        
+        console.log("📥 College groups:", collegeGroups.length);
+        console.log("📥 Admin groups:", adminGroups.length);
+        
+        const allGroups = [...collegeGroups, ...adminGroups];
+        console.log("📥 Total groups:", allGroups.length);
+        setGroups(allGroups);
       } else if (activeTab === "discover") {
         console.log("📥 Fetching available groups...");
         const discoverRes = await api.get("/api/chats/groups/available");
@@ -231,8 +259,9 @@ const StudentChat = () => {
       }
       socket.emit("join_chat", chatId);
     } else {
+      const isAdminGroup = chat.groupType === "admin" || chat.source === "admin";
       socket.emit(
-        chat.groupType === "admin" ? "join_admin_group" : "join_group",
+        isAdminGroup ? "join_admin_group" : "join_group",
         chatId,
       );
     }
@@ -240,11 +269,11 @@ const StudentChat = () => {
     setActiveChat(chat);
     setLoadingMessages(true);
     try {
-      // FIX: all three URL branches were broken string concatenation — use proper template literals
+      const isAdminGroup = chat.groupType === "admin" || chat.source === "admin";
       const url =
         chat.type === "dm"
           ? `/api/chats/messages/${chatId}`
-          : chat.groupType === "admin"
+          : isAdminGroup
             ? `/api/admingroups/${chatId}/messages`
             : `/api/chats/groups/${chatId}/messages`;
       const res = await api.get(url);
@@ -436,6 +465,8 @@ const StudentChat = () => {
       setNewGroupDesc("");
       setActiveTab("groups");
       fetchData();
+      
+      await refreshDbUser();
     } catch (err) {
       console.error("❌ Create group error:", {
         status: err.response?.status,
@@ -912,15 +943,15 @@ const StudentChat = () => {
                   loadingMessages={loadingMessages}
                   onUpdateMeetingLink={async (link) => {
                     try {
+                      const isAdminGroup = activeChat?.groupType === "admin" || activeChat?.source === "admin";
+                      const meetingBaseUrl = isAdminGroup 
+                        ? `/api/admingroups/${activeChat.id}/meeting`
+                        : `/api/chats/groups/${activeChat.id}/meeting`;
+                      
                       if (link) {
-                        await api.put(
-                          `/api/chats/groups/${activeChat.id}/meeting`,
-                          { meetingLink: link },
-                        );
+                        await api.put(meetingBaseUrl, { meetingLink: link });
                       } else {
-                        await api.delete(
-                          `/api/chats/groups/${activeChat.id}/meeting`,
-                        );
+                        await api.delete(meetingBaseUrl);
                       }
                       setActiveChat((prev) => ({
                         ...prev,

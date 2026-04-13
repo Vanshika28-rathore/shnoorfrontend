@@ -15,9 +15,9 @@ const GroupInfoDrawer = ({ chat, isOpen, onClose, onLeaveSuccess, onDeleteSucces
     const [editDesc, setEditDesc] = useState(chat.description || "");
     const [saving, setSaving] = useState(false);
 
-    const isAdminGroup = chat?.groupType === 'admin';
+    const isAdminGroup = chat?.groupType === 'admin' || chat?.source === 'admin';
     const primaryBase = isAdminGroup ? '/api/admingroups' : '/api/chats/groups';
-    const fallbackBase = '/api/admingroups';
+    const fallbackBase = isAdminGroup ? '/api/chats/groups' : '/api/admingroups';
     const apiBase = resolvedBase || primaryBase;
     const currentUserMember = members.find(m => m.id === dbUser?.id);
     const isAdmin = currentUserMember?.group_role === 'admin';

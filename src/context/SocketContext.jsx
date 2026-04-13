@@ -254,6 +254,16 @@ export const SocketProvider = ({ children }) => {
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
 
   /* -------------------- Context Value -------------------- */
+  const refreshDbUser = useCallback(async () => {
+    try {
+      const res = await api.get('/api/users/me');
+      setDbUser(res.data);
+      dbUserRef.current = res.data;
+    } catch (err) {
+      console.error('[Socket] Failed to refresh user:', err);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       socket,
@@ -264,8 +274,9 @@ export const SocketProvider = ({ children }) => {
       markChatRead,
       handleSetActiveChat,
       socketStatus,
+      refreshDbUser,
     }),
-    [socket, dbUser, unreadCounts, socketStatus]
+    [socket, dbUser, unreadCounts, socketStatus, refreshDbUser]
   );
 
   return (
