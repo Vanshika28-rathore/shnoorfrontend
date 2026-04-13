@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProblemDescription from '../../components/exam/ProblemDescription';
 import CodeEditorPanel from '../../components/exam/CodeEditorPanel';
@@ -27,8 +27,35 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
     const [selectedLanguage, setSelectedLanguage] = useState('javascript');
     const [code, setCode] = useState('');
     const [submitMessage, setSubmitMessage] = useState(null);
+    const runRequestIdRef = useRef(0);
+    const submitRequestIdRef = useRef(0);
 
     const question = isEmbedded ? propQuestion : fetchedQuestion;
+
+    const normalizeQuestion = (data) => {
+        let parsedTestCases = [];
+
+        if (Array.isArray(data?.test_cases)) {
+            parsedTestCases = data.test_cases;
+        } else if (Array.isArray(data?.testCases)) {
+            parsedTestCases = data.testCases;
+        } else if (typeof data?.test_cases === 'string') {
+            try {
+                parsedTestCases = JSON.parse(data.test_cases);
+            } catch {
+                parsedTestCases = [];
+            }
+        }
+
+        return {
+            id: data?.challenge_id || data?.id,
+            title: data?.title,
+            description: data?.description,
+            difficulty: data?.difficulty,
+            starterCode: data?.starter_code || data?.starterCode || '',
+            testCases: parsedTestCases,
+        };
+    };
 
     useEffect(() => {
         if (isEmbedded) {
@@ -40,15 +67,7 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
         const fetchQuestion = async () => {
             try {
                 const res = await api.get(`/api/practice/${challengeId}`);
-                const data = res.data;
-
-                const mapped = {
-                    id: data.challenge_id,
-                    title: data.title,
-                    description: data.description,
-                    starterCode: data.starter_code,
-                    testCases: data.test_cases
-                };
+                const mapped = normalizeQuestion(res.data);
 
                 setFetchedQuestion(mapped);
                 setCode(mapped.starterCode || languageTemplates.javascript);
@@ -75,7 +94,10 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
 
     // ✅ RUN — execute code and show test results
     const handleRun = async () => {
-        if (isRunning) return;
+        if (isRunning || isSubmitting) return;
+
+        const requestId = Date.now();
+        runRequestIdRef.current = requestId;
         
         setIsRunning(true);
         setConsoleOutput([]);
@@ -83,7 +105,7 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
         setSubmitMessage(null);
 
         try {
-            const qId = isEmbedded ? propQuestion?.id : challengeId;
+            const qId = question?.id || (isEmbedded ? propQuestion?.id : challengeId);
             
             const res = await api.post('/api/practice/run', {
                 code,
@@ -93,10 +115,11 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
 
             const data = res.data;
 
+            if (runRequestIdRef.current !== requestId) return;
+
             // Validate response
             if (!data || !Array.isArray(data.results)) {
                 setConsoleOutput([{ type: 'error', msg: 'Invalid response from server' }]);
-                setIsRunning(false);
                 return;
             }
 
@@ -121,28 +144,29 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
             }
 
         } catch (err) {
+            if (runRequestIdRef.current !== requestId) return;
             console.error("Run error:", err);
             const errorMsg = err.response?.data?.message || err.message || 'Failed to run code';
             setConsoleOutput([{ type: 'error', msg: errorMsg }]);
-            setTestResults({
-                results: [],
-                summary: { total: 0, passed: 0, failed: 0 },
-                passed: false
-            });
+        } finally {
+            if (runRequestIdRef.current === requestId) {
+                setIsRunning(false);
+            }
         }
-
-        setIsRunning(false);
     };
 
     // ✅ SUBMIT — run all test cases and save the submission
     const handleSubmit = async () => {
-        if (isSubmitting) return;
+        if (isSubmitting || isRunning) return;
+
+        const requestId = Date.now();
+        submitRequestIdRef.current = requestId;
         
         setIsSubmitting(true);
         setSubmitMessage(null);
 
         try {
-            const qId = isEmbedded ? propQuestion?.id : challengeId;
+            const qId = question?.id || (isEmbedded ? propQuestion?.id : challengeId);
 
             const res = await api.post('/api/practice/submit', {
                 code,
@@ -152,13 +176,14 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
 
             const data = res.data;
 
+            if (submitRequestIdRef.current !== requestId) return;
+
             // Validate response
             if (!data || !Array.isArray(data.results)) {
                 setSubmitMessage({
                     type: 'error',
                     text: 'Invalid response from server'
                 });
-                setIsSubmitting(false);
                 return;
             }
 
@@ -189,14 +214,17 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
                 });
             }
         } catch (err) {
+            if (submitRequestIdRef.current !== requestId) return;
             console.error("Submit error:", err);
             setSubmitMessage({
                 type: 'error',
                 text: err.response?.data?.message || 'Submission failed. Please try again.'
             });
+        } finally {
+            if (submitRequestIdRef.current === requestId) {
+                setIsSubmitting(false);
+            }
         }
-
-        setIsSubmitting(false);
     };
 
     if (loading) {
