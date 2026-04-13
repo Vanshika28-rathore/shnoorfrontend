@@ -7,26 +7,26 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
-
-// Layouts (lazy loaded to save initial bundle size)
-const AdminLayout = React.lazy(() => import("./components/layout/AdminLayout"));
-const InstructorLayout = React.lazy(() => import("./components/layout/InstructorLayout"));
-const StudentLayout = React.lazy(() => import("./components/layout/StudentLayout"));
-const ManagerLayout = React.lazy(() => import("./components/layout/ManagerLayout"));
-
 import { SocketProvider } from "./context/SocketContext";
 import CookieBanner from "./components/CookieBanner";
 
-// Auth pages (small, keep eager for fast login)
+const AdminLayout = React.lazy(() => import("./components/layout/AdminLayout"));
+const InstructorLayout = React.lazy(
+  () => import("./components/layout/InstructorLayout"),
+);
+const StudentLayout = React.lazy(
+  () => import("./components/layout/StudentLayout"),
+);
+const ManagerLayout = React.lazy(
+  () => import("./components/layout/ManagerLayout"),
+);
+
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import CreatePassword from "./pages/auth/CreatePassword";
-
-// Landing - EAGER load for LCP (critical for performance score)
 import Landing from "./pages/Landing";
 
-// ===== LAZY LOADED PAGES (code-split for page speed) =====
 const Contact = React.lazy(() => import("./pages/Contact"));
 const CookiePolicy = React.lazy(() => import("./pages/CookiePolicy"));
 const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
@@ -41,7 +41,6 @@ const ProfileSettings = React.lazy(
   () => import("./pages/shared/ProfileSettings"),
 );
 
-// Admin
 const AdminDashboard = React.lazy(() => import("./pages/admin/AdminDashboard"));
 const ApproveUsers = React.lazy(() => import("./pages/admin/ApproveUsers"));
 const ProfileManagement = React.lazy(
@@ -75,16 +74,12 @@ const ChatWithStudents = React.lazy(
 );
 const AdminMessages = React.lazy(() => import("./pages/admin/Messages"));
 
-// Instructor
 const InstructorDashboard = React.lazy(
   () => import("./pages/instructor/InstructorDashboard"),
 );
 const AddCourse = React.lazy(() => import("./pages/instructor/AddCourse"));
 const CourseList = React.lazy(() => import("./pages/instructor/CourseList"));
 const ExamBuilder = React.lazy(() => import("./pages/instructor/ExamBuilder"));
-const InstructorSettings = React.lazy(
-  () => import("./pages/instructor/InstructorSettings"),
-);
 const LearningPaths = React.lazy(
   () => import("./pages/instructor/LearningPaths"),
 );
@@ -109,7 +104,6 @@ const CreateContest = React.lazy(
   () => import("./pages/instructor/ContestManagement/CreateContext"),
 );
 
-// Student
 const StudentDashboard = React.lazy(
   () => import("./pages/student/StudentDashboard"),
 );
@@ -132,7 +126,6 @@ const PracticeSession = React.lazy(
 );
 const StudentExams = React.lazy(() => import("./pages/student/StudentExams"));
 const StudentChat = React.lazy(() => import("./pages/student/StudentChat"));
-const Leaderboard = React.lazy(() => import("./pages/student/Leaderboard"));
 const WeeklyContest = React.lazy(() => import("./pages/student/WeeklyContest"));
 const ContestDetail = React.lazy(
   () => import("./pages/student/WeeklyContest/ContestDetail"),
@@ -144,7 +137,6 @@ const ContestLeaderboard = React.lazy(
 const MyGroups = React.lazy(() => import("./pages/student/MyGroups"));
 const GroupChat = React.lazy(() => import("./pages/student/GroupChat"));
 
-// Manager
 const ManagerDashboard = React.lazy(
   () => import("./pages/manager/ManagerDashboard"),
 );
@@ -158,7 +150,6 @@ const ManagerCertificates = React.lazy(
 );
 const ManagerMessages = React.lazy(() => import("./pages/manager/Messages"));
 
-// Lazy loading spinner
 const LazyFallback = () => (
   <div
     style={{
@@ -204,6 +195,10 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/create-password" element={<CreatePassword />} />
+              <Route
+                path="/verify-certificate/:certificateId"
+                element={<VerifyCertificate />}
+              />
 
               <Route
                 path="/admin"
@@ -232,7 +227,6 @@ function App() {
                 <Route path="group-messages" element={<ChatWithStudents />} />
                 <Route path="messages" element={<AdminMessages />} />
                 <Route path="/admin/exam-timers" element={<AdminExamTimer />} />
-
                 <Route
                   path="profile-management"
                   element={<ProfileManagement />}
@@ -314,7 +308,6 @@ function App() {
                   path="/student/contest/:contestId/result"
                   element={<ContestResult />}
                 />
-
                 <Route
                   path="/student/contest/:contestId/leaderboard"
                   element={<ContestLeaderboard />}
@@ -331,12 +324,10 @@ function App() {
                   path="/student/groups/:groupId"
                   element={<GroupChat />}
                 />
-
-                {/* <Route path="leaderboard" element={<Leaderboard />} /> */}
               </Route>
 
-              <Route path="*" element={<Navigate to="/" replace />} />
               <Route path="/suspended" element={<Suspended />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </SocketProvider>
