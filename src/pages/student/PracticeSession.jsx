@@ -1,29 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProblemDescription from '../../components/exam/ProblemDescription';
 import CodeEditorPanel from '../../components/exam/CodeEditorPanel';
 import api from '../../api/axios';
 
-const PracticeSession = ({ question: propQuestion, value, onChange }) => {
+const PracticeSession = ({ question: propQuestion, onChange }) => {
     const { challengeId } = useParams();
     const navigate = useNavigate();
 
     const isEmbedded = !!propQuestion;
-
-    const [fetchedQuestion, setFetchedQuestion] = useState(null);
-    const [loading, setLoading] = useState(!isEmbedded);
-    const [consoleOutput, setConsoleOutput] = useState([]);
-    const [testResults, setTestResults] = useState(null);
-    const [isRunning, setIsRunning] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedLanguage, setSelectedLanguage] = useState('javascript');
-    const [code, setCode] = useState('');
-    const [submitMessage, setSubmitMessage] = useState(null);
-
-    // Ref to let CodeEditorPanel switch tabs
-    const switchTabRef = useRef(null);
-
-    const question = isEmbedded ? propQuestion : fetchedQuestion;
 
     const languageTemplates = {
         javascript: '// Write your JavaScript code here\n',
@@ -33,11 +18,22 @@ const PracticeSession = ({ question: propQuestion, value, onChange }) => {
         go: '// Write your Go code here\n'
     };
 
-    // ✅ Fetch question from backend
+    const [fetchedQuestion, setFetchedQuestion] = useState(null);
+    const [loading, setLoading] = useState(isEmbedded ? false : true);
+    const [consoleOutput, setConsoleOutput] = useState([]);
+    const [testResults, setTestResults] = useState(null);
+    const [isRunning, setIsRunning] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedLanguage, setSelectedLanguage] = useState('javascript');
+    const [code, setCode] = useState('');
+    const [submitMessage, setSubmitMessage] = useState(null);
+
+    const question = isEmbedded ? propQuestion : fetchedQuestion;
+
     useEffect(() => {
         if (isEmbedded) {
-            setCode(value || propQuestion.starterCode || languageTemplates.javascript);
-            setLoading(false);
+            const initialCode = propQuestion?.starterCode || languageTemplates.javascript;
+            setCode(initialCode);
             return;
         }
 
@@ -63,7 +59,7 @@ const PracticeSession = ({ question: propQuestion, value, onChange }) => {
         };
 
         fetchQuestion();
-    }, [challengeId, isEmbedded, propQuestion, value]);
+    }, [challengeId, isEmbedded, propQuestion?.starterCode]);
 
     const handleLanguageChange = (lang) => {
         setSelectedLanguage(lang);
@@ -86,6 +82,7 @@ const PracticeSession = ({ question: propQuestion, value, onChange }) => {
 
         try {
             const qId = isEmbedded ? propQuestion?.id : challengeId;
+            
             const res = await api.post('/api/practice/run', {
                 code,
                 language: selectedLanguage,
