@@ -62,7 +62,7 @@ const CourseListView = ({
   /* Loading Spinner (file1) */
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-[500px]">
+      <div className="flex items-center justify-center min-h-125">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
           <p className="text-slate-400 font-medium text-sm">Loading library...</p>
@@ -73,7 +73,7 @@ const CourseListView = ({
   /* ================= COURSE DETAIL VIEW ================= */
   if (selectedCourse) {
     return (
-      <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+      <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
         
         {/* Gradient Header */}
         <div
@@ -194,7 +194,7 @@ const CourseListView = ({
 
   /* ================= COURSE LIST VIEW ================= */
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6 p-4 md:p-0">
       
       {/* Gradient Header */}
       <div

@@ -5,7 +5,7 @@ const NotificationToast = ({ notifications, onDismiss }) => {
     if (!notifications || notifications.length === 0) return null;
 
     return (
-        <div className="fixed top-20 right-3 left-3 sm:left-auto sm:right-6 z-[140] flex flex-col gap-3 w-auto sm:w-80 pointer-events-none">
+        <div className="fixed top-20 right-3 left-3 sm:left-auto sm:right-6 z-140 flex flex-col gap-3 w-auto sm:w-80 pointer-events-none">
             {notifications.map((notif) => (
                 <div
                     key={notif.id}

@@ -14,7 +14,7 @@ import {
 const ManagerDashboardView = ({ loading, profile, stats }) => {
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[500px]">
+      <div className="flex items-center justify-center min-h-125">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -64,7 +64,7 @@ const ManagerDashboardView = ({ loading, profile, stats }) => {
   ];
 
   return (
-    <div className="space-y-6 font-sans max-w-[1440px] mx-auto">
+    <div className="space-y-6 font-sans max-w-360 mx-auto">
       <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)" }}>
         <div className="relative z-10">
           <p className="text-indigo-300 text-sm font-medium mb-1">Welcome</p>

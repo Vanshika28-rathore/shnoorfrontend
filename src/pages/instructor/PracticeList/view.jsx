@@ -3,7 +3,7 @@ import { Plus, Trash2, Code, Terminal } from 'lucide-react';
 
 const PracticeListView = ({ challenges, navigate, handleDelete }) => {
     return (
-        <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+        <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
             {/* GRADIENT HEADER */}
             <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
                 <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

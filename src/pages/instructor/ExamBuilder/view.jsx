@@ -12,7 +12,7 @@ const ExamBuilderView = ({
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
 
     if (loading) return (
-        <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-medium animate-pulse">
+        <div className="flex items-center justify-center min-h-100 text-slate-500 font-medium animate-pulse">
             Processing exam data...
         </div>
     );
@@ -35,7 +35,7 @@ const ExamBuilderView = ({
     };
 
     return (
-        <div className="h-full flex flex-col font-sans text-slate-700 max-w-[1440px] mx-auto">
+        <div className="h-full flex flex-col font-sans text-slate-700 max-w-360 mx-auto">
             {/* --- Top Bar --- */}
             <header className="px-4 md:px-6 py-3 flex items-center justify-between shrink-0 h-14 md:h-16 shadow-lg" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
                 <div className="flex items-center gap-2 md:gap-4 min-w-0">

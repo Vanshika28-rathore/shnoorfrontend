@@ -21,7 +21,9 @@ const InstructorLayout = () => {
   // Track screen size
   useEffect(() => {
     const handleResize = () => {
-      // Logic could be added here if we wanted to auto-open/close on resize
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false);
+      }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -50,7 +52,9 @@ const InstructorLayout = () => {
 
   const handleNavigate = (path) => {
     navigate(path);
-    setIsSidebarOpen(false);
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
   };
 
   return (

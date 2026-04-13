@@ -1,44 +1,67 @@
 import React from 'react';
 import { FaUserCircle, FaCog, FaGlobe } from 'react-icons/fa';
-import '../../styles/Dashboard.css';
 
 const AdminProfileManagement = () => {
   return (
-    <div className="form-container">
-      <div className="form-box">
-        <h3 className="form-header">Profile & Platform Settings</h3>
-        <div className="profile-header">
-          <FaUserCircle className="profile-avatar-large" />
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
+        <div className="relative z-10">
+          <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Profile & Platform Settings</h1>
+          <p className="text-slate-400 text-sm mt-0.5">Manage admin identity and default platform preferences.</p>
+        </div>
+        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)' }} />
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 md:p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-slate-100 pb-5">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
+            <FaUserCircle className="w-10 h-10" />
+          </div>
           <div>
-            <h4 style={{ margin: 0, fontSize: '1.2rem', color: '#1f2937' }}>Super Admin</h4>
-            <p style={{ margin: '5px 0 0', color: '#6b7280' }}>admin@shnoor.com</p>
-            <span className="role-badge">System Administrator</span>
+            <h2 className="text-lg font-semibold text-slate-800">Super Admin</h2>
+            <p className="text-sm text-slate-500">admin@shnoor.com</p>
+            <span className="inline-flex mt-2 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-indigo-100 bg-indigo-50 text-indigo-600">
+              System Administrator
+            </span>
           </div>
         </div>
 
-        <h4 style={{ color: '#003366', marginBottom: '15px' }}>General Preferences</h4>
-        <div className="settings-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <FaGlobe style={{ fontSize: '1.5rem', color: '#4b5563' }} />
-            <div>
-              <div style={{ fontWeight: 600 }}>Timezone & Region</div>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Asia/Kolkata (GMT+5:30)</div>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">General Preferences</h3>
+
+        <div className="grid grid-cols-1 gap-4">
+          <div className="flex items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/70">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 text-slate-500 flex items-center justify-center">
+                <FaGlobe className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">Timezone & Region</p>
+                <p className="text-sm text-slate-500">Asia/Kolkata (GMT+5:30)</p>
+              </div>
             </div>
+            <button className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-300 text-slate-700 hover:bg-white transition-colors">
+              Edit
+            </button>
           </div>
-          <button className="btn-secondary">Edit</button>
-        </div>
-        <div className="settings-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <FaCog style={{ fontSize: '1.5rem', color: '#4b5563' }} />
-            <div>
-              <div style={{ fontWeight: 600 }}>Default Branding</div>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Shnoor LMS Theme (Navy Blue)</div>
+
+          <div className="flex items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/70">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 text-slate-500 flex items-center justify-center">
+                <FaCog className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">Default Branding</p>
+                <p className="text-sm text-slate-500">Shnoor LMS Theme (Navy Blue)</p>
+              </div>
             </div>
+            <button className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-300 text-slate-700 hover:bg-white transition-colors">
+              Customize
+            </button>
           </div>
-          <button className="btn-secondary">Customize</button>
         </div>
       </div>
     </div>
   );
 };
+
 export default AdminProfileManagement;

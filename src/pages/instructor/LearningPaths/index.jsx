@@ -159,7 +159,7 @@ const LearningPaths = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-500 font-medium text-sm">
@@ -171,7 +171,7 @@ const LearningPaths = () => {
   }
 
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6 p-4 md:p-0">
       {/* GRADIENT HEADER */}
       <div
         className="relative overflow-hidden rounded-2xl p-5 md:p-6 lg:p-8 shrink-0"

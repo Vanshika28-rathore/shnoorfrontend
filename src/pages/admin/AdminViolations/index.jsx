@@ -290,8 +290,8 @@ const AdminViolations = () => {
   };
 
   return (
-    <div className="p-6 bg-[#F3F4F6] min-h-screen font-sans">
-      <div className="max-w-7xl mx-auto">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
+      <div className="space-y-8">
         {/* Header Section */}
         <div className="bg-white rounded-3xl p-8 mb-8 border border-slate-200 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -409,7 +409,7 @@ const AdminViolations = () => {
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Top Violation</p>
               <div className="flex items-end gap-2 mb-1">
-                <span className="text-xl font-black text-slate-900 leading-tight uppercase truncate max-w-[150px]">
+                <span className="text-xl font-black text-slate-900 leading-tight uppercase truncate max-w-37.5">
                   {stats.topType?.name.replace('_', ' ') || 'NONE'}
                 </span>
               </div>
@@ -540,7 +540,7 @@ const AdminViolations = () => {
                                               <Clock size={12} /> {formatViolationDateTime(log)}
                                             </div>
                                             <div className="col-span-2 flex items-center justify-between">
-                                              <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 font-mono truncate max-w-[300px]">
+                                              <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 font-mono truncate max-w-75">
                                                 {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
                                               </span>
                                               <button
@@ -690,7 +690,7 @@ const AdminViolations = () => {
                                               <Clock size={12} /> {formatViolationDateTime(log)}
                                             </div>
                                             <div className="col-span-2 flex items-center justify-between">
-                                              <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 font-mono truncate max-w-[300px]">
+                                              <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 font-mono truncate max-w-75">
                                                 {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
                                               </span>
                                               <button

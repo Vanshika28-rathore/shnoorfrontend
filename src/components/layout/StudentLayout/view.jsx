@@ -87,68 +87,18 @@ const StudentLayoutView = ({
     return (
       <li
         onClick={() => handleNavigate(`/student/${path}`)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          padding: "12px 16px",
-          borderRadius: "12px",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-          marginBottom: "4px",
-          background: isActive ? "rgba(255,255,255,0.10)" : "transparent",
-          color: isActive ? "#fff" : "rgba(255,255,255,0.55)",
-          fontWeight: isActive ? 600 : 500,
-          fontSize: "14px",
-          position: "relative",
-        }}
-        onMouseEnter={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-            e.currentTarget.style.color = "#fff";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "rgba(255,255,255,0.55)";
-          }
-        }}
+        className={`relative mb-1 flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all ${isActive
+          ? "bg-white/10 text-white font-semibold"
+          : "text-white/55 font-medium hover:bg-white/10 hover:text-white"
+          }`}
       >
         {isActive && (
-          <div
-            style={{
-              position: "absolute",
-              left: 0,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "3px",
-              height: "20px",
-              borderRadius: "0 4px 4px 0",
-              background: "#818cf8",
-            }}
-          />
+          <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r bg-indigo-400" />
         )}
-        <Icon
-          size={18}
-          style={{
-            color: isActive ? "#818cf8" : "rgba(255,255,255,0.4)",
-            transition: "color 0.2s",
-            flexShrink: 0,
-          }}
-        />
-        <span style={{ flex: 1 }}>{label}</span>
+        <Icon size={18} className={isActive ? "shrink-0 text-indigo-400" : "shrink-0 text-white/40"} />
+        <span className="flex-1 tracking-tight">{label}</span>
         {badgeCount > 0 && (
-          <span
-            style={{
-              background: "#ef4444",
-              color: "#fff",
-              fontSize: "11px",
-              fontWeight: 700,
-              padding: "2px 8px",
-              borderRadius: "10px",
-            }}
-          >
+          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-bold text-white">
             {badgeCount}
           </span>
         )}
@@ -157,16 +107,13 @@ const StudentLayoutView = ({
   };
 
   return (
-    <div
-      className="flex min-h-screen font-sans"
-      style={{ background: "#D8E2EB" }}
-    >
+    <div className="flex min-h-screen bg-slate-200 font-sans">
       <NotificationToast notifications={toasts} onDismiss={onDismissToast} />
       
       {/* Hide Overlay in Exam Mode */}
       {!isExamMode && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-[90] lg:hidden"
+          className="fixed inset-0 z-90 lg:hidden"
           style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -177,64 +124,27 @@ const StudentLayoutView = ({
         <div
           className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
             ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
-          style={{
-            width: "260px",
-            background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
-            display: "flex",
-            flexDirection: "column",
-            flexShrink: 0,
-            zIndex: 100,
-            borderRight: "1px solid rgba(255,255,255,0.05)",
-          }}
+          style={{ width: "260px" }}
         >
+          <div className="flex h-full shrink-0 flex-col border-r border-white/10 bg-linear-to-b from-slate-900 to-slate-800">
           {/* Logo */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "24px 20px",
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
+          <div className="flex items-center gap-3 border-b border-white/10 px-5 py-6">
             <img
               src={markLogo}
               alt="SHNOOR"
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "10px",
-                objectFit: "cover",
-              }}
+              className="h-10 w-10 rounded-[10px] object-cover"
             />
             <div>
-              <div
-                style={{
-                  fontSize: "16px",
-                  fontWeight: 700,
-                  color: "#fff",
-                  letterSpacing: "-0.3px",
-                }}
-              >
-                SHNOOR
-              </div>
-              <div
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 600,
-                  color: "rgba(255,255,255,0.4)",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                }}
-              >
+              <div className="text-base font-bold tracking-tight text-white">SHNOOR</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[2px] text-white/40">
                 International LLC
               </div>
             </div>
           </div>
 
           {/* Navigation */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "24px 16px" }}>
-            <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          <div className="flex-1 overflow-y-auto px-4 py-6">
+            <ul className="m-0 list-none p-0">
               <NavItem path="dashboard" icon={TrendingUp} label="Dashboard" />
               <NavItem path="courses" icon={List} label="My Courses" />
               <NavItem path="mock-test" icon={ClipboardList} label="Mock Test" />
@@ -252,98 +162,35 @@ const StudentLayoutView = ({
               <NavItem path="settings" icon={Settings} label="Settings" />
             </ul>
           </div>
+          </div>
         </div>
       )}
 
       {/* MAIN CONTENT */}
       <div
-        className={`transition-all duration-300 ${!isExamMode && isSidebarOpen ? "lg:ml-[260px]" : "ml-0"}`}
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-          overflow: "hidden",
-          position: "relative",
-          isolation: "isolate",
-        }}
+        className={`flex flex-1 min-w-0 flex-col overflow-hidden relative isolate transition-all duration-300 ${!isExamMode && isSidebarOpen ? "lg:ml-65" : "ml-0"}`}
       >
         {/* Hide Header in Exam Mode */}
         {!isExamMode && (
-          <header
-            style={{
-              background: "#fff",
-              borderBottom: "1px solid #e2e8f0",
-              minHeight: "64px",
-              padding: "0 clamp(16px, 4vw, 32px)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              position: "sticky",
-              top: 0,
-              zIndex: 100,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <header className="sticky top-0 z-100 flex min-h-16 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm sm:px-5 md:px-8">
+            <div className="flex items-center gap-4">
               <button
-                className="hover:bg-slate-100 transition-colors"
+                className="flex rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                style={{
-                  padding: "8px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#64748b",
-                  borderRadius: "8px",
-                  display: "flex",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#e2e8f0")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
                 title="Toggle Menu"
               >
                 <Menu size={20} />
               </button>
-              <h2
-                className="hidden sm:block"
-                style={{
-                  fontSize: "18px",
-                  fontWeight: 600,
-                  color: "#0f172a",
-                  margin: 0,
-                }}
-              >
-                Student Portal
-              </h2>
+              <h2 className="hidden text-lg font-semibold text-slate-900 sm:block">Student Portal</h2>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div className="flex items-center gap-3">
               {/* Notifications */}
-              <div style={{ position: "relative" }}>
+              <div className="relative">
                 <button
                   ref={notifButtonRef}
                   onClick={() => setNotifOpen(!notifOpen)}
-                  style={{
-                    padding: "8px",
-                    borderRadius: "50%",
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
-                    cursor: "pointer",
-                    display: "flex",
-                    position: "relative",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#e2e8f0")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "#f8fafc")
-                  }
+                  className="relative flex rounded-full border border-slate-200 bg-slate-50 p-2 transition-colors hover:bg-slate-200"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -359,20 +206,7 @@ const StudentLayoutView = ({
                     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
                     <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
                   </svg>
-                  {notifications.length > 0 && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: "2px",
-                        right: "2px",
-                        width: "8px",
-                        height: "8px",
-                        background: "#ef4444",
-                        borderRadius: "50%",
-                        border: "2px solid #fff",
-                      }}
-                    />
-                  )}
+                  {notifications.length > 0 && <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full border border-white bg-red-500" />}
                 </button>
 
                 {notifOpen && (
@@ -575,170 +409,46 @@ const StudentLayoutView = ({
                 )}
               </div>
               {/* Rank Badge */}
-              <div
-                className="hidden md:flex"
-                style={{
-                  alignItems: "center",
-                  gap: "6px",
-                  background: "#f8fafc",
-                  padding: "6px 12px",
-                  borderRadius: "20px",
-                  border: "1px solid #e2e8f0",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "10px",
-                      color: "#94a3b8",
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
-                      lineHeight: 1,
-                    }}
-                  >
-                    Rank
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      color: "#0f172a",
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {rank}
-                  </span>
+              <div className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 md:flex">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-bold uppercase leading-none tracking-wider text-slate-400">Rank</span>
+                  <span className="text-sm font-bold text-slate-900">{rank}</span>
                 </div>
-                <div
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    background: "#eef2ff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Trophy size={14} style={{ color: "#4f46e5" }} />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50">
+                  <Trophy size={14} className="text-indigo-600" />
                 </div>
               </div>
 
               {/* XP Badge */}
-              <div
-                className="hidden md:flex"
-                style={{
-                  alignItems: "center",
-                  gap: "4px",
-                  background: "#fffbeb",
-                  color: "#92400e",
-                  padding: "6px 12px",
-                  borderRadius: "20px",
-                  border: "1px solid #fde68a",
-                  fontWeight: 700,
-                  fontSize: "13px",
-                }}
-              >
-                <Star size={14} style={{ color: "#f59e0b" }} fill="#f59e0b" />{" "}
+              <div className="hidden items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[13px] font-bold text-amber-800 md:flex">
+                <Star size={14} className="text-amber-500" fill="#f59e0b" />
                 {xp} XP
               </div>
 
               {/* Profile */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  paddingLeft: "16px",
-                  borderLeft: "1px solid #e2e8f0",
-                  minWidth: 0,
-                }}
-              >
-                <div className="hidden md:block" style={{ textAlign: "right" }}>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      color: "#0f172a",
-                    }}
-                  >
-                    {studentName}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "#64748b",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Student
-                  </div>
+              <div className="flex min-w-0 items-center gap-3 border-l border-slate-200 pl-4">
+                <div className="hidden text-right md:block">
+                  <div className="text-sm font-semibold text-slate-900">{studentName}</div>
+                  <div className="text-[11px] font-medium text-slate-500">Student</div>
                 </div>
                 <div
                   onClick={() => navigate("settings")}
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    background: "#f1f5f9",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "1px solid #e2e8f0",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100"
                 >
                   {photoURL ? (
                     <img
                       src={photoURL}
                       alt="Profile"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
+                      className="h-full w-full object-cover"
                     />
                   ) : (
-                    <UserCircle
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        padding: "4px",
-                        color: "#94a3b8",
-                      }}
-                    />
+                    <UserCircle className="h-full w-full p-1 text-slate-400" />
                   )}
                 </div>
                 <button
                   onClick={handleLogout}
                   title="Logout"
-                  style={{
-                    padding: "8px",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "#94a3b8",
-                    borderRadius: "8px",
-                    display: "flex",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#64748b";
-                    e.currentTarget.style.background = "#f1f5f9";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#94a3b8";
-                    e.currentTarget.style.background = "none";
-                  }}
+                  className="flex rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-500"
                 >
                   <LogOut size={18} />
                 </button>

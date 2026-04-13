@@ -191,14 +191,14 @@ const ManagerLayoutView = ({
               label="Exam Progress"
             />
             <NavItem path="certificates" icon={Award} label="Certificates" />
-            {/* <NavItem path="messages" icon={MessageSquare} label="Messages" /> */}
+            <NavItem path="messages" icon={MessageSquare} label="Messages" />
             <NavItem path="settings" icon={Settings} label="Settings" />
           </ul>
         </div>
       </div>
 
       <div
-        className={`transition-all duration-300 ${isSidebarOpen ? "lg:ml-[260px]" : "ml-0"}`}
+        className={`transition-all duration-300 ${isSidebarOpen ? "lg:ml-65" : "ml-0"}`}
         style={{
           flex: 1,
           display: "flex",

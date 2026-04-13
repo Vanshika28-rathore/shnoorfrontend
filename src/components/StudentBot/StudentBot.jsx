@@ -149,7 +149,7 @@ const StudentBot = () => {
   };
 
   return (
-    <div className="fixed right-3 sm:right-6 bottom-3 sm:bottom-6 z-[130] max-w-[calc(100vw-1.5rem)] sm:max-w-none">
+    <div className="fixed right-3 sm:right-6 bottom-3 sm:bottom-6 z-130 max-w-[calc(100vw-1.5rem)] sm:max-w-none">
       <style>{`
         @keyframes fadeInUp { from { transform: translateY(8px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
         @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(24, 27, 155, 0.35); } 70% { box-shadow: 0 0 0 8px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
@@ -168,11 +168,11 @@ const StudentBot = () => {
           <button
             aria-label="Open Study Assistant"
             onClick={() => setOpen(true)}
-            className="group w-12 h-12 rounded-full p-[4px] bg-gradient-to-br from-purple-600 via-fuchsia-500 to-indigo-600 shadow-2xl flex items-center justify-center hover:scale-[1.03] transition-transform"
+            className="group w-12 h-12 rounded-full p-1 bg-linear-to-br from-purple-600 via-fuchsia-500 to-indigo-600 shadow-2xl flex items-center justify-center hover:scale-[1.03] transition-transform"
             style={{ boxShadow: "0 8px 22px rgba(15,23,42,0.12)" }}
           >
             {/* white spacer ring */}
-            <div className="rounded-full bg-white p-[3px] flex items-center justify-center">
+            <div className="rounded-full bg-white p-1 flex items-center justify-center">
               {/* dark core */}
               <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center overflow-hidden relative">
                 <img
@@ -191,7 +191,7 @@ const StudentBot = () => {
           </button>
 
           {/* small online indicator */}
-          <span className="absolute -left-0 -top-0 w-3.5 h-3.5 bg-emerald-400 rounded-full ring-2 ring-white animate-pulse" />
+          <span className="absolute left-0 top-0 w-3.5 h-3.5 bg-emerald-400 rounded-full ring-2 ring-white animate-pulse" />
 
           {/* Hover preview */}
           <div
@@ -222,9 +222,9 @@ const StudentBot = () => {
         <div
           className={`w-[min(24rem,calc(100vw-1.5rem))] sm:w-96 h-[min(70vh,32rem)] sm:h-96 transition-all duration-300 shadow-2xl rounded-2xl bg-white overflow-hidden border border-slate-200 flex flex-col`}
         >
-          <div className="flex items-center gap-3 p-4 rounded-t-2xl bg-gradient-to-r from-[#1f2937]/80 via-[#111827]/70 to-[#0f172a]/80 text-white backdrop-blur-sm shadow-2xl">
+          <div className="flex items-center gap-3 p-4 rounded-t-2xl bg-linear-to-r from-[#1f2937]/80 via-[#111827]/70 to-[#0f172a]/80 text-white backdrop-blur-sm shadow-2xl">
             <div className="relative">
-              <div className="p-[3px] rounded-full bg-gradient-to-br from-purple-600 via-fuchsia-500 to-indigo-600">
+              <div className="p-1 rounded-full bg-linear-to-br from-purple-600 via-fuchsia-500 to-indigo-600">
                 <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
                   <img
                     src={botAvatarUrl}
@@ -255,7 +255,7 @@ const StudentBot = () => {
 
           <div
             ref={listRef}
-            className="flex-1 p-3 sm:p-4 overflow-auto space-y-4 bg-gradient-to-b from-white to-slate-50"
+            className="flex-1 p-3 sm:p-4 overflow-auto space-y-4 bg-linear-to-b from-white to-slate-50"
           >
             {messages.map((m, i) => (
               <div

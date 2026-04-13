@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useSocket } from '../../context/SocketContext';
-import { useAuth } from '../../auth/useAuth';
 import ChatWindow from '../../components/chat/ChatWindow';
 import { Search, X, Loader2, MessageSquare } from 'lucide-react';
 
 const AdminMessages = () => {
   const { socket, dbUser, unreadCounts, markChatRead, handleSetActiveChat } = useSocket();
-  const { userRole } = useAuth();
 
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
@@ -22,16 +20,19 @@ const AdminMessages = () => {
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
-  // Fetch manager contacts
+  // Fetch existing DM chats + available contacts
   useEffect(() => {
     const fetchManagers = async () => {
       try {
         setLoadingChats(true);
+        setError(null);
 
-        // Fetch existing chats with managers
+        // Existing DM chats
         const chatsRes = await api.get('/api/chats');
         const existing = (chatsRes.data || []).map(c => ({
           id: c.chat_id,
+          type: 'dm',
+          name: c.recipient_name,
           recipientName: c.recipient_name,
           recipientId: c.recipient_id,
           lastMessage: c.last_message || 'No messages yet',
@@ -39,16 +40,20 @@ const AdminMessages = () => {
           exists: true
         }));
 
-        // Fetch all available managers
+        // Potential contacts for admin DMs
         const managersRes = await api.get('/api/users');
-        const allManagers = (managersRes.data || []).filter(m => m.user_id !== dbUser?.id && m.role !== 'manager');
+        const allManagers = (managersRes.data || []).filter(
+          (m) => m.user_id !== dbUser?.id && ['student', 'instructor'].includes(m.role)
+        );
 
-        // Merge: existing chats + managers without chat yet
+        // Merge existing chats + contacts without chat yet
         const merged = [...existing];
         allManagers.forEach(manager => {
           if (!existing.some(c => c.recipientId === manager.user_id)) {
             merged.push({
               id: `new_${manager.user_id}`,
+              type: 'dm',
+              name: manager.full_name,
               recipientName: manager.full_name,
               recipientId: manager.user_id,
               lastMessage: 'Start a conversation',
@@ -83,7 +88,7 @@ const AdminMessages = () => {
     setLoadingSearch(true);
     try {
       const res = await api.get(`/api/users?search=${query}`);
-      setSearchResults((res.data || []).filter(m => m.user_id !== dbUser?.id && m.role !== 'manager'));
+      setSearchResults((res.data || []).filter(m => m.user_id !== dbUser?.id && ['student', 'instructor'].includes(m.role)));
       setShowSearchResults(true);
     } catch (err) {
       console.error('Search failed:', err);
@@ -94,26 +99,48 @@ const AdminMessages = () => {
 
   // Select chat
   const handleSelectChat = async (chat) => {
-    setActiveChat(chat);
-    handleSetActiveChat(chat.id);
-    markChatRead(chat.id);
+    if (!chat) return;
+
+    let nextChat = { ...chat, type: 'dm', name: chat.name || chat.recipientName };
+    let chatId = nextChat.id;
+
+    if (!nextChat.exists) {
+      try {
+        const res = await api.post('/api/chats', { recipientId: nextChat.recipientId });
+        chatId = res.data.chat_id;
+        nextChat = { ...nextChat, id: chatId, exists: true };
+        setChats((prev) => prev.map((c) =>
+          c.recipientId === nextChat.recipientId
+            ? { ...c, id: chatId, exists: true, type: 'dm', name: c.name || c.recipientName }
+            : c
+        ));
+      } catch (err) {
+        console.error('Failed to create chat:', err);
+        return;
+      }
+    }
+
+    setActiveChat(nextChat);
+    handleSetActiveChat(chatId);
+    markChatRead(chatId);
     setShowSearchResults(false);
 
-    if (chat.exists) {
-      setLoadingMessages(true);
-      try {
-        const res = await api.get(`/api/chats/${chat.id}/messages`);
-        setMessages(res.data.map(m => ({
-          ...m,
-          isMyMessage: m.sender_id === dbUser?.id
-        })));
-      } catch (err) {
-        console.error('Failed to load messages:', err);
-      } finally {
-        setLoadingMessages(false);
-      }
-    } else {
-      setMessages([]);
+    if (socket) {
+      socket.emit('join_chat', chatId);
+    }
+
+    setLoadingMessages(true);
+    try {
+      const res = await api.get(`/api/chats/messages/${chatId}`);
+      setMessages((res.data || []).map(m => ({
+        ...m,
+        isMyMessage: m.sender_id === dbUser?.id
+      })));
+      await api.put('/api/chats/read', { chatId });
+    } catch (err) {
+      console.error('Failed to load messages:', err);
+    } finally {
+      setLoadingMessages(false);
     }
   };
 
@@ -121,7 +148,7 @@ const AdminMessages = () => {
   useEffect(() => {
     if (!socket) return;
     const onReceive = (msg) => {
-      if (activeChat?.id === msg.chat_id) {
+      if (activeChat?.id && activeChat.id === msg.chat_id) {
         setMessages(prev => [...prev, {
           ...msg,
           isMyMessage: msg.sender_id === dbUser?.id
@@ -131,30 +158,76 @@ const AdminMessages = () => {
     };
 
     socket.on('receive_message', onReceive);
-    return () => socket.off('receive_message', onReceive);
+    socket.on('new_message', onReceive);
+    return () => {
+      socket.off('receive_message', onReceive);
+      socket.off('new_message', onReceive);
+    };
   }, [socket, activeChat, dbUser]);
 
   // Send message
-  const handleSendMessage = async (text) => {
-    if (!activeChat || !text.trim()) return;
+  const handleSendMessage = async (text, file) => {
+    if (!socket || !activeChat || (!text?.trim() && !file)) return;
+
+    let attachmentFileId = null;
+    let attachmentName = null;
+    let attachmentType = null;
+    let attachmentUrl = null;
+
+    if (file) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await api.post('/api/chats/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        attachmentFileId = res.data.file_id;
+        attachmentName = file.name;
+        attachmentType = file.type;
+        attachmentUrl = URL.createObjectURL(file);
+      } catch (err) {
+        console.error('Failed to upload attachment:', err);
+        return;
+      }
+    }
+
+    const tempId = `temp-${Date.now()}`;
+    const outgoingText = text?.trim() || '';
+
+    setMessages(prev => [...prev, {
+      message_id: tempId,
+      text: outgoingText,
+      created_at: new Date().toISOString(),
+      sender_id: dbUser?.id,
+      sender_name: dbUser?.full_name || dbUser?.name || 'You',
+      isMyMessage: true,
+      attachment_file_id: attachmentFileId,
+      attachment_name: attachmentName,
+      attachment_type: attachmentType,
+      attachment_url: attachmentUrl
+    }]);
 
     try {
-      const res = await api.post('/api/chats/send', {
+      socket.emit('send_message', {
+        chatId: activeChat.id,
+        text: outgoingText,
+        senderId: dbUser?.id,
+        senderUid: dbUser?.firebase_uid,
+        senderName: dbUser?.full_name || dbUser?.fullName || dbUser?.name,
         recipientId: activeChat.recipientId,
-        message: text
+        attachment_file_id: attachmentFileId,
+        attachment_name: attachmentName,
+        attachment_type: attachmentType
+      }, (serverMsg) => {
+        if (!serverMsg) return;
+        setMessages(prev => prev.map((m) =>
+          m.message_id === tempId ? { ...serverMsg, isMyMessage: true } : m
+        ));
       });
 
-      const newMsg = {
-        ...res.data,
-        isMyMessage: true
-      };
-
-      setMessages(prev => [...prev, newMsg]);
-
-      // Update chat list
       setChats(prev => prev.map(c =>
         c.id === activeChat.id
-          ? { ...c, lastMessage: text, exists: true }
+          ? { ...c, lastMessage: outgoingText || 'Attachment', exists: true }
           : c
       ));
     } catch (err) {
@@ -163,7 +236,7 @@ const AdminMessages = () => {
   };
 
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
       {/* GRADIENT HEADER */}
       <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
         <div className="relative z-10 flex items-center gap-4">
@@ -180,9 +253,9 @@ const AdminMessages = () => {
 
       {/* CHAT CONTAINER */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col overflow-hidden">
-        <div className="flex flex-col md:flex-row h-full">
+        <div className="flex flex-col md:flex-row h-full min-h-125">
           {/* Chat list sidebar */}
-          <div className="w-full md:w-80 flex-shrink-0 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col">
+          <div className={`w-full md:w-80 shrink-0 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col ${activeChat ? 'hidden md:flex' : 'flex'}`}>
             {/* Search box */}
             <div className="p-4 border-b border-slate-100">
               <div className="relative group">
@@ -227,8 +300,15 @@ const AdminMessages = () => {
                       <div
                         key={manager.user_id}
                         onClick={() => {
+                          const existingChat = chats.find((c) => c.recipientId === manager.user_id && c.exists);
+                          if (existingChat) {
+                            handleSelectChat(existingChat);
+                            return;
+                          }
                           handleSelectChat({
                             id: `new_${manager.user_id}`,
+                            type: 'dm',
+                            name: manager.full_name,
                             recipientName: manager.full_name,
                             recipientId: manager.user_id,
                             lastMessage: 'Start a conversation',
@@ -280,14 +360,17 @@ const AdminMessages = () => {
           </div>
 
           {/* Chat window */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className={`flex-1 flex flex-col min-w-0 ${activeChat ? 'flex' : 'hidden md:flex'}`}>
             {activeChat ? (
               <ChatWindow
-                chat={activeChat}
+                socket={socket}
+                activeChat={activeChat}
                 messages={messages}
-                loading={loadingMessages}
-                onSend={handleSendMessage}
-                dbUser={dbUser}
+                loadingMessages={loadingMessages}
+                onSendMessage={handleSendMessage}
+                currentUser={dbUser}
+                isAdmin={true}
+                onClose={() => setActiveChat(null)}
               />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8">

@@ -113,180 +113,180 @@ const CreateGroup = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold mb-4">Create Group</h1>
-        <div className="bg-blue-50 border border-blue-200 rounded p-4 text-sm text-blue-800 mb-6">
-          <p className="font-semibold mb-2">Group Types:</p>
-          <ul className="list-disc list-inside space-y-1">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)" }}>
+        <div className="relative z-10">
+          <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Create Group</h1>
+          <p className="text-slate-400 text-sm mt-0.5">Create a new group with manual, timestamp, or college-based membership.</p>
+        </div>
+        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)" }} />
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 md:p-6 space-y-6">
+        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-900">
+          <p className="font-semibold mb-2">Group Types</p>
+          <ul className="list-disc list-inside space-y-1 text-indigo-700">
             <li><strong>Manual:</strong> Admin selects specific students</li>
             <li><strong>Timestamp:</strong> Auto-populate by registration date range</li>
             <li><strong>College:</strong> Auto-populate by college name in user profile</li>
           </ul>
         </div>
-      </div>
 
-      {error && <div className="text-red-600 font-semibold p-3 bg-red-50 rounded">{error}</div>}
+        {error && <div className="text-red-700 font-semibold p-3 bg-red-50 border border-red-100 rounded-xl">{error}</div>}
 
-      {/* Group Type Selection */}
-      <div className="space-y-3">
-        <label className="block font-semibold">Group Type</label>
-        <div className="grid grid-cols-3 gap-3">
-          {["manual", "timestamp", "college"].map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => {
-                setForm({ ...form, group_type: type, start_date: "", end_date: "" });
-                setSelectedStudents([]);
-              }}
-              className={`p-3 rounded border-2 transition ${
-                form.group_type === type
-                  ? "border-primary-900 bg-primary-50"
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-            >
-              <div className="font-semibold capitalize">{type}</div>
-              <div className="text-xs text-gray-600">
-                {type === "manual" && "Manual selection"}
-                {type === "timestamp" && "Date range"}
-                {type === "college" && "Auto by college"}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Group Name */}
-      <div>
-        <label className="block font-semibold mb-2">Group Name *</label>
-        <input
-          required
-          placeholder={
-            form.group_type === "college" ? "e.g., SRM University" : "Enter group name"
-          }
-          className="w-full border p-3 rounded focus:border-primary-900 focus:ring-1 focus:ring-primary-900"
-          value={form.group_name}
-          onChange={(e) => setForm({ ...form, group_name: e.target.value })}
-        />
-      </div>
-
-      {/* Timestamp Group - Date Range */}
-      {form.group_type === "timestamp" && (
-        <div className="space-y-4 p-4 bg-blue-50 rounded border border-blue-200">
-          <p className="text-sm font-semibold text-blue-900">
-            Students will be auto-added if their registration date falls within this range
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-2">Start Date *</label>
-              <input
-                required
-                type="date"
-                className="w-full border p-3 rounded focus:border-primary-900 focus:ring-1 focus:ring-primary-900"
-                value={form.start_date}
-                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">End Date *</label>
-              <input
-                required
-                type="date"
-                className="w-full border p-3 rounded focus:border-primary-900 focus:ring-1 focus:ring-primary-900"
-                value={form.end_date}
-                onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* College Group - Info */}
-      {form.group_type === "college" && (
-        <div className="space-y-4 p-4 bg-green-50 rounded border border-green-200">
-          <div>
-            <p className="text-sm font-semibold text-green-900 mb-1">
-              Students will automatically join when they add this college name to their profile
-            </p>
-            <p className="text-xs text-green-800 mt-2">
-              💡 <strong>Smart Matching:</strong> The system uses flexible matching that ignores case, extra spaces, commas, periods, and other special characters. 
-              For example, a group named "SRM University, AP" will match students who entered "SRM UNIVERSITY AP", "srm university ap", or "SRM University,AP"
-            </p>
-          </div>
-          {matchingStudents.length > 0 && (
-            <div>
-              <p className="text-sm font-semibold text-green-800 mb-2">
-                {matchingStudents.length} student{matchingStudents.length !== 1 ? "s" : ""} will be auto-added:
-              </p>
-              <div className="max-h-32 overflow-y-auto space-y-1">
-                {matchingStudents.map((student) => (
-                  <div key={student.user_id} className="text-xs text-green-700 pl-2">
-                    • {student.full_name}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Manual Group - Student Selection */}
-      {form.group_type === "manual" && (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold">Select Students</h3>
-          <div className="max-h-80 overflow-y-auto border rounded p-3 space-y-2">
-            {allStudents.length === 0 ? (
-              <p className="text-gray-500 text-sm">No active students available</p>
-            ) : (
-              allStudents.map((student) => (
-                <label key={student.user_id} className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedStudents.includes(student.user_id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedStudents([...selectedStudents, student.user_id]);
-                      } else {
-                        setSelectedStudents(selectedStudents.filter((id) => id !== student.user_id));
-                      }
-                    }}
-                    className="mr-3"
-                  />
-                  <div>
-                    <div className="font-medium text-sm">{student.full_name}</div>
-                    <div className="text-xs text-gray-500">{student.email}</div>
-                  </div>
-                </label>
-              ))
+          <label className="block font-semibold text-slate-700">Group Type</label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {["manual", "timestamp", "college"].map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => {
+                  setForm({ ...form, group_type: type, start_date: "", end_date: "" });
+                  setSelectedStudents([]);
+                }}
+                className={`p-3 rounded-xl border-2 transition text-left ${
+                  form.group_type === type
+                    ? "border-indigo-500 bg-indigo-50"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <div className="font-semibold capitalize text-slate-800">{type}</div>
+                <div className="text-xs text-slate-500 mt-0.5">
+                  {type === "manual" && "Manual selection"}
+                  {type === "timestamp" && "Date range"}
+                  {type === "college" && "Auto by college"}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-2 text-slate-700">Group Name *</label>
+          <input
+            required
+            placeholder={
+              form.group_type === "college" ? "e.g., SRM University" : "Enter group name"
+            }
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+            value={form.group_name}
+            onChange={(e) => setForm({ ...form, group_name: e.target.value })}
+          />
+        </div>
+
+        {form.group_type === "timestamp" && (
+          <div className="space-y-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+            <p className="text-sm font-semibold text-indigo-900">
+              Students will be auto-added if their registration date falls within this range
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-slate-700">Start Date *</label>
+                <input
+                  required
+                  type="date"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none"
+                  value={form.start_date}
+                  onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-slate-700">End Date *</label>
+                <input
+                  required
+                  type="date"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none"
+                  value={form.end_date}
+                  onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {form.group_type === "college" && (
+          <div className="space-y-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+            <div>
+              <p className="text-sm font-semibold text-emerald-900 mb-1">
+                Students will automatically join when they add this college name to their profile
+              </p>
+              <p className="text-xs text-emerald-800 mt-2">
+                <strong>Smart Matching:</strong> The system ignores case, extra spaces, commas, periods, and special characters. For example, "SRM University, AP" matches "SRM UNIVERSITY AP" and "srm university ap".
+              </p>
+            </div>
+            {matchingStudents.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-emerald-800 mb-2">
+                  {matchingStudents.length} student{matchingStudents.length !== 1 ? "s" : ""} will be auto-added:
+                </p>
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {matchingStudents.map((student) => (
+                    <div key={student.user_id} className="text-xs text-emerald-700 pl-2">
+                      • {student.full_name}
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-          {selectedStudents.length > 0 && (
-            <p className="text-sm text-gray-600">
-              {selectedStudents.length} student{selectedStudents.length !== 1 ? "s" : ""} selected
-            </p>
-          )}
-        </div>
-      )}
+        )}
 
-      {/* Submit Button */}
-      <div className="flex gap-3 pt-4">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-6 py-3 bg-primary-900 text-white rounded font-semibold hover:bg-primary-800 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "Creating..." : "Create Group"}
-        </button>
-        <button
-          type="button"
-          onClick={() => navigate("/admin/groups")}
-          className="px-6 py-3 border border-gray-300 rounded font-semibold hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
+        {form.group_type === "manual" && (
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-slate-800">Select Students</h3>
+            <div className="max-h-80 overflow-y-auto border border-slate-200 rounded-xl p-2 md:p-3 space-y-2 bg-slate-50/50">
+              {allStudents.length === 0 ? (
+                <p className="text-slate-500 text-sm p-2">No active students available</p>
+              ) : (
+                allStudents.map((student) => (
+                  <label key={student.user_id} className="flex items-center p-2.5 hover:bg-white rounded-lg cursor-pointer border border-transparent hover:border-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.includes(student.user_id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedStudents([...selectedStudents, student.user_id]);
+                        } else {
+                          setSelectedStudents(selectedStudents.filter((id) => id !== student.user_id));
+                        }
+                      }}
+                      className="mr-3 h-4 w-4 accent-indigo-600"
+                    />
+                    <div>
+                      <div className="font-medium text-sm text-slate-700">{student.full_name}</div>
+                      <div className="text-xs text-slate-500">{student.email}</div>
+                    </div>
+                  </label>
+                ))
+              )}
+            </div>
+            {selectedStudents.length > 0 && (
+              <p className="text-sm text-slate-600">
+                {selectedStudents.length} student{selectedStudents.length !== 1 ? "s" : ""} selected
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Creating..." : "Create Group"}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/admin/groups")}
+            className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

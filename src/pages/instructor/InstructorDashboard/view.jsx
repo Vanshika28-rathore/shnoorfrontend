@@ -48,7 +48,7 @@ const InstructorDashboardView = ({
   // — file1 loading spinner style —
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[500px]">
+      <div className="flex items-center justify-center min-h-125">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -231,7 +231,7 @@ const InstructorDashboardView = ({
   };
 
   return (
-    <div className="space-y-6 font-sans max-w-[1440px] mx-auto p-4 md:p-0">
+    <div className="space-y-6 font-sans max-w-360 mx-auto p-4 md:p-0">
 
       {/* WELCOME BANNER */}
       <div
@@ -388,7 +388,7 @@ const InstructorDashboardView = ({
         <div className="lg:col-span-2 flex flex-col gap-5">
 
           {/* STUDENT INSIGHTS */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[380px]">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-95">
             <div className="flex justify-between items-center px-6 py-4 border-b border-slate-50">
               <div>
                 <h3 className="text-sm font-bold text-primary-900 uppercase tracking-wide">Student Insights</h3>

@@ -107,10 +107,10 @@ const EditGroup = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-125">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading group...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-indigo-600 mx-auto mb-4"></div>
+          <p className="text-slate-500">Loading group...</p>
         </div>
       </div>
     );
@@ -118,20 +118,20 @@ const EditGroup = () => {
 
   if (error && !formData.group_name) {
     return (
-      <div className="max-w-2xl mx-auto mt-8 p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+      <div className="max-w-225 mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
           <h3 className="font-semibold text-red-800 mb-2">Error Loading Group</h3>
           <p className="text-red-700 mb-4">{error}</p>
           <div className="flex gap-2">
             <button
               onClick={() => navigate("/admin/groups")}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
+              className="px-4 py-2 bg-slate-700 text-white rounded-xl hover:bg-slate-800 transition"
             >
               Back to Groups
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition"
             >
               Retry
             </button>
@@ -142,22 +142,25 @@ const EditGroup = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-8 p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Edit Group</h1>
-        <p className="text-gray-600 mt-1">Update group information</p>
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)" }}>
+        <div className="relative z-10">
+          <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Edit Group</h1>
+          <p className="text-slate-400 text-sm mt-0.5">Update group details while preserving group type rules.</p>
+        </div>
+        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)" }} />
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
           <p className="text-red-700">{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
+      <form onSubmit={handleSubmit} className="bg-white shadow-sm border border-slate-100 rounded-2xl p-5 md:p-6">
         {/* Group Name */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
+          <label className="block text-slate-700 font-medium mb-2">
             Group Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -165,7 +168,7 @@ const EditGroup = () => {
             name="group_name"
             value={formData.group_name}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
             placeholder="Enter group name"
             required
           />
@@ -173,24 +176,24 @@ const EditGroup = () => {
 
         {/* Group Type Display */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
+          <label className="block text-slate-700 font-medium mb-2">
             Group Type
           </label>
-          <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+          <div className="px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-600">
             {formData.group_type === 'manual' && 'Manual (Students added individually)'}
             {formData.group_type === 'timestamp' && 'Timestamp (Students by registration date)'}
             {formData.group_type === 'college' && 'College (Students by college name)'}
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Group type cannot be changed after creation
           </p>
         </div>
 
         {/* Dates - Only for Timestamp Groups */}
         {formData.group_type === 'timestamp' && (
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label className="block text-slate-700 font-medium mb-2">
                 Start Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -198,12 +201,12 @@ const EditGroup = () => {
                 name="start_date"
                 value={formData.start_date}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
                 required
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label className="block text-slate-700 font-medium mb-2">
                 End Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -211,7 +214,7 @@ const EditGroup = () => {
                 name="end_date"
                 value={formData.end_date}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
                 required
               />
             </div>
@@ -220,27 +223,27 @@ const EditGroup = () => {
 
         {/* Info Messages */}
         {formData.group_type === 'college' && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+            <p className="text-sm text-indigo-700">
               <strong>Note:</strong> Students are automatically added to this group based on their college name in their profile.
             </p>
           </div>
         )}
 
         {formData.group_type === 'manual' && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+            <p className="text-sm text-indigo-700">
               <strong>Note:</strong> Students must be added manually to this group.
             </p>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3 justify-end">
+        <div className="flex flex-col sm:flex-row gap-3 justify-end">
           <button
             type="button"
             onClick={() => navigate("/admin/groups")}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+            className="px-5 py-2.5 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition"
             disabled={saving}
           >
             Cancel
@@ -248,7 +251,7 @@ const EditGroup = () => {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-blue-400 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition disabled:bg-indigo-400 disabled:cursor-not-allowed"
           >
             {saving ? (
               <span className="flex items-center gap-2">

@@ -44,7 +44,7 @@ const ManagerList = () => {
   }, []);
 
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
       <div
         className="relative overflow-hidden rounded-2xl p-6 lg:p-8"
         style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)" }}
@@ -62,14 +62,14 @@ const ManagerList = () => {
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex-1 overflow-hidden flex flex-col">
         {loading ? (
-          <div className="flex items-center justify-center min-h-[320px]">
+          <div className="flex items-center justify-center min-h-80">
             <div className="flex flex-col items-center gap-4">
               <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
               <p className="text-slate-400 font-medium text-sm">Loading managers...</p>
             </div>
           </div>
         ) : (
-          <div className="overflow-y-auto flex-1">
+          <div className="overflow-auto flex-1">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10">
                 <tr>

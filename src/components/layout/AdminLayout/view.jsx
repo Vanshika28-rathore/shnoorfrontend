@@ -279,7 +279,7 @@ const AdminLayoutView = ({
 
       {/* ═══ MAIN CONTENT AREA ═══ */}
       <div
-        className={`transition-all duration-300 ${isSidebarOpen ? "lg:ml-[260px]" : "ml-0"}`}
+        className={`transition-all duration-300 ${isSidebarOpen ? "lg:ml-65" : "ml-0"}`}
         style={{
           flex: 1,
           display: "flex",
