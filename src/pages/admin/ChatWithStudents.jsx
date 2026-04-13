@@ -712,14 +712,14 @@ const ChatWithStudents = () => {
                   <>
                     {groupResults.length > 0 && (
                       <div>
-                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b">
+                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b border-slate-100">
                           Groups
                         </div>
                         {groupResults.map(group => (
                           <div
                             key={group.id}
                             onClick={() => handleSearchResultClick(group.id)}
-                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 border-b transition-colors ${activeChat?.id === group.id ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
+                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors ${activeChat?.id === group.id ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
                           >
                             <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
                               <span className="text-indigo-600 font-bold text-sm">
@@ -737,14 +737,14 @@ const ChatWithStudents = () => {
 
                     {searchResults.length > 0 && (
                       <div>
-                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b">
+                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b border-slate-100">
                           Messages
                         </div>
                         {searchResults.map((result, idx) => (
                           <button
                             key={idx}
                             onClick={() => handleSearchResultClick(result.chat_id)}
-                            className="w-full p-4 border-b hover:bg-slate-50 transition-colors text-left"
+                            className="w-full p-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors text-left"
                           >
                             <div className="font-semibold text-slate-700 text-sm mb-1">{result.chat_name}</div>
                             <div className="text-slate-500 text-sm line-clamp-2">{result.text || '(No text)'}</div>

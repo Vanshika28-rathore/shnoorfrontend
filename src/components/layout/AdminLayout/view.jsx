@@ -33,7 +33,11 @@ const AdminLayoutView = ({
   const navigate = useNavigate();
 
   const NavItem = ({ path, icon: Icon, label }) => {
-    const isActive = location.pathname.includes(path);
+    const normalizedPath = path.replace(/^\/+/, "");
+    const targetPath = `/admin/${normalizedPath}`;
+    const isActive =
+      location.pathname === targetPath ||
+      location.pathname.startsWith(`${targetPath}/`);
     return (
       <li
         onClick={() => {
