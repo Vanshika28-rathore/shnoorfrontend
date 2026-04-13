@@ -75,6 +75,8 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
 
     // ✅ RUN — execute code and show test results
     const handleRun = async () => {
+        if (isRunning) return;
+        
         setIsRunning(true);
         setConsoleOutput([]);
         setTestResults(null);
@@ -90,6 +92,13 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
             });
 
             const data = res.data;
+
+            // Validate response
+            if (!data || !Array.isArray(data.results)) {
+                setConsoleOutput([{ type: 'error', msg: 'Invalid response from server' }]);
+                setIsRunning(false);
+                return;
+            }
 
             // Store structured test results
             setTestResults({
@@ -112,9 +121,14 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
             }
 
         } catch (err) {
-            setConsoleOutput([
-                { type: 'error', msg: err.response?.data?.message || err.message }
-            ]);
+            console.error("Run error:", err);
+            const errorMsg = err.response?.data?.message || err.message || 'Failed to run code';
+            setConsoleOutput([{ type: 'error', msg: errorMsg }]);
+            setTestResults({
+                results: [],
+                summary: { total: 0, passed: 0, failed: 0 },
+                passed: false
+            });
         }
 
         setIsRunning(false);
@@ -122,6 +136,8 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
 
     // ✅ SUBMIT — run all test cases and save the submission
     const handleSubmit = async () => {
+        if (isSubmitting) return;
+        
         setIsSubmitting(true);
         setSubmitMessage(null);
 
@@ -135,6 +151,16 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
             });
 
             const data = res.data;
+
+            // Validate response
+            if (!data || !Array.isArray(data.results)) {
+                setSubmitMessage({
+                    type: 'error',
+                    text: 'Invalid response from server'
+                });
+                setIsSubmitting(false);
+                return;
+            }
 
             // Show test results from submission
             setTestResults({
@@ -154,7 +180,7 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
             if (data.passed) {
                 setSubmitMessage({
                     type: 'success',
-                    text: `🎉 All ${totalTests} test cases passed! Solution submitted successfully.`
+                    text: `All ${totalTests} test cases passed! Solution submitted successfully.`
                 });
             } else {
                 setSubmitMessage({
@@ -163,6 +189,7 @@ const PracticeSession = ({ question: propQuestion, onChange }) => {
                 });
             }
         } catch (err) {
+            console.error("Submit error:", err);
             setSubmitMessage({
                 type: 'error',
                 text: err.response?.data?.message || 'Submission failed. Please try again.'
