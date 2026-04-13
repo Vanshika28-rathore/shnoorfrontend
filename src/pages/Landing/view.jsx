@@ -107,7 +107,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
 
       {/* --- NAV BAR --- */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 min-h-[5rem] md:min-h-[6rem] flex items-center justify-between relative z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 min-h-20 md:min-h-24 flex items-center justify-between relative z-50">
           <BrandLogo />
 
           {/* Desktop Nav */}
@@ -150,8 +150,8 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             </div>
             
             <div className="px-6 py-6 mt-auto border-t border-slate-50 bg-slate-50/50 flex flex-col gap-3">
-              <button onClick={onLogin} className="w-full h-12 min-h-[48px] bg-white border border-slate-200 rounded-xl font-bold text-slate-900 shadow-sm hover:bg-slate-50 transition-colors">Log In</button>
-              <button onClick={onRegister} className="w-full h-12 min-h-[48px] bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-colors">Get Started</button>
+              <button onClick={onLogin} className="w-full h-12 min-h-12 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 shadow-sm hover:bg-slate-50 transition-colors">Log In</button>
+              <button onClick={onRegister} className="w-full h-12 min-h-12 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-colors">Get Started</button>
             </div>
           </div>
         )}
@@ -173,7 +173,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
 
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tight mb-4 md:mb-6 leading-[1.1]">
               Mastery Is Not <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-slate-900 to-slate-600">
                 An Accident.
               </span>
             </h1>
@@ -183,10 +183,10 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 w-full sm:w-auto px-4 lg:px-0">
-              <button onClick={onRegister} className="w-full sm:w-auto h-14 min-h-[56px] px-8 bg-slate-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-slate-800 transition-all flex justify-center items-center gap-2 shadow-xl hover:shadow-slate-900/30 hover:-translate-y-1">
+              <button onClick={onRegister} className="w-full sm:w-auto h-14 min-h-14 px-8 bg-slate-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-slate-800 transition-all flex justify-center items-center gap-2 shadow-xl hover:shadow-slate-900/30 hover:-translate-y-1">
                 Start Learning Now <ArrowRight size={18} />
               </button>
-              <button onClick={() => scrollToSection('training')} className="w-full sm:w-auto h-14 min-h-[56px] px-8 bg-white border border-slate-200 text-slate-700 rounded-full font-bold text-sm uppercase tracking-widest hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50 transition-all">
+              <button onClick={() => scrollToSection('training')} className="w-full sm:w-auto h-14 min-h-14 px-8 bg-white border border-slate-200 text-slate-700 rounded-full font-bold text-sm uppercase tracking-widest hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50 transition-all">
                 Explore Platform
               </button>
             </div>
@@ -201,8 +201,8 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
 
           {/* Right Column: Visual Mockup (LMS DASHBOARD) */}
           {showDesktopVisual && (
-          <div className="hidden lg:block relative h-full min-h-[500px] perspective-[2000px]">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-indigo-100/50 to-slate-100/50 rounded-full blur-3xl -z-10 animate-pulse"></div>
+          <div className="hidden lg:block relative h-full min-h-125 perspective-[2000px]">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-linear-to-tr from-indigo-100/50 to-slate-100/50 rounded-full blur-3xl -z-10 animate-pulse"></div>
 
             {/* 3D Container */}
             <div className="absolute top-12 left-10 right-10 bg-[#1e293b] backdrop-blur-xl border border-slate-700 shadow-2xl rounded-3xl overflow-hidden transform rotate-y-[-10deg] rotate-x-[5deg] hover:rotate-0 transition-transform duration-700 ease-out z-10 font-sans">
@@ -210,7 +210,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
               {/* LMS Header */}
               <div className="flex items-center justify-between px-6 py-4 bg-[#0f172a] border-b border-slate-700">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-bold text-sm shadow-lg">
                     <BookOpen size={18} />
                   </div>
                   <div>
@@ -223,13 +223,13 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> 65% Completed
                   </div>
                   <div className="w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <div className="w-[65%] h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]"></div>
+                    <div className="w-[65%] h-full bg-linear-to-r from-green-400 to-green-600 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]"></div>
                   </div>
                 </div>
               </div>
 
               {/* LMS Body: Course Player UI */}
-              <div className="flex h-[320px] bg-[#1e293b]">
+              <div className="flex h-80 bg-[#1e293b]">
                 {/* Sidebar (Modules) */}
                 <div className="w-[35%] border-r border-slate-700/50 p-4 space-y-2 hidden sm:block overflow-y-auto custom-scrollbar">
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3 px-2">Course Content</div>
@@ -251,7 +251,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
                   {/* Video Screen */}
                   <div className="flex-1 bg-slate-900 rounded-xl relative overflow-hidden group cursor-pointer border border-slate-700/50 shadow-2xl">
                     {/* Abstract Video Content */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-linear-to-br from-slate-800 to-slate-900 flex items-center justify-center">
                       <div className="w-full h-full opacity-20" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
 
                       {/* Play Button */}
@@ -261,7 +261,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
                     </div>
 
                     {/* Video Controls Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/80 to-transparent">
                       <div className="flex justify-between text-[10px] text-slate-300 font-mono mb-2">
                         <span>14:20</span>
                         <span>45:00</span>
@@ -312,7 +312,7 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
             {/* Floating Card 3: Mentor (Bottom Right) */}
             <div className="absolute bottom-12 -right-4 bg-white p-3 pr-6 rounded-2xl shadow-xl flex items-center gap-3 z-30 animate-[bounce_5s_infinite] border border-slate-100">
                 <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 overflow-hidden border-2 border-white shadow-sm flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-slate-700 to-slate-900 overflow-hidden border-2 border-white shadow-sm flex items-center justify-center text-white text-xs font-bold">
                   AC
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border-2 border-white">
@@ -486,9 +486,9 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
           {/* Column 1: Brand & Socials (Span 5) */}
           <div className="lg:col-span-5">
             <div className="mb-6">
-              <BrandLogo titleColor="!text-white" subtitleColor="!text-[#94a3b8]" />
+              <BrandLogo titleColor="text-white!" subtitleColor="text-[#94a3b8]!" />
             </div>
-            <p className="!text-[#94a3b8] text-sm leading-relaxed mb-8 max-w-sm">
+            <p className="text-[#94a3b8]! text-sm leading-relaxed mb-8 max-w-sm">
               Transform your learning process with our powerful platform. Create professional training paths, track progress, and certify skills faster with Shnoor International.
             </p>
             {/* Social Icons */}
@@ -502,18 +502,18 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
 
           {/* Column 2: Quick Links (Span 3) */}
           <div className="lg:col-span-3">
-            <h4 className="font-bold !text-white mb-6 text-lg">Quick Links</h4>
+            <h4 className="font-bold text-white! mb-6 text-lg">Quick Links</h4>
             <ul className="space-y-4 text-sm">
-              <li><button onClick={() => scrollToSection('home')} className="!text-[#94a3b8] hover:!text-white transition-colors">Home</button></li>
-              <li><button onClick={() => scrollToSection('training')} className="!text-[#94a3b8] hover:!text-white transition-colors">Training</button></li>
-              <li><button onClick={onContact} className="!text-[#94a3b8] hover:!text-white transition-colors">Contact Us</button></li>
+              <li><button onClick={() => scrollToSection('home')} className="text-[#94a3b8]! hover:text-white! transition-colors">Home</button></li>
+              <li><button onClick={() => scrollToSection('training')} className="text-[#94a3b8]! hover:text-white! transition-colors">Training</button></li>
+              <li><button onClick={onContact} className="text-[#94a3b8]! hover:text-white! transition-colors">Contact Us</button></li>
             </ul>
           </div>
 
           {/* Column 3: Contact & Support (Span 4) */}
           <div className="lg:col-span-4">
-            <h4 className="font-bold !text-white mb-6 text-lg">Contact & Support</h4>
-            <ul className="space-y-6 text-sm !text-[#94a3b8]">
+            <h4 className="font-bold text-white! mb-6 text-lg">Contact & Support</h4>
+            <ul className="space-y-6 text-sm text-[#94a3b8]!">
               {/* Emails */}
               <li className="flex items-start gap-3">
                 <Mail size={18} className="shrink-0 text-indigo-400 mt-1" />
@@ -551,10 +551,10 @@ const LandingView = ({ onLogin, onRegister, onContact }) => {
         <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[#64748b] text-center md:text-left">
           <div>© 2026 Shnoor International. All rights reserved.</div>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-            <Link to="/privacy-policy" className="hover:!text-[#cbd5e1] !text-[#64748b] py-2 whitespace-nowrap">Privacy Policy</Link>
-            <Link to="/terms-and-conditions" className="hover:!text-[#cbd5e1] !text-[#64748b] py-2 whitespace-nowrap">Terms & Conditions</Link>
-            <Link to="/cookie-policy" className="hover:!text-[#cbd5e1] !text-[#64748b] py-2 whitespace-nowrap">Cookie Policy</Link>
-            <a href="/Company profile..pdf" download className="hover:!text-[#cbd5e1] !text-[#64748b] py-2 whitespace-nowrap">Company Profile</a>
+            <Link to="/privacy-policy" className="hover:text-[#cbd5e1]! text-[#64748b]! py-2 whitespace-nowrap">Privacy Policy</Link>
+            <Link to="/terms-and-conditions" className="hover:text-[#cbd5e1]! text-[#64748b]! py-2 whitespace-nowrap">Terms & Conditions</Link>
+            <Link to="/cookie-policy" className="hover:text-[#cbd5e1]! text-[#64748b]! py-2 whitespace-nowrap">Cookie Policy</Link>
+            <a href="/Company profile..pdf" download className="hover:text-[#cbd5e1]! text-[#64748b]! py-2 whitespace-nowrap">Company Profile</a>
           </div>
         </div>
       </footer>

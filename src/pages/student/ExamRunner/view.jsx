@@ -440,7 +440,7 @@ const ExamRunnerView = ({
     >
       {/* ── Proctoring violation banners (non-blocking) ── */}
       {(isSuspicious || multipleFacesDetected || noFaceDetected) && (
-        <div className="fixed top-16 left-0 right-0 z-[10000] flex flex-col gap-1.5 px-4 pt-2 pointer-events-none">
+        <div className="fixed top-16 left-0 right-0 flex flex-col gap-1.5 px-4 pt-2 pointer-events-none" style={{ zIndex: 10000 }}>
           {isSuspicious && !multipleFacesDetected && (
             <div className="flex items-center gap-3 px-5 py-3 bg-rose-600 text-white rounded-xl shadow-xl text-sm font-bold animate-pulse">
               <FaExclamationTriangle size={16} />

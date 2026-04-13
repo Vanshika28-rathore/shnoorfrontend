@@ -28,7 +28,7 @@ const ManageUsersView = ({
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[500px]">
+    <div className="flex items-center justify-center min-h-125">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
         <p className="text-slate-400 font-medium text-sm">Loading users...</p>
@@ -37,7 +37,7 @@ const ManageUsersView = ({
   );
 
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
       {/* GRADIENT HEADER */}
       <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -50,20 +50,20 @@ const ManageUsersView = ({
               <p className="text-slate-400 text-sm mt-0.5">Search, filter, and manage all platform users.</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input type="text" placeholder="Search users..." value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10 pr-4 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-sm text-white w-56 focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400/50 focus:bg-white/15 transition-all placeholder:text-slate-400" />
+                className="pl-10 pr-4 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-sm text-white w-full sm:w-56 focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400/50 focus:bg-white/15 transition-all placeholder:text-slate-400" />
             </div>
             <button onClick={handleSearch}
-              className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm font-semibold text-white hover:bg-white/20 transition-all">
+              className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm font-semibold text-white hover:bg-white/20 transition-all w-full sm:w-auto">
               Search
             </button>
             <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}
-              className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white font-medium focus:ring-2 focus:ring-indigo-400/30 transition-all cursor-pointer [&>option]:text-slate-900 [&>option]:bg-white">
+              className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white font-medium focus:ring-2 focus:ring-indigo-400/30 transition-all cursor-pointer [&>option]:text-slate-900 [&>option]:bg-white w-full sm:w-auto">
               <option value="all">All Roles</option>
               <option value="student">Students</option>
               <option value="manager">Managers</option>
@@ -77,7 +77,7 @@ const ManageUsersView = ({
 
       {/* TABLE */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex-1 overflow-hidden flex flex-col">
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10">
               <tr>

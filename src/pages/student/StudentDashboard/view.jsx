@@ -126,7 +126,7 @@ const StudentDashboardView = ({
     };
 
     return (
-        <div className="space-y-6 font-sans max-w-[1440px] mx-auto relative z-0">
+        <div className="space-y-6 font-sans max-w-360 mx-auto relative z-0">
 
             {/* WELCOME BANNER */}
             <div className="relative rounded-2xl p-4 sm:p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>

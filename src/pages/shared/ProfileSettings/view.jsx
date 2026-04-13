@@ -21,7 +21,7 @@ const ProfileSettingsView = ({
 }) => {
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-500 font-medium">Loading profile...</p>
@@ -30,7 +30,7 @@ const ProfileSettingsView = ({
     );
 
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
       {/* GRADIENT HEADER */}
       <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
         <div className="relative z-10 flex items-center gap-4">
@@ -115,7 +115,7 @@ const ProfileSettingsView = ({
                 value={userData.displayName}
                 onChange={handleChange}
                 placeholder="Enter User name"
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 outline-none transition-all font-medium"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-medium"
               />
             </div>
 

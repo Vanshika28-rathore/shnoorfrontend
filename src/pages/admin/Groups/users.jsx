@@ -105,7 +105,14 @@ const GroupUsers = () => {
   };
 
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-125">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+          <p className="text-slate-400 font-medium text-sm">Loading group members...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!group) {
@@ -119,49 +126,50 @@ const GroupUsers = () => {
   const memberLabelPlural = memberType === "student" ? "Students" : "Instructors";
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{group.group_name}</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Type:{" "}
-            <span className="font-semibold">
-              {groupType === "manual" && "Manual Selection"}
-              {groupType === "timestamp" && "Timestamp-based"}
-              {groupType === "college" && "College-based"}
-            </span>
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)" }}>
+        <div className="relative z-10">
+          <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">{group.group_name}</h1>
+          <p className="text-slate-400 text-sm mt-0.5">
+            Manage members for this group.
           </p>
+          <div className="mt-3 inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-indigo-200 bg-indigo-50 text-indigo-600">
+            {groupType === "manual" && "Manual Selection"}
+            {groupType === "timestamp" && "Timestamp-based"}
+            {groupType === "college" && "College-based"}
+          </div>
         </div>
+        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full" style={{ background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)" }} />
       </div>
 
-      {error && <div className="text-red-600 mb-2 p-3 bg-red-50 rounded">{error}</div>}
+      {error && <div className="text-red-700 mb-2 p-3 bg-red-50 border border-red-100 rounded-xl">{error}</div>}
 
-      <div className="mb-4 inline-flex rounded-lg border border-slate-200 overflow-hidden">
+      <div className="inline-flex rounded-xl border border-slate-200 overflow-hidden bg-white w-fit">
         <button
           type="button"
           onClick={() => setMemberType("student")}
-          className={`px-4 py-2 text-sm font-semibold ${memberType === "student" ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 py-2.5 text-sm font-semibold ${memberType === "student" ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
         >
           Students
         </button>
         <button
           type="button"
           onClick={() => setMemberType("instructor")}
-          className={`px-4 py-2 text-sm font-semibold ${memberType === "instructor" ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 py-2.5 text-sm font-semibold ${memberType === "instructor" ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
         >
           Instructors
         </button>
       </div>
 
       {groupType === "college" && memberType === "student" && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded mb-4 text-sm text-green-800">
+        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl mb-4 text-sm text-emerald-800">
           <p className="font-semibold mb-2">College-based Group</p>
           <p>Students with "{group.group_name}" in their college profile are automatically included. You can also manually add/remove students below.</p>
         </div>
       )}
 
       {groupType === "timestamp" && memberType === "student" && (
-        <div className="p-4 bg-purple-50 border border-purple-200 rounded mb-4 text-sm text-purple-800">
+        <div className="p-4 bg-violet-50 border border-violet-100 rounded-xl mb-4 text-sm text-violet-800">
           <p className="font-semibold mb-2">Timestamp Group</p>
           <p>
             Date Range: {new Date(group.start_date).toLocaleDateString()} - {new Date(group.end_date).toLocaleDateString()}
@@ -174,23 +182,23 @@ const GroupUsers = () => {
 
       {canManageMembers ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white border rounded">
-            <div className="p-4 border-b font-medium">
+          <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+            <div className="p-4 border-b border-slate-100 font-medium text-slate-800 bg-slate-50/60">
               {memberLabelPlural} in Group ({users.length})
             </div>
             <div className="max-h-96 overflow-y-auto">
               {users.length === 0 ? (
-                <div className="p-4 text-gray-500">No {memberType}s assigned to this group yet.</div>
+                <div className="p-4 text-slate-500">No {memberType}s assigned to this group yet.</div>
               ) : (
                 users.map((u) => (
-                  <div key={u.user_id} className="p-4 border-b flex justify-between items-start">
+                  <div key={u.user_id} className="p-4 border-b border-slate-100 flex justify-between items-start gap-3">
                     <div>
-                      <span className="font-medium">{u.full_name}</span>
+                      <span className="font-medium text-slate-800">{u.full_name}</span>
                       <span className="text-slate-500 ml-2">{u.email}</span>
                       {(u.start_date || u.end_date) && (
                         <div className="text-sm text-slate-600 mt-1">
                           {u.start_date && <span>Start: {new Date(u.start_date).toLocaleString()}</span>}
-                          {u.start_date && u.end_date && <span> � </span>}
+                          {u.start_date && u.end_date && <span> - </span>}
                           {u.end_date && <span>End: {new Date(u.end_date).toLocaleString()}</span>}
                         </div>
                       )}
@@ -198,7 +206,7 @@ const GroupUsers = () => {
                     <button
                       onClick={() => handleToggle(u.user_id, true)}
                       disabled={processing === u.user_id}
-                      className="px-2 py-1 bg-red-600 text-white rounded disabled:opacity-50 hover:bg-red-700 text-xs"
+                      className="px-2.5 py-1.5 bg-red-600 text-white rounded-lg disabled:opacity-50 hover:bg-red-700 text-xs"
                     >
                       {processing === u.user_id ? "Removing..." : "Remove"}
                     </button>
@@ -208,25 +216,25 @@ const GroupUsers = () => {
             </div>
           </div>
 
-          <div className="bg-white border rounded">
-            <div className="p-4 border-b font-medium">All Active {memberLabelPlural}</div>
+          <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+            <div className="p-4 border-b border-slate-100 font-medium text-slate-800 bg-slate-50/60">All Active {memberLabelPlural}</div>
             <div className="max-h-96 overflow-y-auto">
               {eligibleMembers.length === 0 ? (
-                <div className="p-4 text-gray-500">No {memberType}s available.</div>
+                <div className="p-4 text-slate-500">No {memberType}s available.</div>
               ) : (
                 eligibleMembers.map((m) => {
                   const isInGroup = users.some((u) => u.user_id === m.user_id);
                   return (
-                    <div key={m.user_id} className="p-4 border-b flex justify-between items-center">
+                    <div key={m.user_id} className="p-4 border-b border-slate-100 flex justify-between items-center gap-3">
                       <div>
-                        <span className="font-medium">{m.full_name}</span>
+                        <span className="font-medium text-slate-800">{m.full_name}</span>
                         <span className="text-slate-500 ml-2 text-sm">{m.email}</span>
                       </div>
                       {!isInGroup ? (
                         <button
                           onClick={() => handleToggle(m.user_id, false)}
                           disabled={processing === m.user_id}
-                          className="px-2 py-1 bg-blue-600 text-white rounded disabled:opacity-50 hover:bg-blue-700 text-xs"
+                          className="px-2.5 py-1.5 bg-indigo-600 text-white rounded-lg disabled:opacity-50 hover:bg-indigo-700 text-xs"
                         >
                           {processing === m.user_id ? "Adding..." : "Add"}
                         </button>
@@ -243,14 +251,14 @@ const GroupUsers = () => {
       ) : null}
 
       {showAddModal && selectedMember && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-2xl border border-slate-100">
             <h3 className="text-lg font-semibold mb-4">Add {memberLabel} to Group</h3>
             <div className="mb-4">
-              <p className="font-medium">{selectedMember.full_name}</p>
+              <p className="font-medium text-slate-800">{selectedMember.full_name}</p>
               <p className="text-slate-500">{selectedMember.email}</p>
               {selectedMember.role === "student" && (
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-slate-600 mt-2">
                   Registration Date: {new Date(selectedMember.created_at).toLocaleDateString()}
                 </p>
               )}
@@ -263,7 +271,7 @@ const GroupUsers = () => {
             )}
 
             {groupType === "timestamp" && selectedMember.role === "student" && (
-              <div className="p-3 mb-4 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+              <div className="p-3 mb-4 bg-indigo-50 border border-indigo-100 rounded-xl text-sm text-indigo-800">
                 This student's registration date will be validated against the group's date range.
               </div>
             )}
@@ -271,14 +279,14 @@ const GroupUsers = () => {
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddMember}
                 disabled={processing === selectedMember.user_id}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
               >
                 {processing === selectedMember.user_id ? "Adding..." : `Add ${memberLabel}`}
               </button>

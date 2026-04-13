@@ -101,8 +101,8 @@
 
 //   if (loading) {
 //     return (
-//       <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
-//         <div className="flex items-center justify-center min-h-[400px]">
+//       <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6 p-4 md:p-0">
+//         <div className="flex items-center justify-center min-h-100">
 //           <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
 //         </div>
 //       </div>
@@ -111,7 +111,7 @@
 
 //   if (error) {
 //     return (
-//       <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+//       <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6 p-4 md:p-0">
 //         <div className="text-center py-16 px-4 text-red-600">
 //           {error}
 //         </div>
@@ -121,7 +121,7 @@
 
 //   if (groups.length === 0) {
 //     return (
-//       <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+//       <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6 p-4 md:p-0">
 //         <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
 //           <div className="relative z-10 flex items-center gap-4">
 //             <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
@@ -149,7 +149,7 @@
 
 //   return (
 
-//     <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+//     <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6 p-4 md:p-0">
 
 //       <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
 //         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -32,7 +32,7 @@ const AdminDashboardView = ({
     const [searchQuery, setSearchQuery] = useState('');
 
     if (loading) return (
-        <div className="flex items-center justify-center min-h-[500px]">
+        <div className="flex items-center justify-center min-h-125">
             <div className="flex flex-col items-center gap-4">
                 <div className="relative">
                     <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -138,13 +138,13 @@ const AdminDashboardView = ({
     };
 
     return (
-        <div className="space-y-6 font-sans max-w-[1440px] mx-auto p-4 md:p-0">
+        <div className="space-y-6 font-sans max-w-360 mx-auto p-4 md:p-0">
 
             {/* ── WELCOME BANNER ── */}
             <div className="relative rounded-2xl p-5 md:p-7 lg:p-9 shadow-2xl overflow-hidden" style={{ background: 'linear-gradient(90deg, #0F172A 0%, #1E293B 50%, #312E81 100%)' }}>
                 {/* Decorative glows - behind content */}
-                <div className="absolute right-0 top-0 w-[300px] md:w-[400px] h-[300px] md:h-[400px] rounded-full -z-10" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }}></div>
-                <div className="absolute -left-10 md:-left-20 -bottom-10 md:-bottom-20 w-[200px] md:w-[300px] h-[200px] md:h-[300px] rounded-full -z-10" style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%)' }}></div>
+                <div className="absolute right-0 top-0 w-75 md:w-100 h-75 md:h-100 rounded-full -z-10" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }}></div>
+                <div className="absolute -left-10 md:-left-20 -bottom-10 md:-bottom-20 w-50 md:w-75 h-50 md:h-75 rounded-full -z-10" style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%)' }}></div>
                 
                 <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="relative z-10">
@@ -178,7 +178,7 @@ const AdminDashboardView = ({
                         {/* Search Dropdown */}
                         {isSearchExpanded && searchQuery && (
                             <div
-                                className="absolute top-full right-0 mt-2 w-full sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-96 overflow-y-auto overscroll-contain z-[60]"
+                                className="absolute top-full right-0 mt-2 w-full sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-96 overflow-y-auto overscroll-contain z-60"
                                 onWheel={(e) => e.stopPropagation()}
                                 onTouchMove={(e) => e.stopPropagation()}
                                 style={{ touchAction: 'pan-y' }}
@@ -191,9 +191,9 @@ const AdminDashboardView = ({
                                             <div key={result.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer">
                                                 <div className="flex items-start gap-3">
                                                     {result.thumbnail_url ? (
-                                                        <img src={result.thumbnail_url} alt={result.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                                                        <img src={result.thumbnail_url} alt={result.title} className="w-12 h-12 rounded-lg object-cover shrink-0" />
                                                     ) : (
-                                                        <div className="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                                                        <div className="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
                                                             <BookOpen className="text-indigo-600" size={20} />
                                                         </div>
                                                     )}
@@ -231,7 +231,7 @@ const AdminDashboardView = ({
             {/* ── STAT CARDS WITH SPARKLINES (DOUBLE SHADE) ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 {statCards.map((card, i) => (
-                    <div key={i} className="bg-[#181F4D] rounded-[12px] p-6 border border-white/5 shadow-md hover:brightness-110 transition-all duration-300 group">
+                    <div key={i} className="bg-[#181F4D] rounded-xl p-6 border border-white/5 shadow-md hover:brightness-110 transition-all duration-300 group">
                         <div className="flex items-start justify-between mb-5">
                             <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: card.bg }}>
                                 <card.icon size={26} style={{ color: card.iconColor }} />
@@ -273,7 +273,7 @@ const AdminDashboardView = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
                 {/* Chart - 5 cols */}
-                <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[400px]">
+                <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-100">
                     <div className="flex justify-between items-center px-6 py-4 border-b border-slate-50">
                         <div>
                             <h3 className="text-sm font-bold text-primary-900 uppercase tracking-wide">Learning Activity</h3>
@@ -314,7 +314,7 @@ const AdminDashboardView = ({
                 </div>
 
                 {/* Recent Activity - 4 cols */}
-                <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[400px]">
+                <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-100">
                     <div className="flex justify-between items-center px-6 py-4 border-b border-slate-50">
                         <div>
                             <h3 className="text-sm font-bold text-primary-900 uppercase tracking-wide">Recent Activity</h3>
@@ -325,7 +325,7 @@ const AdminDashboardView = ({
                     <div className="flex-1 overflow-y-auto px-4 py-3">
                         {displayActivity.length > 0 ? displayActivity.map((item, i) => (
                             <div key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-default">
-                                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
                                     style={{ background: `${item.color}12` }}>
                                     <item.icon size={16} style={{ color: item.color }} />
                                 </div>
@@ -347,7 +347,7 @@ const AdminDashboardView = ({
                 </div>
 
                 {/* Download Analytics - 3 cols */}
-                <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[400px]">
+                <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-100">
                     <div className="px-5 py-4 border-b border-slate-50">
                         <h3 className="text-sm font-bold text-primary-900 uppercase tracking-wide">Reports</h3>
                         <p className="text-xs text-slate-400 mt-0.5">Export & filter data</p>

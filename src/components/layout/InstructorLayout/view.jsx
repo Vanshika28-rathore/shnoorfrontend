@@ -34,69 +34,19 @@ const InstructorLayoutView = ({
     const isActive = location.pathname.includes(path);
     return (
       <li
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          padding: "10px 16px",
-          borderRadius: "10px",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-          marginBottom: "2px",
-          background: isActive ? "rgba(255,255,255,0.12)" : "transparent",
-          color: isActive ? "#fff" : "rgba(255,255,255,0.65)",
-          fontWeight: isActive ? 600 : 500,
-          fontSize: "14px",
-          position: "relative",
-        }}
+        className={`relative mb-0.5 flex cursor-pointer items-center gap-3 rounded-[10px] px-4 py-2.5 text-sm transition-all ${isActive
+          ? "bg-white/10 text-white font-semibold"
+          : "text-white/65 font-medium hover:bg-white/10 hover:text-white"
+          }`}
         onClick={() => handleNavigate(path ? `/instructor/${path}` : "#")}
-        onMouseEnter={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-            e.currentTarget.style.color = "#fff";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "rgba(255,255,255,0.65)";
-          }
-        }}
       >
         {isActive && (
-          <div
-            style={{
-              position: "absolute",
-              left: "-16px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "3px",
-              height: "24px",
-              borderRadius: "0 4px 4px 0",
-              background: "#818cf8",
-            }}
-          />
+          <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r bg-indigo-400" />
         )}
-        <Icon
-          size={18}
-          style={{
-            color: isActive ? "#818cf8" : "rgba(255,255,255,0.45)",
-            transition: "color 0.2s",
-            flexShrink: 0,
-          }}
-        />
-        <span style={{ flex: 1 }}>{label}</span>
+        <Icon size={18} className={isActive ? "shrink-0 text-indigo-400" : "shrink-0 text-white/45"} />
+        <span className="flex-1 tracking-tight">{label}</span>
         {badgeCount > 0 && (
-          <span
-            style={{
-              background: "#ef4444",
-              color: "#fff",
-              fontSize: "11px",
-              fontWeight: 700,
-              padding: "2px 8px",
-              borderRadius: "10px",
-            }}
-          >
+          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-bold text-white">
             {badgeCount}
           </span>
         )}
@@ -105,34 +55,13 @@ const InstructorLayoutView = ({
   };
 
   const SectionHeader = ({ title }) => (
-    <li
-      style={{
-        listStyle: "none",
-        padding: "0 8px",
-        marginTop: "24px",
-        marginBottom: "10px",
-      }}
-    >
-      <h3
-        style={{
-          fontSize: "10px",
-          fontWeight: 700,
-          color: "rgba(255,255,255,0.3)",
-          textTransform: "uppercase",
-          letterSpacing: "2px",
-          margin: 0,
-        }}
-      >
-        {title}
-      </h3>
+    <li className="mb-2.5 mt-6 list-none px-2">
+      <h3 className="m-0 text-[10px] font-bold uppercase tracking-[2px] text-white/30">{title}</h3>
     </li>
   );
 
   return (
-    <div
-      className="flex min-h-screen font-sans"
-      style={{ background: "#D8E2EB" }}
-    >
+    <div className="flex min-h-screen bg-slate-200 font-sans">
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 lg:hidden"
@@ -144,63 +73,27 @@ const InstructorLayoutView = ({
       <div
         className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
                 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
-        style={{
-          width: "260px",
-          background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
-          display: "flex",
-          flexDirection: "column",
-          flexShrink: 0,
-          borderRight: "1px solid rgba(255,255,255,0.05)",
-        }}
+        style={{ width: "260px" }}
       >
+        <div className="flex h-full shrink-0 flex-col border-r border-white/10 bg-linear-to-b from-slate-900 to-slate-800">
         {/* Logo */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            padding: "24px 20px",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
+        <div className="flex items-center gap-3 border-b border-white/10 px-5 py-6">
           <img
             src={markLogo}
             alt="SHNOOR"
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "10px",
-              objectFit: "cover",
-            }}
+            className="h-10 w-10 rounded-[10px] object-cover"
           />
           <div>
-            <div
-              style={{
-                fontSize: "16px",
-                fontWeight: 700,
-                color: "#fff",
-                letterSpacing: "-0.3px",
-              }}
-            >
-              SHNOOR
-            </div>
-            <div
-              style={{
-                fontSize: "10px",
-                fontWeight: 600,
-                color: "rgba(255,255,255,0.4)",
-                textTransform: "uppercase",
-                letterSpacing: "2px",
-              }}
-            >
+            <div className="text-base font-bold tracking-tight text-white">SHNOOR</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[2px] text-white/40">
               International LLC
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "8px 16px" }}>
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        <div className="flex-1 overflow-y-auto px-4 py-2">
+          <ul className="m-0 list-none p-0">
             <SectionHeader title="Academic Ops" />
             <NavItem path="dashboard" icon={LayoutGrid} label="Dashboard" />
             <NavItem path="add-course" icon={Upload} label="Add Course" />
@@ -223,144 +116,49 @@ const InstructorLayoutView = ({
             <NavItem path="settings" icon={Settings} label="Settings" />
           </ul>
         </div>
+        </div>
       </div>
 
       {/* MAIN CONTENT */}
       <div
-        className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarOpen ? "lg:ml-[260px]" : "ml-0"}`}
+        className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarOpen ? "lg:ml-65" : "ml-0"}`}
         style={{ background: "#D8E2EB" }}
       >
         {/* Header */}
-        <header
-          className="px-3 sm:px-5 md:px-8"
-          style={{
-            background: "#fff",
-            borderBottom: "1px solid #e2e8f0",
-            height: "64px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            position: "sticky",
-            top: 0,
-            zIndex: 100,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <header className="sticky top-0 z-100 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-3 shadow-sm sm:px-5 md:px-8">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              style={{
-                padding: "8px",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "#64748b",
-                borderRadius: "8px",
-                display: "flex",
-              }}
-              className="hover:bg-slate-100 transition-colors"
+              className="flex rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100"
             >
               <Menu size={22} />
             </button>
-            <h2
-              className="hidden sm:block"
-              style={{
-                fontSize: "18px",
-                fontWeight: 600,
-                color: "#0f172a",
-                margin: 0,
-              }}
-            >
-              Instructor Portal
-            </h2>
+            <h2 className="hidden text-lg font-semibold text-slate-900 sm:block">Instructor Portal</h2>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                paddingLeft: "16px",
-                borderLeft: "1px solid #e2e8f0",
-              }}
-            >
-              <div className="hidden md:block" style={{ textAlign: "right" }}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    color: "#0f172a",
-                  }}
-                >
-                  {InstructorName}
-                </div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "#64748b",
-                    fontWeight: 500,
-                  }}
-                >
-                  Instructor
-                </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
+              <div className="hidden text-right md:block">
+                <div className="text-sm font-semibold text-slate-900">{InstructorName}</div>
+                <div className="text-[11px] font-medium text-slate-500">Instructor</div>
               </div>
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  background: "#f1f5f9",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "1px solid #e2e8f0",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                }}
-              >
+
+              <div className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100">
                 {photoURL ? (
                   <img
                     src={photoURL}
                     alt="Profile"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
+                    className="h-full w-full object-cover"
                   />
                 ) : (
-                  <UserCircle
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      padding: "4px",
-                      color: "#94a3b8",
-                    }}
-                  />
+                  <UserCircle className="h-full w-full p-1 text-slate-400" />
                 )}
               </div>
+
               <button
                 onClick={handleLogout}
                 title="Logout"
-                style={{
-                  padding: "8px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#94a3b8",
-                  borderRadius: "8px",
-                  display: "flex",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "#64748b";
-                  e.currentTarget.style.background = "#f1f5f9";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "#94a3b8";
-                  e.currentTarget.style.background = "none";
-                }}
+                className="flex rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-500"
               >
                 <LogOut size={18} />
               </button>
@@ -368,11 +166,8 @@ const InstructorLayoutView = ({
           </div>
         </header>
 
-        <main
-          className="p-4 md:p-8"
-          style={{ flex: 1, overflow: "auto", background: "#D8E2EB" }}
-        >
-          <div style={{ width: "100%", minWidth: 0 }}>
+        <main className="flex-1 overflow-auto bg-slate-200 p-4 md:p-8">
+          <div className="w-full min-w-0">
             <Outlet />
           </div>
         </main>

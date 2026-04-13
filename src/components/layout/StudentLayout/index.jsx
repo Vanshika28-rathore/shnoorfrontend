@@ -31,7 +31,9 @@ const StudentLayout = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      // Keep current desktop state, same pattern as admin layout.
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false);
+      }
     };
 
     window.addEventListener("resize", handleResize);

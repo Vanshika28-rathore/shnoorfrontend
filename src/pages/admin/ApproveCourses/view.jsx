@@ -38,7 +38,7 @@ const ApproveCoursesView = ({
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[500px]">
+    <div className="flex items-center justify-center min-h-125">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
         <p className="text-slate-400 font-medium text-sm">Loading courses queue...</p>
@@ -47,7 +47,7 @@ const ApproveCoursesView = ({
   );
 
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 relative">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6 relative">
       {/* GRADIENT HEADER */}
       <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -72,7 +72,7 @@ const ApproveCoursesView = ({
       <div className={`flex flex-1 gap-5 overflow-hidden ${selectedCourse ? "grid grid-cols-1 lg:grid-cols-[1fr_480px]" : ""}`}>
         {/* TABLE */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col transition-all duration-300">
-          <div className="overflow-y-auto flex-1">
+          <div className="overflow-auto flex-1">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10">
                 <tr>
@@ -132,7 +132,7 @@ const ApproveCoursesView = ({
               <div className="w-full">
                 <div className="flex justify-between items-start mb-2">
                   {isEditing ? (
-                    <input type="text" className="text-lg font-bold text-primary-900 border border-slate-200 rounded-xl px-3 py-1.5 w-full mr-2 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                    <input type="text" className="text-sm font-bold text-primary-900 border border-slate-200 rounded-xl px-3 py-1.5 w-full mr-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
                       value={editData.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} />
                   ) : (
                     <h3 className="text-lg font-bold text-primary-900 leading-tight tracking-tight">{selectedCourse.title}</h3>
@@ -224,7 +224,7 @@ const ApproveCoursesView = ({
 
       {/* Preview Modal */}
       {previewModuleId && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-100 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">
             <div className="h-12 border-b border-slate-100 flex items-center justify-between px-6 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
               <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Content Preview</span>
@@ -249,7 +249,7 @@ const ApproveCoursesView = ({
 
       {/* Feedback Modal */}
       {showFeedbackModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-110 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
             <div className="p-6 border-b border-slate-100">
               <h3 className="text-lg font-bold text-primary-900">{actionType === "approved" ? "Approve Course" : "Reject Course"}</h3>
@@ -261,7 +261,7 @@ const ApproveCoursesView = ({
               <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Feedback / Notes {actionType === "rejected" && <span className="text-red-500">*</span>}
               </label>
-              <textarea className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 min-h-[120px] text-sm font-medium transition-all placeholder:text-slate-300"
+              <textarea className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 min-h-30 text-sm font-medium transition-all placeholder:text-slate-300"
                 placeholder={actionType === "approved" ? "Optional: Add a note..." : "Required: Explain why..."}
                 value={feedback} onChange={(e) => setFeedback(e.target.value)} />
             </div>

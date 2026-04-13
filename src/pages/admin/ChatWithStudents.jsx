@@ -517,7 +517,7 @@ const ChatWithStudents = () => {
         onClick={() => handleSelectChat(chat)}
         className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 border-b transition-colors ${isActive ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
       >
-        <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+        <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
           <span className="text-indigo-600 font-bold text-sm">
             {chat.name?.charAt(0).toUpperCase() || 'G'}
           </span>
@@ -648,7 +648,7 @@ const ChatWithStudents = () => {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6">
       {/* GRADIENT HEADER */}
       <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' }}>
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -699,9 +699,9 @@ const ChatWithStudents = () => {
 
       {/* MAIN CHAT LAYOUT */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex-1 overflow-hidden">
-        <div className="flex flex-col md:flex-row h-full min-h-[500px]">
+        <div className="flex flex-col md:flex-row h-full min-h-125">
           {/* Sidebar */}
-          <div className="w-full md:w-80 flex-shrink-0 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col">
+          <div className={`w-full md:w-80 shrink-0 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col ${activeChat ? 'hidden md:flex' : 'flex'}`}>
             {showSearchPanel ? (
               <div className="flex-1 overflow-y-auto">
                 {loadingSearch ? (
@@ -712,16 +712,16 @@ const ChatWithStudents = () => {
                   <>
                     {groupResults.length > 0 && (
                       <div>
-                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b">
+                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b border-slate-100">
                           Groups
                         </div>
                         {groupResults.map(group => (
                           <div
                             key={group.id}
                             onClick={() => handleSearchResultClick(group.id)}
-                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 border-b transition-colors ${activeChat?.id === group.id ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
+                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors ${activeChat?.id === group.id ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
                           >
-                            <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                            <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
                               <span className="text-indigo-600 font-bold text-sm">
                                 {group.name?.charAt(0).toUpperCase()}
                               </span>
@@ -737,14 +737,14 @@ const ChatWithStudents = () => {
 
                     {searchResults.length > 0 && (
                       <div>
-                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b">
+                        <div className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b border-slate-100">
                           Messages
                         </div>
                         {searchResults.map((result, idx) => (
                           <button
                             key={idx}
                             onClick={() => handleSearchResultClick(result.chat_id)}
-                            className="w-full p-4 border-b hover:bg-slate-50 transition-colors text-left"
+                            className="w-full p-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors text-left"
                           >
                             <div className="font-semibold text-slate-700 text-sm mb-1">{result.chat_name}</div>
                             <div className="text-slate-500 text-sm line-clamp-2">{result.text || '(No text)'}</div>
@@ -786,34 +786,36 @@ const ChatWithStudents = () => {
           </div>
 
           {/* Chat Window */}
-          <ChatWindow
-            socket={socket}
-            activeChat={activeChat}
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            loadingMessages={loadingMessages}
-            onClose={() => setActiveChat(null)}
-            isAdmin={true}
-            currentUser={dbUser}
-          />
+          <div className={`flex-1 min-w-0 ${activeChat ? 'flex' : 'hidden md:flex'}`}>
+            <ChatWindow
+              socket={socket}
+              activeChat={activeChat}
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              loadingMessages={loadingMessages}
+              onClose={() => setActiveChat(null)}
+              isAdmin={true}
+              currentUser={dbUser}
+            />
+          </div>
         </div>
       </div>
 
     {/* ── Create Group Modal ── */}
     {showGroupModal && (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b px-6 py-5 flex items-center justify-between z-10">
-            <h3 className="text-xl font-bold text-gray-900">Create New Group</h3>
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-5 flex items-center justify-between z-10">
+            <h3 className="text-xl font-bold text-slate-900">Create New Group</h3>
             <button onClick={() => setShowGroupModal(false)}>
-              <X size={24} className="text-gray-600 hover:text-gray-800" />
+              <X size={24} className="text-slate-500 hover:text-slate-700" />
             </button>
           </div>
 
           <div className="p-6 space-y-6">
             {/* Group Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Group Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -821,13 +823,13 @@ const ChatWithStudents = () => {
                 value={groupName}
                 onChange={e => setGroupName(e.target.value)}
                 placeholder="e.g. B.Tech CSE 2025 Batch"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Description (optional)
               </label>
               <textarea
@@ -835,20 +837,20 @@ const ChatWithStudents = () => {
                 onChange={e => setGroupDescription(e.target.value)}
                 placeholder="Purpose, schedule, rules..."
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none resize-none"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none resize-none"
               />
             </div>
 
             {/* Mode Toggle */}
             <div className="flex items-center gap-4 flex-wrap">
-              <label className="text-sm font-medium text-gray-700">Group type:</label>
+              <label className="text-sm font-medium text-slate-700">Group type:</label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio" name="addMode" value="college"
                     checked={addMode === 'college'}
                     onChange={() => setAddMode('college')}
-                    className="h-4 w-4 text-orange-500 focus:ring-orange-500"
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                   />
                   <span className="text-sm">College (auto-add all)</span>
                 </label>
@@ -857,7 +859,7 @@ const ChatWithStudents = () => {
                     type="radio" name="addMode" value="manual"
                     checked={addMode === 'manual'}
                     onChange={() => setAddMode('manual')}
-                    className="h-4 w-4 text-orange-500 focus:ring-orange-500"
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                   />
                   <span className="text-sm">Manual Selection</span>
                 </label>
@@ -867,11 +869,11 @@ const ChatWithStudents = () => {
             {/* College mode */}
             {addMode === 'college' ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Select College <span className="text-red-500">*</span>
                 </label>
                 {loadingColleges ? (
-                  <div className="flex items-center gap-2 text-gray-500">
+                  <div className="flex items-center gap-2 text-slate-500">
                     <Loader2 className="h-5 w-5 animate-spin" /> Loading colleges...
                   </div>
                 ) : colleges.length === 0 ? (
@@ -880,7 +882,7 @@ const ChatWithStudents = () => {
                   <select
                     value={selectedCollege}
                     onChange={e => setSelectedCollege(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none"
                   >
                     <option value="">-- Choose a college --</option>
                     {colleges.map(c => (
@@ -890,24 +892,24 @@ const ChatWithStudents = () => {
                     ))}
                   </select>
                 )}
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-slate-500">
                   All students from the selected college will be automatically added.
                 </p>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     Select Instructors (optional)
                   </label>
-                  <div className="max-h-52 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
+                  <div className="max-h-52 overflow-y-auto border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2">
                     {loadingStudents ? (
-                      <div className="flex items-center gap-2 text-gray-500">
+                      <div className="flex items-center gap-2 text-slate-500">
                         <Loader2 className="h-5 w-5 animate-spin" /> Loading instructors...
                       </div>
                     ) : instructors.length === 0 ? (
                       <p className="text-red-600">No active instructors found</p>
                     ) : (
                       instructors.map(instructor => (
-                        <label key={instructor.user_id} className="flex items-center gap-3 p-3 hover:bg-white rounded cursor-pointer">
+                        <label key={instructor.user_id} className="flex items-center gap-3 p-3 hover:bg-white rounded-lg cursor-pointer border border-transparent hover:border-slate-200">
                           <input
                             type="checkbox"
                             checked={selectedInstructors.includes(instructor.user_id)}
@@ -918,16 +920,16 @@ const ChatWithStudents = () => {
                                 setSelectedInstructors(prev => prev.filter(id => id !== instructor.user_id));
                               }
                             }}
-                            className="h-5 w-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
+                            className="h-5 w-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                           />
-                          <span className="text-gray-900 font-medium">
+                          <span className="text-slate-900 font-medium">
                             {instructor.full_name || instructor.name || instructor.email}
                           </span>
                         </label>
                       ))
                     )}
                   </div>
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-sm text-slate-500">
                     {selectedInstructors.length} instructor{selectedInstructors.length !== 1 ? 's' : ''} selected
                   </p>
                 </div>
@@ -935,19 +937,19 @@ const ChatWithStudents = () => {
             ) : (
               /* Manual mode */
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Select Students <span className="text-red-500">*</span>
                 </label>
-                <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
+                <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2">
                   {loadingStudents ? (
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-slate-500">
                       <Loader2 className="h-5 w-5 animate-spin" /> Loading students...
                     </div>
                   ) : students.length === 0 ? (
                     <p className="text-red-600">No active students found</p>
                   ) : (
                     students.map(student => (
-                      <label key={student.user_id} className="flex items-center gap-3 p-3 hover:bg-white rounded cursor-pointer">
+                      <label key={student.user_id} className="flex items-center gap-3 p-3 hover:bg-white rounded-lg cursor-pointer border border-transparent hover:border-slate-200">
                         <input
                           type="checkbox"
                           checked={selectedMembers.includes(student.user_id)}
@@ -958,33 +960,33 @@ const ChatWithStudents = () => {
                               setSelectedMembers(prev => prev.filter(id => id !== student.user_id));
                             }
                           }}
-                          className="h-5 w-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
+                          className="h-5 w-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                         />
-                        <span className="text-gray-900 font-medium">
+                        <span className="text-slate-900 font-medium">
                           {student.full_name || student.name || student.email}
                         </span>
                       </label>
                     ))
                   )}
                 </div>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-slate-500">
                   {selectedMembers.length} student{selectedMembers.length !== 1 ? 's' : ''} selected
                 </p>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     Select Instructors
                   </label>
-                  <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
+                  <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2">
                     {loadingStudents ? (
-                      <div className="flex items-center gap-2 text-gray-500">
+                      <div className="flex items-center gap-2 text-slate-500">
                         <Loader2 className="h-5 w-5 animate-spin" /> Loading instructors...
                       </div>
                     ) : instructors.length === 0 ? (
                       <p className="text-red-600">No active instructors found</p>
                     ) : (
                       instructors.map(instructor => (
-                        <label key={instructor.user_id} className="flex items-center gap-3 p-3 hover:bg-white rounded cursor-pointer">
+                        <label key={instructor.user_id} className="flex items-center gap-3 p-3 hover:bg-white rounded-lg cursor-pointer border border-transparent hover:border-slate-200">
                           <input
                             type="checkbox"
                             checked={selectedInstructors.includes(instructor.user_id)}
@@ -995,32 +997,32 @@ const ChatWithStudents = () => {
                                 setSelectedInstructors(prev => prev.filter(id => id !== instructor.user_id));
                               }
                             }}
-                            className="h-5 w-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
+                            className="h-5 w-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                           />
-                          <span className="text-gray-900 font-medium">
+                          <span className="text-slate-900 font-medium">
                             {instructor.full_name || instructor.name || instructor.email}
                           </span>
                         </label>
                       ))
                     )}
                   </div>
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-sm text-slate-500">
                     {selectedInstructors.length} instructor{selectedInstructors.length !== 1 ? 's' : ''} selected
                   </p>
                 </div>
 
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-slate-500">
                   Total selected: {selectedMembers.length + selectedInstructors.length} member{(selectedMembers.length + selectedInstructors.length) !== 1 ? 's' : ''}
                 </p>
               </div>
             )}
           </div>
 
-          <div className="sticky bottom-0 bg-white border-t px-6 py-5 flex justify-end gap-4">
+          <div className="sticky bottom-0 bg-white border-t border-slate-100 px-6 py-5 flex justify-end gap-4">
             <button
               onClick={() => setShowGroupModal(false)}
               disabled={creatingGroup}
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+              className="px-6 py-3 border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
             >
               Cancel
             </button>

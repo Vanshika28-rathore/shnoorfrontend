@@ -493,7 +493,7 @@ const AdminLiveProctoring = () => {
       className="p-4 md:p-8 space-y-6 font-sans text-slate-700 overflow-x-hidden"
       style={{ background: "#D8E2EB" }}
     >
-      <div className="max-w-[1440px] mx-auto space-y-6">
+      <div className="max-w-360 mx-auto space-y-6">
         {/* GRADIENT HEADER */}
         <div
           className="relative overflow-hidden rounded-2xl p-6 lg:p-8"

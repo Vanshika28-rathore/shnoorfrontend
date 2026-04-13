@@ -33,7 +33,7 @@ const StudentChat = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showMobileTabsMenu, setShowMobileTabsMenu] = useState(false);
   const [isMobileView, setIsMobileView] = useState(
-    typeof window !== "undefined" ? window.innerWidth : false,
+    typeof window !== "undefined" ? window.innerWidth < 1024 : false,
   );
 
   const fetchDirectMessages = async () => {
@@ -324,7 +324,7 @@ const StudentChat = () => {
     };
     socket.on("receive_message", handleReceive);
     return () => socket.off("receive_message", handleReceive);
-  }, [socket, activeChat, dbUser, chats]);
+  }, [socket, activeChat, dbUser]);
 
   // Handle Edit/Delete Messages
   useEffect(() => {
@@ -370,24 +370,32 @@ const StudentChat = () => {
     // FIX: added guard — bail out if socket is not yet connected
     if (!socket) return;
 
-    let chatId = chat.id;
+    let nextChat = { ...chat };
+    let chatId = nextChat.id;
 
-    if (chat.type === "dm") {
-      handleSetActiveChat(chat.id);
-      markChatRead(chat.id);
-      if (!chat.exists) {
+    if (nextChat.type === "dm") {
+      if (!nextChat.exists) {
         try {
           const res = await api.post("/api/chats", {
-            recipientId: chat.recipientId,
+            recipientId: nextChat.recipientId,
           });
           chatId = res.data.chat_id;
-          chat.id = chatId;
-          chat.exists = true;
+          nextChat = { ...nextChat, id: chatId, exists: true };
+          setChats((prev) =>
+            prev.map((c) =>
+              c.recipientId === nextChat.recipientId
+                ? { ...c, id: chatId, exists: true }
+                : c,
+            ),
+          );
         } catch (err) {
           console.error("Create chat error:", err);
           return;
         }
       }
+
+      handleSetActiveChat(chatId);
+      markChatRead(chatId);
       socket.emit("join_chat", chatId);
     } else {
       const isAdminGroup =
@@ -398,13 +406,13 @@ const StudentChat = () => {
       );
     }
 
-    setActiveChat(chat);
+    setActiveChat(nextChat);
     setLoadingMessages(true);
     try {
       const isAdminGroup =
         chat.groupType === "admin" || chat.source === "admin-chat";
       const url =
-        chat.type === "dm"
+        nextChat.type === "dm"
           ? `/api/chats/messages/${chatId}`
           : isAdminGroup
             ? `/api/admingroups/${chatId}/messages`
@@ -416,7 +424,7 @@ const StudentChat = () => {
           isMyMessage: m.sender_id === dbUser?.id,
         })),
       );
-      if (chat.type === "dm")
+      if (nextChat.type === "dm")
         await api.put("/api/chats/read", { chatId: chatId });
     } finally {
       setLoadingMessages(false);
@@ -814,7 +822,7 @@ const StudentChat = () => {
   const showChatPane = !isMobileView || Boolean(activeChat);
 
   return (
-    <div className="h-full flex flex-col font-sans max-w-[1440px] mx-auto space-y-6 p-4 md:p-0">
+    <div className="h-full flex flex-col font-sans max-w-360 mx-auto space-y-6 p-4 md:p-0">
       {/* GRADIENT HEADER */}
       <div
         className="relative overflow-hidden rounded-2xl p-6 lg:p-8 shrink-0"
@@ -1007,7 +1015,7 @@ const StudentChat = () => {
         {activeTab === "discover" ? (
           <div className="flex-1 p-4 sm:p-8 bg-white border border-slate-200 w-full h-full overflow-y-auto rounded-[28px] shadow-sm flex flex-col">
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 bg-indigo-600/10 text-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <div className="w-14 h-14 bg-indigo-600/10 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
                 <Users size={28} />
               </div>
               <div className="flex-1">
@@ -1082,7 +1090,7 @@ const StudentChat = () => {
               <div
                 className={`chat-sidebar overflow-hidden rounded-[28px] border border-slate-200 shadow-sm ${isMobileView ? "w-full" : ""}`}
               >
-                <div className="px-4 pt-4 pb-2 border-b bg-gradient-to-b from-white to-slate-50 sticky top-0 z-10 shadow-sm">
+                <div className="px-4 pt-4 pb-2 border-b bg-linear-to-b from-white to-slate-50 sticky top-0 z-10 shadow-sm">
                   {activeTab === "groups" && (
                     <button
                       onClick={() => setShowCreateGroup(true)}
@@ -1161,7 +1169,7 @@ const StudentChat = () => {
       </div>
 
       {showCreateGroup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-100 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in">
             <h3 className="text-2xl font-bold mb-6 text-slate-800">
               Create Study Group

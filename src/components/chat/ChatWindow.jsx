@@ -221,8 +221,8 @@ const ChatWindow = ({
             </div>
 
             {showMeetingModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
-                    <div className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-110 p-4">
+                    <div className="bg-white rounded-4xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
                         <div className="flex justify-between items-center mb-6">
                             <h4 className="text-xl font-extrabold text-slate-800">Group Meeting</h4>
                             <button onClick={() => setShowMeetingModal(false)} className="text-slate-300 hover:text-slate-500 transition-colors">
@@ -274,7 +274,7 @@ const ChatWindow = ({
                 {loadingMessages ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4">
                         <div className="relative w-16 h-16">
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full animate-spin opacity-20"></div>
+                            <div className="absolute inset-0 bg-linear-to-r from-indigo-400 to-purple-400 rounded-full animate-spin opacity-20"></div>
                             <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center">
                                 <div className="flex gap-1">
                                     <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
@@ -287,7 +287,7 @@ const ChatWindow = ({
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4">
-                        <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-full flex items-center justify-center">
+                        <div className="w-20 h-20 bg-linear-to-br from-indigo-50 to-purple-50 rounded-full flex items-center justify-center">
                             <FaSmile size={32} className="text-slate-300" />
                         </div>
                         <div className="text-center">
@@ -320,7 +320,7 @@ const ChatWindow = ({
 
             {/* File Preview */}
             {file && (
-                <div className="px-6 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 flex items-center justify-between border-t-2 border-indigo-100 shadow-sm">
+                <div className="px-6 py-3 bg-linear-to-r from-indigo-50 to-purple-50 flex items-center justify-between border-t-2 border-indigo-100 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-indigo-100 rounded-lg">
                             <FaFileAlt className="text-indigo-600" size={18} />
@@ -343,7 +343,7 @@ const ChatWindow = ({
             <div className="chat-input-area relative">
                 {typingUser && (
                     <div className="absolute -top-10 left-6 pointer-events-none">
-                        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-1 duration-300">
+                        <div className="bg-linear-to-r from-indigo-500 to-purple-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-1 duration-300">
                             <div className="flex gap-1">
                                 <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                                 <span className="w-2 h-2 bg-white rounded-full animate-pulse [animation-delay:200ms]"></span>
@@ -581,7 +581,7 @@ const MessageItem = ({ messageId, msg, showName, onEdit, onDelete, onReply, onRe
                     {msg.reply_to_message_id && (
                         <div
                             onClick={() => scrollToMessage(msg.reply_to_message_id)}
-                            className={`mb-2 p-2 rounded-lg border-l-4 text-[11px] min-w-[120px] cursor-pointer hover:bg-black/5 transition-all group/reply ${isMe ? 'bg-white/10 border-white/30 text-white/90' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                            className={`mb-2 p-2 rounded-lg border-l-4 text-[11px] min-w-30 cursor-pointer hover:bg-black/5 transition-all group/reply ${isMe ? 'bg-white/10 border-white/30 text-white/90' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
                         >
                             <div className="flex items-center justify-between gap-2 mb-0.5">
                                 <p className="font-black uppercase tracking-widest text-[9px] opacity-80">{msg.parent_message_sender_name}</p>
@@ -594,7 +594,7 @@ const MessageItem = ({ messageId, msg, showName, onEdit, onDelete, onReply, onRe
                     {renderAttachment()}
 
                     {isEditing ? (
-                        <div className="flex flex-col gap-2 min-w-[200px]">
+                        <div className="flex flex-col gap-2 min-w-50">
                             <input
                                 className="w-full p-2 text-sm bg-indigo-500 text-white placeholder-white/50 border-none rounded-md outline-none focus:ring-2 focus:ring-white/20"
                                 value={editText}
@@ -649,7 +649,7 @@ const MessageItem = ({ messageId, msg, showName, onEdit, onDelete, onReply, onRe
                         </div>
 
                         {showReactionPicker && (
-                            <div className="absolute bottom-full mb-3 right-0 md:right-auto bg-white shadow-2xl border border-slate-100 rounded-[28px] p-2 flex flex-col gap-2 animate-in zoom-in-75 slide-in-from-bottom-2 duration-200 z-[100] min-w-[200px]">
+                            <div className="absolute bottom-full mb-3 right-0 md:right-auto bg-white shadow-2xl border border-slate-100 rounded-4xl p-2 flex flex-col gap-2 animate-in zoom-in-75 slide-in-from-bottom-2 duration-200 z-100 min-w-50">
                                 <div className="flex items-center gap-1.5 px-1">
                                     {commonEmojis.map(emoji => (
                                         <button
@@ -690,7 +690,7 @@ const MessageItem = ({ messageId, msg, showName, onEdit, onDelete, onReply, onRe
                         )}
 
                         {showMenu && showMenu !== 'full-emoji' && (
-                            <div className="absolute top-full mt-2 bg-white shadow-2xl border border-slate-100 rounded-2xl overflow-hidden min-w-[140px] z-50 ring-1 ring-slate-900/5">
+                            <div className="absolute top-full mt-2 bg-white shadow-2xl border border-slate-100 rounded-2xl overflow-hidden min-w-35 z-50 ring-1 ring-slate-900/5">
                                 {canEdit && (
                                     <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full px-4 py-3 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-3 transition-colors">
                                         <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><FaEdit size={12} /></div> Edit
