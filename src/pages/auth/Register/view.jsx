@@ -15,8 +15,8 @@ import {
   Users,
   Award,
 } from "lucide-react";
-import brandLogo from "../../../assets/shnoor_logo.png";
-import markLogo from "../../../assets/shnoor_logo.png";
+import brandLogo from "../../../assets/shnoor_logo_icon.png";
+import markLogo from "../../../assets/shnoor_logo_icon.png";
 
 const FeaturePill = ({ icon: Icon, text }) => (
   <div

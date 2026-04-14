@@ -1,560 +1,939 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 import {
-  ArrowRight, Menu, X, Terminal, BarChart3, CheckCircle2,
-  Mail, Phone, MapPin, Play, MessageCircle,
-  Twitter, Facebook, Linkedin, Instagram,
-  Globe, Zap, GraduationCap, Layout, BookOpen, Video, Award
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import markLogo from '../../assets/shnoor_logo.png';
-import nasscomLogo from '../../assets/landing/nascom.jpg';
-
-import instructorIcon from '../../assets/landing/instructor.jpg';
-import privateIcon from '../../assets/landing/private.jpg';
-import selfPacedIcon from '../../assets/landing/self_paced.jpg';
-import labsIcon from '../../assets/landing/labs.jpg';
-import examIcon from '../../assets/landing/exam.jpg';
+  ArrowRight,
+  Award,
+  BarChart3,
+  BookOpen,
+  BriefcaseBusiness,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  Facebook,
+  Globe,
+  Instagram,
+  LayoutPanelTop,
+  Linkedin,
+  Mail,
+  MapPin,
+  Menu,
+  MessageCircle,
+  Phone,
+  PlayCircle,
+  ShieldCheck,
+  Sparkles,
+  Twitter,
+  Users2,
+  Video,
+  Workflow,
+  X,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import markLogo from "../../assets/shnoor_logo.png";
+import markLogoLight from "../../assets/shnoor_logo_light.png";
+import nasscomLogo from "../../assets/landing/nascom.jpg";
+import instructorIcon from "../../assets/landing/instructor.jpg";
+import privateIcon from "../../assets/landing/private.jpg";
+import selfPacedIcon from "../../assets/landing/self_paced.jpg";
+import labsIcon from "../../assets/landing/labs.jpg";
+import examIcon from "../../assets/landing/exam.jpg";
 import WhatsAppContactButton from "../../components/WhatsAppButton";
+
+const navItems = [
+  { id: "home", label: "Home" },
+  { id: "how-it-works", label: "How It Works" },
+  { id: "platform-features", label: "Features" },
+  { id: "about", label: "About" },
+  { id: "training", label: "Training" },
+];
+
+const trustStats = [
+  { value: "500+", label: "Learners onboarded across programs" },
+  { value: "8", label: "Core platform capabilities" },
+  { value: "99.9%", label: "Reliable learning operations" },
+];
+
+const workflowSteps = [
+  {
+    title: "Launch role-based journeys",
+    description:
+      "Create onboarding, compliance, and upskilling tracks for teams, departments, or enterprise cohorts.",
+    icon: LayoutPanelTop,
+  },
+  {
+    title: "Deliver guided learning",
+    description:
+      "Combine live sessions, self-paced modules, practice labs, and instructor checkpoints in one place.",
+    icon: Video,
+  },
+  {
+    title: "Validate mastery",
+    description:
+      "Use assessments, assignments, and certification paths to measure skill readiness with confidence.",
+    icon: ShieldCheck,
+  },
+];
+
+const platformCards = [
+  {
+    title: "Admin control center",
+    description:
+      "Manage users, programs, reports, approvals, and communication from a single operational dashboard.",
+    icon: BriefcaseBusiness,
+  },
+  {
+    title: "Learning delivery engine",
+    description:
+      "Organize modules, lessons, assignments, and session flows with a clear learner-first experience.",
+    icon: Workflow,
+  },
+  {
+    title: "Certifications and outcomes",
+    description:
+      "Turn learning into proof with completion tracking, exam support, and industry-facing credentials.",
+    icon: Award,
+  },
+];
+
+const featureCards = [
+  {
+    title: "Structured cohorts",
+    description:
+      "Run department-wise, company-wise, or role-wise learning journeys at scale.",
+    icon: Users2,
+  },
+  {
+    title: "Live instruction",
+    description:
+      "Deliver interactive sessions with guided training and real-time learner support.",
+    icon: Video,
+  },
+  {
+    title: "Practice labs",
+    description:
+      "Support hands-on implementation so learners can apply concepts immediately.",
+    icon: PlayCircle,
+  },
+  {
+    title: "Progress tracking",
+    description:
+      "Monitor completion, performance, and engagement with admin-friendly reporting.",
+    icon: BarChart3,
+  },
+  {
+    title: "Certification paths",
+    description:
+      "Bundle learning and evaluation into clear outcomes for teams and individuals.",
+    icon: Award,
+  },
+  {
+    title: "Compliance readiness",
+    description:
+      "Maintain records and validate required skills for regulated or audit-sensitive teams.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Fast onboarding",
+    description:
+      "Get new hires productive faster with guided journeys, milestones, and checkpoints.",
+    icon: Clock3,
+  },
+  {
+    title: "Global accessibility",
+    description:
+      "Deliver training to distributed teams with a modern browser-based experience.",
+    icon: Globe,
+  },
+];
+
+const operationsHighlights = [
+  "Built for organizations that need both learning quality and operational visibility.",
+  "Designed to keep the learner experience simple while giving administrators strong control.",
+  "Consistent workflows for onboarding, enablement, certifications, and long-term capability building.",
+];
+
+const trainingCards = [
+  {
+    title: "Instructor-led training",
+    description:
+      "Expert-led sessions for structured learning, discussion, and high-touch guidance.",
+    image: instructorIcon,
+    accent: "from-indigo-50 to-white",
+    span: "lg:col-span-4 lg:row-span-2",
+  },
+  {
+    title: "Private corporate programs",
+    description:
+      "Dedicated sessions and customized tracks aligned to your business goals and team skill gaps.",
+    image: privateIcon,
+    accent: "from-slate-50 to-white",
+    span: "lg:col-span-4",
+  },
+  {
+    title: "Practice arena",
+    description:
+      "Self-paced exercises, guided reviews, and repeatable practice for long-term retention.",
+    image: selfPacedIcon,
+    accent: "from-indigo-50 to-slate-50",
+    span: "lg:col-span-4",
+  },
+  {
+    title: "Facilitated labs",
+    description:
+      "Hands-on environments that move learning from theory to execution with confidence.",
+    image: labsIcon,
+    accent: "from-slate-50 to-indigo-50",
+    span: "lg:col-span-4",
+  },
+  {
+    title: "Exam preparation",
+    description:
+      "Focused review journeys, mock testing, and readiness support for certification outcomes.",
+    image: examIcon,
+    accent: "from-white to-slate-50",
+    span: "lg:col-span-4",
+  },
+];
+
+const aboutStats = [
+  {
+    value: "Enterprise-first",
+    label: "Professional design language and control",
+  },
+  { value: "Outcome-driven", label: "Programs mapped to measurable growth" },
+  { value: "Flexible delivery", label: "Built for multiple learning models" },
+];
+
+const footerLinks = [
+  { label: "Home", action: "home" },
+  { label: "How It Works", action: "how-it-works" },
+  { label: "Training", action: "training" },
+];
 
 const LandingView = ({ onLogin, onRegister, onContact }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showDesktopVisual, setShowDesktopVisual] = useState(false);
 
   useEffect(() => {
-    let frameId = null;
-
-    const handleScroll = () => {
-      if (frameId !== null) return;
-
-      frameId = window.requestAnimationFrame(() => {
-        const isScrolled = window.scrollY > 20;
-        setScrolled((prev) => (prev === isScrolled ? prev : isScrolled));
-        frameId = null;
-      });
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (frameId !== null) {
-        window.cancelAnimationFrame(frameId);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 1024px)');
-    const updateDesktopVisual = (event) => {
-      setShowDesktopVisual(event.matches);
-    };
-
-    setShowDesktopVisual(mediaQuery.matches);
-    mediaQuery.addEventListener('change', updateDesktopVisual);
-
-    return () => mediaQuery.removeEventListener('change', updateDesktopVisual);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: "smooth" });
       setMobileMenuOpen(false);
     }
   };
 
-  const NavLink = ({ target, label, onClick, className = '' }) => (
+  const NavLink = ({ target, label, onClick, className = "" }) => (
     <button
       onClick={onClick ? onClick : () => scrollToSection(target)}
-      className={`text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors tracking-wide ${className}`}
+      className={`text-sm font-medium text-slate-600 transition-colors hover:text-slate-950 ${className}`}
     >
       {label}
     </button>
   );
 
-  const BrandLogo = ({ titleColor = 'text-slate-900', subtitleColor = 'text-slate-500' }) => (
-    <div className="flex items-center gap-2 sm:gap-3 min-w-0 pr-4">
+  const BrandLogo = () => (
+    <div className="flex items-center gap-3">
       <img
         src={markLogo}
         alt="Shnoor International Logo"
-        width="60"
-        height="62"
+        width="220"
         loading="eager"
-        className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover shadow-sm bg-white border border-slate-100"
       />
-      <div className="flex flex-col justify-center min-w-0">
-        <h1 className={`brand-logo ${titleColor} text-[15px] sm:text-lg md:text-xl lg:text-2xl font-black tracking-tight leading-tight mb-0.5`}>
-          SHNOOR <br className="sm:hidden" /> International
-        </h1>
-        <p className={`text-[8px] sm:text-[10px] md:text-xs ${subtitleColor} font-bold tracking-[0.2em] uppercase leading-none mt-0.5`}>
-          Learning Platform
-        </p>
-      </div>
+    </div>
+  );
+  const BrandLogoLight = () => (
+    <div className="flex items-center gap-3">
+      <img
+        src={markLogoLight}
+        alt="Shnoor International Logo"
+        width="220"
+        loading="eager"
+      />
+    </div>
+  );
+
+  const SectionHeader = ({ eyebrow, title, description, align = "center" }) => (
+    <div
+      className={`max-w-3xl ${align === "center" ? "mx-auto text-center" : ""}`}
+    >
+      <span className="mb-4 inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-indigo-700">
+        {eyebrow}
+      </span>
+      <h2 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-4xl">
+        {title}
+      </h2>
+      <p className="mt-4 text-base leading-7 text-slate-600 md:text-lg">
+        {description}
+      </p>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-slate-500 selection:text-white overflow-x-hidden">
-
-      {/* --- BACKGROUND BLOBS (STATIC FOR PERFORMANCE) --- */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gray-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-        <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-slate-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 selection:bg-indigo-600 selection:text-white">
+      <div
+        className="pointer-events-none fixed inset-0 overflow-hidden"
+        aria-hidden="true"
+      >
+        <div className="absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.14),_transparent_56%)]" />
+        <div className="absolute right-0 top-80 h-96 w-96 rounded-full bg-indigo-200/20 blur-3xl" />
+        <div className="absolute left-0 top-120 h-96 w-96 rounded-full bg-slate-300/25 blur-3xl" />
       </div>
 
-      {/* --- NAV BAR --- */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 min-h-20 md:min-h-24 flex items-center justify-between relative z-50">
+      <nav
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          scrolled || mobileMenuOpen
+            ? "border-b border-slate-200/80 bg-white/92 shadow-sm backdrop-blur-md"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between px-4 py-4 md:min-h-24 md:px-6">
           <BrandLogo />
 
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-4 xl:gap-8 bg-white/50 px-4 xl:px-6 py-2 rounded-full border border-white/50 backdrop-blur-sm">
-            <NavLink target="home" label="Home" />
-            <NavLink target="training" label="Training" />
-            <NavLink target="certification" label="Certifications" />
-            <NavLink target="stories" label="Success Stories" />
+          <div className="hidden items-center gap-7 rounded-2xl border border-slate-200/80 bg-white/80 px-5 py-3 lg:flex">
+            {navItems.map((item) => (
+              <NavLink key={item.id} target={item.id} label={item.label} />
+            ))}
             <NavLink target="contact" label="Contact" onClick={onContact} />
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 xl:gap-4">
-            <button onClick={onLogin} className="text-sm font-bold text-slate-700 hover:text-slate-900 transition-colors px-2 xl:px-4">
+          <div className="hidden items-center gap-3 lg:flex">
+            <button
+              onClick={onLogin}
+              className="px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:text-slate-950"
+            >
               Log In
             </button>
-            <button onClick={onRegister} className="px-5 xl:px-6 py-2.5 bg-slate-900 text-white rounded-full font-bold text-sm hover:bg-slate-800 transition-all shadow-lg hover:shadow-slate-900/25 whitespace-nowrap">
+            <button
+              onClick={onRegister}
+              className="rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-950/10 transition hover:bg-slate-800"
+            >
               Get Started
             </button>
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <button 
-            className="lg:hidden flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-slate-900 hover:bg-slate-200 transition-colors shrink-0" 
+          <button
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-900 transition hover:bg-slate-50 lg:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
-        {/* Mobile Menu Full Overlay */}
         {mobileMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-2xl flex flex-col z-40 animate-fade-in-up max-h-[85vh] overflow-y-auto">
-            <div className="px-6 py-4 flex flex-col space-y-1">
-              <NavLink target="home" label="Home" className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
-              <NavLink target="training" label="Training" className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
-              <NavLink target="certification" label="Certifications" className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
-              <NavLink target="stories" label="Success Stories" className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
-              <NavLink target="contact" label="Contact" onClick={onContact} className="py-3 px-4 rounded-xl hover:bg-slate-50 text-left w-full text-base" />
-            </div>
-            
-            <div className="px-6 py-6 mt-auto border-t border-slate-50 bg-slate-50/50 flex flex-col gap-3">
-              <button onClick={onLogin} className="w-full h-12 min-h-12 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 shadow-sm hover:bg-slate-50 transition-colors">Log In</button>
-              <button onClick={onRegister} className="w-full h-12 min-h-12 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-colors">Get Started</button>
+          <div className="absolute top-full w-full border-b border-slate-200 bg-white shadow-2xl lg:hidden">
+            <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-5">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.id}
+                  target={item.id}
+                  label={item.label}
+                  className="w-full rounded-xl px-4 py-3 text-left text-base hover:bg-slate-50"
+                />
+              ))}
+              <NavLink
+                target="contact"
+                label="Contact"
+                onClick={onContact}
+                className="w-full rounded-xl px-4 py-3 text-left text-base hover:bg-slate-50"
+              />
+              <div className="mt-3 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
+                <button
+                  onClick={onLogin}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={onRegister}
+                  className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white"
+                >
+                  Get Started
+                </button>
+              </div>
             </div>
           </div>
         )}
       </nav>
 
-      {/* --- HERO SECTION --- */}
-      <section id="home" className="relative pt-36 pb-20 px-6 lg:pt-48 lg:pb-32 z-10">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
-          {/* Left Column: Text */}
-          <div className="text-center lg:text-left animate-fade-in-up">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 mb-8 shadow-sm hover:shadow-md transition-shadow cursor-default">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-900"></span>
-              </span>
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-900">Platform AV</span>
+      <section
+        id="home"
+        className="relative z-10 px-6 pb-20 pt-32 md:pt-40 lg:pb-28 lg:pt-44"
+      >
+        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-700 shadow-sm">
+              <Sparkles size={14} className="text-indigo-600" />
+              Enterprise Learning Platform
             </div>
-
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tight mb-4 md:mb-6 leading-[1.1]">
-              Mastery Is Not <br />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-slate-900 to-slate-600">
-                An Accident.
-              </span>
+            <h1 className="mt-7 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 md:text-6xl">
+              Build smarter workforce training with a landing experience that
+              matches your platform quality.
             </h1>
-
-            <p className="text-base md:text-lg lg:text-xl text-slate-600 font-medium max-w-2xl mx-auto lg:mx-0 mb-8 md:mb-10 leading-relaxed px-4 lg:px-0">
-              The all-in-one learning operating system. Train your workforce, validate skills with code-native exams, and certify compliance in real-time.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+              Shnoor International helps organizations deliver structured
+              training, practical learning, certification readiness, and
+              measurable outcomes through one modern learning ecosystem.
             </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 w-full sm:w-auto px-4 lg:px-0">
-              <button onClick={onRegister} className="w-full sm:w-auto h-14 min-h-14 px-8 bg-slate-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-slate-800 transition-all flex justify-center items-center gap-2 shadow-xl hover:shadow-slate-900/30 hover:-translate-y-1">
-                Start Learning Now <ArrowRight size={18} />
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              <button
+                onClick={onRegister}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-950/10 transition hover:bg-slate-800"
+              >
+                Get Started <ArrowRight size={16} />
               </button>
-              <button onClick={() => scrollToSection('training')} className="w-full sm:w-auto h-14 min-h-14 px-8 bg-white border border-slate-200 text-slate-700 rounded-full font-bold text-sm uppercase tracking-widest hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50 transition-all">
+              <button
+                onClick={() => scrollToSection("how-it-works")}
+                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+              >
                 Explore Platform
               </button>
             </div>
-
-            <div className="mt-12 flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 text-slate-400 grayscale opacity-70">
-              <span className="font-bold text-lg md:text-xl">ACME Corp</span>
-              <span className="font-bold text-lg md:text-xl">GlobalTech</span>
-              <span className="font-bold text-lg md:text-xl">Nebula</span>
-              <span className="font-bold text-lg md:text-xl">Vertex</span>
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              {trustStats.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-slate-200/80 bg-white/85 p-5 shadow-sm"
+                >
+                  <div className="text-2xl font-semibold text-slate-950">
+                    {item.value}
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {item.label}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right Column: Visual Mockup (LMS DASHBOARD) */}
-          {showDesktopVisual && (
-          <div className="hidden lg:block relative h-full min-h-125 perspective-[2000px]">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-linear-to-tr from-indigo-100/50 to-slate-100/50 rounded-full blur-3xl -z-10 animate-pulse"></div>
-
-            {/* 3D Container */}
-            <div className="absolute top-12 left-10 right-10 bg-[#1e293b] backdrop-blur-xl border border-slate-700 shadow-2xl rounded-3xl overflow-hidden transform rotate-y-[-10deg] rotate-x-[5deg] hover:rotate-0 transition-transform duration-700 ease-out z-10 font-sans">
-
-              {/* LMS Header */}
-              <div className="flex items-center justify-between px-6 py-4 bg-[#0f172a] border-b border-slate-700">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                    <BookOpen size={18} />
-                  </div>
+          <div className="relative">
+            <div className="absolute -inset-6 rounded-[2rem] bg-[linear-gradient(135deg,rgba(99,102,241,0.10),rgba(15,23,42,0.05))] blur-2xl" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-900/8">
+              <div className="border-b border-slate-200 bg-[linear-gradient(90deg,#0F172A_0%,#1E293B_60%,#312E81_100%)] p-6">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Ongoing Course</div>
-                    <div className="text-sm font-bold text-white tracking-wide">Enterprise Solution Architect</div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-200">
+                      Live Learning View
+                    </p>
+                    <h3 className="mt-2 text-2xl font-semibold text-white">
+                      Career-ready training, operations, and certifications
+                    </h3>
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-slate-400 mb-1.5 font-medium flex items-center justify-end gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> 65% Completed
-                  </div>
-                  <div className="w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <div className="w-[65%] h-full bg-linear-to-r from-green-400 to-green-600 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]"></div>
+                  <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-right backdrop-blur-sm">
+                    <div className="text-xs text-slate-300">
+                      Completion rate
+                    </div>
+                    <div className="text-lg font-semibold text-white">65%</div>
                   </div>
                 </div>
               </div>
 
-              {/* LMS Body: Course Player UI */}
-              <div className="flex h-80 bg-[#1e293b]">
-                {/* Sidebar (Modules) */}
-                <div className="w-[35%] border-r border-slate-700/50 p-4 space-y-2 hidden sm:block overflow-y-auto custom-scrollbar">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3 px-2">Course Content</div>
-
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className={`flex items-center gap-3 p-3 rounded-xl text-xs cursor-pointer transition-all duration-200 group ${i === 3 ? 'bg-indigo-600/10 border border-indigo-500/30 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-700/30'}`}>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 ${i < 3 ? 'border-green-500/50 bg-green-500/10 text-green-500' : (i === 3 ? 'border-indigo-500 text-indigo-400' : 'border-slate-600')}`}>
-                        {i < 3 ? <CheckCircle2 size={10} /> : (i === 3 ? <Play size={8} fill="currentColor" /> : <span className="text-[8px]">{i}</span>)}
+              <div className="grid gap-6 p-6 max-w-5xl mx-auto">
+                <div className="space-y-4">
+                  {/* Current Program */}
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-xl bg-indigo-50 p-3 text-indigo-600">
+                        <BookOpen size={20} />
                       </div>
-                      <div className="flex-1 truncate font-medium">
-                        {['System Design Basics', 'Microservices 101', 'Scalability Patterns', 'Security Protocols'][i - 1]}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Main Content (Video Player Mockup) */}
-                <div className="flex-1 p-6 flex flex-col relative">
-                  {/* Video Screen */}
-                  <div className="flex-1 bg-slate-900 rounded-xl relative overflow-hidden group cursor-pointer border border-slate-700/50 shadow-2xl">
-                    {/* Abstract Video Content */}
-                    <div className="absolute inset-0 bg-linear-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                      <div className="w-full h-full opacity-20" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-
-                      {/* Play Button */}
-                      <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform border border-white/20 shadow-xl z-10">
-                        <Play size={28} className="text-white fill-current ml-1 drop-shadow-md" />
+                      <div>
+                        <p className="text-sm font-semibold text-slate-950">
+                          Current program
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          Enterprise solution architect pathway
+                        </p>
                       </div>
                     </div>
 
-                    {/* Video Controls Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/80 to-transparent">
-                      <div className="flex justify-between text-[10px] text-slate-300 font-mono mb-2">
-                        <span>14:20</span>
-                        <span>45:00</span>
-                      </div>
-                      <div className="w-full h-1 bg-white/20 rounded-full cursor-pointer">
-                        <div className="w-[32%] h-full bg-indigo-500 rounded-full relative">
-                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full shadow-md scale-0 group-hover:scale-100 transition-transform"></div>
+                    <div className="mt-4 h-2 rounded-full bg-slate-200">
+                      <div className="h-2 w-[65%] rounded-full bg-indigo-600" />
+                    </div>
+                  </div>
+
+                  {/* Weekly Highlights */}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                      Weekly highlights
+                    </p>
+
+                    <div className="mt-4 grid gap-3">
+                      {[
+                        "Live cohort sessions scheduled",
+                        "Assignments reviewed and approved",
+                        "Certificates ready for eligible learners",
+                      ].map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-start gap-3 rounded-xl bg-slate-50 p-3"
+                        >
+                          <CheckCircle2
+                            size={18}
+                            className="mt-0.5 text-emerald-500"
+                          />
+                          <span className="text-sm text-slate-700">{item}</span>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Certification Workflow */}
+                  <div className="rounded-2xl border border-slate-200 bg-indigo-50/70 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-xl bg-white p-3 text-indigo-600 shadow-sm">
+                        <Award size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-950">
+                          Certification workflow
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          Assessment to credential in one seamless flow
+                        </p>
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="how-it-works" className="relative z-10 px-6 py-20 md:py-24">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader
+            eyebrow="How It Works"
+            title="A clear learning workflow for modern organizations"
+            description="Every part of the platform is designed to help you launch programs faster, deliver consistent learning experiences, and measure progress without friction."
+          />
+          <div className="mt-14 grid gap-6 lg:grid-cols-3">
+            {workflowSteps.map((step, index) => (
+              <div
+                key={step.title}
+                className="rounded-[1.75rem] border border-slate-200 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="rounded-2xl bg-indigo-50 p-4 text-indigo-600">
+                    <step.icon size={24} />
+                  </div>
+                  <span className="text-sm font-semibold text-slate-400">
+                    0{index + 1}
+                  </span>
+                </div>
+                <h3 className="mt-6 text-2xl font-semibold tracking-tight text-slate-950">
+                  {step.title}
+                </h3>
+                <p className="mt-4 text-sm leading-7 text-slate-600">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-                  <div className="mt-4 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-white font-bold text-sm tracking-tight">03. Scalability Patterns</h4>
-                      <p className="text-slate-400 text-xs mt-1">Understanding horizontal vs vertical scaling strategies.</p>
+      <section className="relative z-10 bg-white px-6 py-20 md:py-24">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <SectionHeader
+              eyebrow="Platform Flow"
+              title="How the Shnoor platform supports every stage of learning"
+              description="From admin setup to learner achievement, the platform is built to keep programs organized, consistent, and easy to scale."
+              align="left"
+            />
+            <div className="mt-8 space-y-4">
+              {operationsHighlights.map((item) => (
+                <div
+                  key={item}
+                  className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <CheckCircle2 size={18} className="mt-1 text-indigo-600" />
+                  <p className="text-sm leading-7 text-slate-600">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {platformCards.map((card) => (
+              <div
+                key={card.title}
+                className="rounded-[1.75rem] border border-slate-200 bg-white p-7 shadow-sm"
+              >
+                <div className="inline-flex rounded-2xl bg-[linear-gradient(135deg,#0F172A_0%,#1E293B_60%,#312E81_100%)] p-4 text-white shadow-lg shadow-slate-950/10">
+                  <card.icon size={22} />
+                </div>
+                <h3 className="mt-6 text-xl font-semibold text-slate-950">
+                  {card.title}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  {card.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="platform-features"
+        className="relative z-10 px-6 py-20 md:py-24"
+      >
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader
+            eyebrow="Platform Features"
+            title="Eight core capabilities designed for enterprise-ready delivery"
+            description="The experience now reflects the same professionalism as your admin panel, with cleaner hierarchy, clearer cards, and stronger consistency throughout the page."
+          />
+          <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {featureCards.map((feature) => (
+              <div
+                key={feature.title}
+                className="rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5"
+              >
+                <div className="inline-flex rounded-2xl bg-indigo-50 p-3.5 text-indigo-600">
+                  <feature.icon size={20} />
+                </div>
+                <h3 className="mt-5 text-lg font-semibold text-slate-950">
+                  {feature.title}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 px-6 py-20 md:py-24">
+        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-[linear-gradient(135deg,#0F172A_0%,#1E293B_58%,#312E81_100%)] p-8 text-white shadow-2xl shadow-slate-950/10 md:p-10">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-indigo-200">
+              Recognition
+            </span>
+            <h3 className="mt-6 max-w-xl text-3xl font-semibold tracking-tight md:text-4xl">
+              Trusted direction, serious execution, and a platform built for
+              professional learning outcomes.
+            </h3>
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+              Shnoor combines practical delivery, clear evaluation, and modern
+              reporting so organizations can train with confidence and learners
+              can move toward meaningful certification milestones.
+            </p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              {[
+                "Professional admin experience",
+                "Consistent learner journeys",
+                "Certification-ready workflows",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl border border-white/10 bg-white/8 p-4 text-sm text-slate-200"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm md:p-10">
+            <div className="flex items-center gap-5">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+                <img
+                  src={nasscomLogo}
+                  alt="NASSCOM certified"
+                  className="h-full w-full object-contain"
+                  loading="lazy"
+                />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  Milestone
+                </p>
+                <h3 className="mt-2 text-2xl font-semibold text-slate-950">
+                  Proudly recognized by NASSCOM
+                </h3>
+              </div>
+            </div>
+            <p className="mt-6 text-sm leading-7 text-slate-600 md:text-base">
+              Our proposal has been approved by NASSCOM, reinforcing the
+              strength of our vision, process maturity, and long-term commitment
+              to quality.
+            </p>
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+              <p className="text-sm font-medium text-slate-700">
+                This recognition strengthens trust in the Shnoor platform as a
+                serious, professional learning environment for organizations and
+                learners alike.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="about"
+        className="relative z-10 bg-white px-6 py-20 md:py-24"
+      >
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
+          <div>
+            <SectionHeader
+              eyebrow="About Us"
+              title="Shnoor International is built to make professional learning feel reliable, modern, and measurable"
+              description="We focus on enterprise learning experiences that feel clear for learners and efficient for administrators. That means thoughtful journeys, better visibility, and a platform that supports real outcomes instead of only content delivery."
+              align="left"
+            />
+          </div>
+          <div className="grid gap-5">
+            {aboutStats.map((item) => (
+              <div
+                key={item.value}
+                className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-6"
+              >
+                <h3 className="text-xl font-semibold text-slate-950">
+                  {item.value}
+                </h3>
+                <p className="mt-2 text-sm leading-7 text-slate-600">
+                  {item.label}
+                </p>
+              </div>
+            ))}
+            <div className="rounded-[1.75rem] border border-indigo-100 bg-indigo-50/70 p-6">
+              <div className="flex items-start gap-4">
+                <div className="rounded-2xl bg-white p-3 text-indigo-600 shadow-sm">
+                  <Building2 size={22} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-950">
+                    Designed for long-term growth
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    Whether the need is onboarding, internal training,
+                    certification, or multi-format workforce development, the
+                    platform is ready to scale with your organization.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="training" className="relative z-10 px-6 py-20 md:py-24">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader
+            eyebrow="Training Options"
+            title="Flexible delivery models presented in a cleaner bento-style layout"
+            description="This section gives each learning format stronger visual priority while staying light, responsive, and consistent with the rest of the experience."
+          />
+          <div className="mt-14 grid gap-5 lg:grid-cols-8">
+            {trainingCards.map((card) => (
+              <div
+                key={card.title}
+                className={`overflow-hidden rounded-[1.8rem] border border-slate-200 bg-white shadow-sm ${card.span}`}
+              >
+                <div className="grid h-full gap-0 md:grid-cols-[0.95fr_1.05fr] xl:grid-cols-[0.95fr_1.05fr]">
+                  <div className={`bg-gradient-to-br ${card.accent} p-6`}>
+                    <div className="overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white/80">
+                      <img
+                        src={card.image}
+                        alt={card.title}
+                        className="h-56 w-full object-cover"
+                        loading="lazy"
+                      />
                     </div>
-                    <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors shadow-lg shadow-indigo-900/20">
-                      Next Lesson
-                    </button>
+                  </div>
+                  <div className="flex flex-col justify-center p-6 md:p-7">
+                    <h3 className="text-2xl font-semibold tracking-tight text-slate-950">
+                      {card.title}
+                    </h3>
+                    <p className="mt-4 text-sm leading-7 text-slate-600">
+                      {card.description}
+                    </p>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Floating Card 1: Certificate (Bottom Left) */}
-            <div className="absolute top-[75%] -left-8 bg-white p-4 pr-8 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] flex items-center gap-4 animate-[bounce_4s_infinite] z-20 border border-slate-100">
-              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-inner ring-4 ring-indigo-50">
-                <Award size={24} />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-slate-900">Certificate Earned</div>
-                <div className="text-xs text-slate-500 font-medium">Cloud Architecture</div>
-              </div>
-            </div>
-
-            {/* Floating Card 2: Skill Unlocked (Top Right - REPLACED LIVE SESSION) */}
-            <div className="absolute top-12 -right-12 bg-white p-3 pr-5 rounded-2xl shadow-2xl flex items-center gap-3 z-30 animate-[bounce_6s_infinite] border border-slate-100">
-              <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
-                <Zap size={18} />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-slate-900">Skill Unlocked</div>
-                <div className="text-xs text-slate-500 font-medium">System Design</div>
-              </div>
-            </div>
-
-            {/* Floating Card 3: Mentor (Bottom Right) */}
-            <div className="absolute bottom-12 -right-4 bg-white p-3 pr-6 rounded-2xl shadow-xl flex items-center gap-3 z-30 animate-[bounce_5s_infinite] border border-slate-100">
-                <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-linear-to-br from-slate-700 to-slate-900 overflow-hidden border-2 border-white shadow-sm flex items-center justify-center text-white text-xs font-bold">
-                  AC
-                </div>
-                <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border-2 border-white">
-                  <CheckCircle2 size={10} className="text-white" />
-                </div>
-              </div>
-              <div>
-                <div className="text-xs font-bold text-slate-900">Feedback Received</div>
-                <div className="text-[10px] text-slate-500 font-medium">Great project work!</div>
-              </div>
-            </div>
-
+            ))}
           </div>
-          )}
         </div>
       </section>
 
-      {/* --- TRAINING OPTIONS GRID (FIXED RATIO) --- */}
-      <section id="training" className="py-20 px-6 relative z-10 bg-white/50 backdrop-blur-sm" style={{ contentVisibility: 'auto' }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-4">
-              Flexible Training Options
-            </h2>
-            <p className="text-slate-500 max-w-2xl mx-auto">
-              Choose the learning style that fits your schedule and goals.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-8">
-            {/* Card 1: Instructor-Led */}
-            <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
-              <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={instructorIcon} alt="Instructor-Led" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Instructor-Led Training</h3>
-              <p className="text-slate-500 leading-relaxed text-sm">
-                Join live, interactive sessions with expert instructors. Real-time Q&A, hands-on guidance, and structured learning paths.
+      <section className="relative z-10 px-6 pb-20 pt-6 md:pb-24">
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-[linear-gradient(135deg,#0F172A_0%,#1E293B_55%,#312E81_100%)] px-8 py-10 text-white shadow-2xl shadow-slate-950/10 md:px-12 md:py-14">
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-indigo-200">
+                Ready To Start
+              </span>
+              <h2 className="mt-5 max-w-3xl text-3xl font-semibold tracking-tight md:text-4xl">
+                Transform the first impression of your platform and guide
+                learners into a more professional experience.
+              </h2>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">
+                From onboarding to certification, Shnoor now feels more
+                consistent, polished, and aligned with the visual language
+                already present in your admin panel.
               </p>
             </div>
-
-            {/* Card 2: Private Training */}
-            <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
-              <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={privateIcon} alt="Private Training" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Private Training</h3>
-              <p className="text-slate-500 leading-relaxed text-sm">
-                Dedicated sessions tailored for your corporate team. Customized curriculum to meet your specific business goals.
-              </p>
-            </div>
-
-            {/* Card 3: Practice Arena */}
-            <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
-              <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={selfPacedIcon} alt="Practice Arena" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Practice Arena</h3>
-              <p className="text-slate-500 leading-relaxed text-sm">
-                Sharpen your skills with interactive video modules. Watch expert solution breakdowns and tackle algorithmic challenges.
-              </p>
-            </div>
-
-            {/* Card 4: Facilitated Labs */}
-            <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
-              <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={labsIcon} alt="Facilitated Labs" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Facilitated Labs</h3>
-              <p className="text-slate-500 leading-relaxed text-sm">
-                Experience code-native learning. Our browser-based IDE (powered by Monaco) lets you run, debug, and test code instantly.
-              </p>
-            </div>
-
-            {/* Card 5: Exam Prep */}
-            <div className="w-full md:w-[45%] lg:w-[30%] group p-8 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-900/5 transition-all duration-300 text-center flex flex-col items-center">
-              <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                <img src={examIcon} alt="Exam Prep" className="w-24 h-24 object-contain" width="96" height="96" loading="lazy" decoding="async" fetchPriority="low" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Exam Prep</h3>
-              <p className="text-slate-500 leading-relaxed text-sm">
-                Comprehensive study guides, practice tests, and review sessions to ensure you ace your certification exams.
-              </p>
+            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+              <button
+                onClick={onRegister}
+                className="rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+              >
+                Create Account
+              </button>
+              <button
+                onClick={onContact}
+                className="rounded-xl border border-white/20 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
+              >
+                Contact Us
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* --- CERTIFICATION SECTION --- */}
-      <section id="certification" className="py-20 px-6 bg-slate-100/50" style={{ contentVisibility: 'auto' }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-6">
-            Set Yourself Apart with <br /> Industry-Recognized Certifications
-          </h2>
-          <p className="text-slate-500 text-lg mb-10 max-w-2xl mx-auto">
-            Validate your expertise and advance your career. Our certifications are recognized globally and demonstrate your mastery of the Shnoor ecosystem.
-          </p>
-          <button onClick={onRegister} className="h-14 px-10 bg-indigo-600 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl hover:shadow-indigo-600/30">
-            Explore Certifications
-          </button>
-        </div>
-      </section>
-
-      {/* --- DARK AWARD BANNER (NASSCOM) --- */}
-      <section className="bg-slate-900 py-16 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8 relative z-10">
-          <div className="w-36 h-36 rounded-full border-4 border-white/20 flex items-center justify-center bg-white backdrop-blur-sm shadow-2xl relative p-4">
-            <img
-              src={nasscomLogo}
-              alt="NASSCOM Certified"
-              className="w-full h-auto object-contain"
-              width="144"
-              height="144"
-              loading="lazy"
-              decoding="async"
-              fetchPriority="low"
-            />
-            <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Milestone</div>
-          </div>
-          <div className="text-center md:text-left">
-            <h3 className="text-2xl font-bold text-white mb-2">Proudly Recognized by NASSCOM</h3>
-            <p className="text-slate-400 max-w-lg">
-              Our proposal has been officially approved by NASSCOM, marking a significant step toward becoming a Certified Company—validating our vision, ethics, and process excellence.
-            </p>
-            <button className="mt-6 text-sm font-bold text-indigo-400 hover:text-white transition-colors flex items-center gap-2 mx-auto md:mx-0">
-              Read the Announcement <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* --- SUCCESS STORIES --- */}
-      <section id="stories" className="py-24 px-6 relative z-10" style={{ contentVisibility: 'auto' }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-4">
-              See How Our Students Have Transformed
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 transition-all text-center group">
-              <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                <Globe size={24} />
-              </div>
-              <h4 className="text-lg font-bold text-slate-900 mb-2">Tech Giants Corp</h4>
-              <p className="text-slate-500 italic mb-6">"Shnoor's platform helped us onboard 500+ engineers in record time. The hands-on labs were a game changer."</p>
-            </div>
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 transition-all text-center group">
-              <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                <Zap size={24} />
-              </div>
-              <h4 className="text-lg font-bold text-slate-900 mb-2">Innovate Inc</h4>
-              <p className="text-slate-500 italic mb-6">"The certification paths gave our team a clear roadmap for growth. We've seen a 40% boost in productivity."</p>
-            </div>
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 transition-all text-center group">
-              <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                <GraduationCap size={24} />
-              </div>
-              <h4 className="text-lg font-bold text-slate-900 mb-2">Future Academy</h4>
-              <p className="text-slate-500 italic mb-6">"Our students love the interactive coding challenges. It makes complex concepts easy to digest and apply."</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- FOOTER --- */}
-      <footer className="bg-[#0F172A] border-t border-slate-800 pt-16 pb-8 px-6 relative z-10 font-medium text-left">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
-
-          {/* Column 1: Brand & Socials (Span 5) */}
+      <footer className="relative z-10 border-t border-slate-800 bg-[#0F172A] px-6 pb-8 pt-16 text-left font-medium">
+        <div className="mx-auto mb-16 grid max-w-7xl grid-cols-1 gap-12 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <div className="mb-6">
-              <BrandLogo titleColor="text-white!" subtitleColor="text-[#94a3b8]!" />
+              <BrandLogoLight />
             </div>
-            <p className="text-[#94a3b8]! text-sm leading-relaxed mb-8 max-w-sm">
-              Transform your learning process with our powerful platform. Create professional training paths, track progress, and certify skills faster with Shnoor International.
+            <p className="max-w-sm text-sm leading-relaxed text-slate-400">
+              Transform your learning process with a platform that supports
+              training paths, progress visibility, and skill validation in one
+              consistent experience.
             </p>
-            {/* Social Icons */}
-            <div className="flex gap-4">
-              <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="Twitter"><Twitter size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="Facebook"><Facebook size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="LinkedIn"><Linkedin size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="Instagram"><Instagram size={20} /></a>
+            <div className="mt-8 flex gap-4">
+              <a
+                href="#"
+                className="text-slate-400 transition-colors hover:text-white"
+                aria-label="Twitter"
+              >
+                <Twitter size={20} />
+              </a>
+              <a
+                href="#"
+                className="text-slate-400 transition-colors hover:text-white"
+                aria-label="Facebook"
+              >
+                <Facebook size={20} />
+              </a>
+              <a
+                href="#"
+                className="text-slate-400 transition-colors hover:text-white"
+                aria-label="LinkedIn"
+              >
+                <Linkedin size={20} />
+              </a>
+              <a
+                href="#"
+                className="text-slate-400 transition-colors hover:text-white"
+                aria-label="Instagram"
+              >
+                <Instagram size={20} />
+              </a>
             </div>
           </div>
 
-          {/* Column 2: Quick Links (Span 3) */}
           <div className="lg:col-span-3">
-            <h4 className="font-bold text-white! mb-6 text-lg">Quick Links</h4>
+            <h4 className="mb-6 text-lg font-semibold text-white">
+              Quick Links
+            </h4>
             <ul className="space-y-4 text-sm">
-              <li><button onClick={() => scrollToSection('home')} className="text-[#94a3b8]! hover:text-white! transition-colors">Home</button></li>
-              <li><button onClick={() => scrollToSection('training')} className="text-[#94a3b8]! hover:text-white! transition-colors">Training</button></li>
-              <li><button onClick={onContact} className="text-[#94a3b8]! hover:text-white! transition-colors">Contact Us</button></li>
+              {footerLinks.map((item) => (
+                <li key={item.label}>
+                  <button
+                    onClick={() => scrollToSection(item.action)}
+                    className="text-slate-400 transition-colors hover:text-white"
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+              <li>
+                <button
+                  onClick={onContact}
+                  className="text-slate-400 transition-colors hover:text-white"
+                >
+                  Contact Us
+                </button>
+              </li>
             </ul>
           </div>
 
-          {/* Column 3: Contact & Support (Span 4) */}
           <div className="lg:col-span-4">
-            <h4 className="font-bold text-white! mb-6 text-lg">Contact & Support</h4>
-            <ul className="space-y-6 text-sm text-[#94a3b8]!">
-              {/* Emails */}
+            <h4 className="mb-6 text-lg font-semibold text-white">
+              Contact & Support
+            </h4>
+            <ul className="space-y-6 text-sm text-slate-400">
               <li className="flex items-start gap-3">
-                <Mail size={18} className="shrink-0 text-indigo-400 mt-1" />
+                <Mail size={18} className="mt-1 shrink-0 text-indigo-400" />
                 <div className="flex flex-col">
                   <span>info@shnoor.com (General)</span>
                   <span>proc@shnoor.com (Sales)</span>
                 </div>
               </li>
-
-              {/* Phones */}
               <li className="flex items-start gap-3">
-                <Phone size={18} className="shrink-0 text-indigo-400 mt-1" />
+                <Phone size={18} className="mt-1 shrink-0 text-indigo-400" />
                 <div className="flex flex-col">
                   <span>+91-9429694298</span>
                   <span>+91-9041914601</span>
                 </div>
               </li>
-
-              {/* WhatsApp Button */}
               <li className="flex items-start gap-3">
-                <MessageCircle size={18} className="shrink-0 text-indigo-400 mt-1" />
+                <MessageCircle
+                  size={18}
+                  className="mt-1 shrink-0 text-indigo-400"
+                />
                 <WhatsAppContactButton variant="dark" />
               </li>
-
-              {/* Address */}
               <li className="flex items-start gap-3">
-                <MapPin size={18} className="shrink-0 text-indigo-400 mt-1" />
-                <span>10009 Mount Tabor Road<br />City, Odessa Missouri, United States</span>
+                <MapPin size={18} className="mt-1 shrink-0 text-indigo-400" />
+                <span>
+                  10009 Mount Tabor Road
+                  <br />
+                  City, Odessa Missouri, United States
+                </span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar (Combined Mobile Layout + A11y Colors) */}
-        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[#64748b] text-center md:text-left">
-          <div>© 2026 Shnoor International. All rights reserved.</div>
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-slate-800 pt-8 text-center text-sm text-slate-500 md:flex-row md:text-left">
+          <div>� 2026 Shnoor International. All rights reserved.</div>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-            <Link to="/privacy-policy" className="hover:text-[#cbd5e1]! text-[#64748b]! py-2 whitespace-nowrap">Privacy Policy</Link>
-            <Link to="/terms-and-conditions" className="hover:text-[#cbd5e1]! text-[#64748b]! py-2 whitespace-nowrap">Terms & Conditions</Link>
-            <Link to="/cookie-policy" className="hover:text-[#cbd5e1]! text-[#64748b]! py-2 whitespace-nowrap">Cookie Policy</Link>
-            <a href="/Company profile..pdf" download className="hover:text-[#cbd5e1]! text-[#64748b]! py-2 whitespace-nowrap">Company Profile</a>
+            <Link
+              to="/privacy-policy"
+              className="whitespace-nowrap py-2 text-slate-500 transition-colors hover:text-slate-300"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              to="/terms-and-conditions"
+              className="whitespace-nowrap py-2 text-slate-500 transition-colors hover:text-slate-300"
+            >
+              Terms & Conditions
+            </Link>
+            <Link
+              to="/cookie-policy"
+              className="whitespace-nowrap py-2 text-slate-500 transition-colors hover:text-slate-300"
+            >
+              Cookie Policy
+            </Link>
+            <a
+              href="/Company profile..pdf"
+              download
+              className="whitespace-nowrap py-2 text-slate-500 transition-colors hover:text-slate-300"
+            >
+              Company Profile
+            </a>
           </div>
         </div>
       </footer>
