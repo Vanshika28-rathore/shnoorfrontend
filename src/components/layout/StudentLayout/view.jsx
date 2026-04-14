@@ -86,11 +86,11 @@ const StudentLayoutView = ({
 
     return (
       <li
-        className={`flex flex-1 min-w-0 flex-col overflow-hidden relative isolate transition-all duration-300 ${!isExamMode && isSidebarOpen ? "lg:ml-65" : "ml-0"}`}
         className={`relative mb-1 flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all ${isActive
           ? "bg-white/10 text-white font-semibold"
           : "text-white/55 font-medium hover:bg-white/10 hover:text-white"
-          <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm sm:px-5 md:px-8">
+        }`}
+        onClick={() => handleNavigate(path ? `/student/${path}` : "#")}
       >
         {isActive && (
           <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r bg-indigo-400" />
@@ -127,41 +127,41 @@ const StudentLayoutView = ({
           style={{ width: "260px" }}
         >
           <div className="flex h-full shrink-0 flex-col border-r border-white/10 bg-linear-to-b from-slate-900 to-slate-800">
-          {/* Logo */}
-          <div className="flex items-center gap-3 border-b border-white/10 px-5 py-6">
-            <img
-              src={markLogo}
-              alt="SHNOOR"
-              className="h-10 w-10 rounded-[10px] object-cover"
-            />
-            <div
-              className={`flex flex-1 min-w-0 flex-col overflow-hidden relative isolate transition-all duration-300 ${!isExamMode && isSidebarOpen ? "lg:ml-65" : "ml-0"}`}
-            >
-                International LLC
+            {/* Logo */}
+            <div className="flex items-center gap-3 border-b border-white/10 px-5 py-6">
+              <img
+                src={markLogo}
+                alt="SHNOOR"
+                className="h-10 w-10 rounded-[10px] object-cover"
+              />
+              <div>
+                <div className="text-base font-bold tracking-tight text-white">SHNOOR</div>
+                <div className="text-[10px] font-semibold uppercase tracking-[2px] text-white/40">
+                  International LLC
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Navigation */}
-          <div className="flex-1 overflow-y-auto px-4 py-6">
-            <ul className="m-0 list-none p-0">
-              <NavItem path="dashboard" icon={TrendingUp} label="Dashboard" />
-              <NavItem path="courses" icon={List} label="My Courses" />
-              <NavItem path="mock-test" icon={ClipboardList} label="Mock Test" />
-              <NavItem path="practice" icon={Code} label="Practice Arena" />
-              <NavItem path="exams" icon={ClipboardList} label="Exams" />
-              <NavItem path="contests" icon={Trophy} label="Weekly Contests" />
-              <NavItem path="certificates" icon={Trophy} label="Certificates" />
-              <NavItem path="groups" icon={Users} label="My Groups" />
-              <NavItem
-                path="chat"
-                icon={MessageSquare}
-                label="Messages"
-                badgeCount={totalUnread}
-              />
-              <NavItem path="settings" icon={Settings} label="Settings" />
-            </ul>
-          </div>
+            {/* Navigation */}
+            <div className="flex-1 overflow-y-auto px-4 py-6">
+              <ul className="m-0 list-none p-0">
+                <NavItem path="dashboard" icon={TrendingUp} label="Dashboard" />
+                <NavItem path="courses" icon={List} label="My Courses" />
+                <NavItem path="mock-test" icon={ClipboardList} label="Mock Test" />
+                <NavItem path="practice" icon={Code} label="Practice Arena" />
+                <NavItem path="exams" icon={ClipboardList} label="Exams" />
+                <NavItem path="contests" icon={Trophy} label="Weekly Contests" />
+                <NavItem path="certificates" icon={Trophy} label="Certificates" />
+                <NavItem path="groups" icon={Users} label="My Groups" />
+                <NavItem
+                  path="chat"
+                  icon={MessageSquare}
+                  label="Messages"
+                  badgeCount={totalUnread}
+                />
+                <NavItem path="settings" icon={Settings} label="Settings" />
+              </ul>
+            </div>
           </div>
         </div>
       )}

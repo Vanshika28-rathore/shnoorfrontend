@@ -15,10 +15,11 @@ const GroupInfoDrawer = ({ chat, isOpen, onClose, onLeaveSuccess, onDeleteSucces
     const [editDesc, setEditDesc] = useState(chat.description || "");
     const [saving, setSaving] = useState(false);
 
-    const isAdminGroup = chat?.groupType === 'admin' || chat?.source === 'admin';
-    const primaryBase = isAdminGroup ? '/api/admingroups' : '/api/chats/groups';
-    const fallbackBase = isAdminGroup ? '/api/chats/groups' : '/api/admingroups';
-    const apiBase = resolvedBase || primaryBase;
+    const isAdminGroup = ['admin', 'admin-chat', 'admin-section'].includes(chat?.groupType) || chat?.source === 'admin';
+    const groupBaseCandidates = isAdminGroup
+        ? ['/api/admin/groups', '/api/admingroups', '/api/chats/groups']
+        : ['/api/chats/groups', '/api/admin/groups', '/api/admingroups'];
+    const apiBase = resolvedBase || groupBaseCandidates[0];
     const currentUserMember = members.find(m => m.id === dbUser?.id);
     const isAdmin = currentUserMember?.group_role === 'admin';
 
@@ -34,27 +35,25 @@ const GroupInfoDrawer = ({ chat, isOpen, onClose, onLeaveSuccess, onDeleteSucces
         if (!chat?.id) return;
         setLoading(true);
         setErrorMsg(null);
+        setResolvedBase(null);
 
         try {
-            const res = await api.get(`${primaryBase}/${chat.id}/members`);
-            setMembers(res.data || []);
-            setResolvedBase(primaryBase);
-        } catch (err) {
-            const status = err?.response?.status;
-            const shouldFallback = !isAdminGroup && (status === 403 || status === 404);
-
-            if (shouldFallback) {
+            for (const base of groupBaseCandidates) {
                 try {
-                    const fallbackRes = await api.get(`${fallbackBase}/${chat.id}/members`);
-                    setMembers(fallbackRes.data || []);
-                    setResolvedBase(fallbackBase);
-                } catch (fallbackErr) {
-                    console.error("Failed to fetch members (fallback)", fallbackErr);
-                    setErrorMsg(fallbackErr?.response?.data?.message || "Failed to load members");
+                    const res = await api.get(`${base}/${chat.id}/members`);
+                    setMembers(res.data || []);
+                    setResolvedBase(base);
+                    return;
+                } catch (err) {
+                    const status = err?.response?.status;
+                    const canTryNext = status === 404 || status === 403;
+
+                    if (!canTryNext || base === groupBaseCandidates[groupBaseCandidates.length - 1]) {
+                        console.error("Failed to fetch members", err);
+                        setErrorMsg(err?.response?.data?.message || "Failed to load members");
+                        return;
+                    }
                 }
-            } else {
-                console.error("Failed to fetch members", err);
-                setErrorMsg(err?.response?.data?.message || "Failed to load members");
             }
         } finally {
             setLoading(false);
