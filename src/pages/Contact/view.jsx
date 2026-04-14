@@ -1,328 +1,475 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, Menu, X,
-  Mail, Phone, MapPin, Send, MessageCircle,
-  Twitter, Facebook, Linkedin, Instagram,
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import markLogo from '../../assets/shnoor_logo.png';
+  ArrowLeft,
+  Building2,
+  CheckCircle2,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Mail,
+  MapPin,
+  Menu,
+  MessageCircle,
+  Phone,
+  Send,
+  ShieldCheck,
+  Twitter,
+  X,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import markLogo from "../../assets/shnoor_logo.png";
 import WhatsAppContactButton from "../../components/WhatsAppButton";
+
+const contactHighlights = [
+  {
+    title: "Sales and partnerships",
+    description:
+      "Speak with us about enterprise training, private programs, and rollout plans.",
+    icon: Building2,
+  },
+  {
+    title: "Program guidance",
+    description:
+      "Get support choosing the right learning journey for your workforce or audience.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Fast response",
+    description:
+      "Reach out through email, phone, or WhatsApp and our team will follow up promptly.",
+    icon: CheckCircle2,
+  },
+];
+
 const ContactView = ({ onBack }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    message: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    message: "",
   });
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const BrandLogo = ({ titleColor = 'text-slate-900', subtitleColor = 'text-slate-500' }) => (
+  const BrandLogo = () => (
     <div className="flex items-center">
       <img
         src={markLogo}
         alt="Shnoor International"
-        className="rounded-xl"
-        style={{ width: '60px', height: '62px', objectFit: 'cover', borderRadius: '50%', marginRight: '10px' }}
+        width="220"
+        loading="eager"
       />
-      <div>
-        <h1 className={`brand-logo ${titleColor} text-xl md:text-2xl font-semibold mb-1 tracking-tight leading-tight`}>
-          SHNOOR International
-        </h1>
-        <p className={`text-xs md:text-sm ${subtitleColor} font-medium tracking-[0.18em] uppercase`}>
-          Learning Platform
-        </p>
-      </div>
     </div>
   );
 
+  const footerLinkClass = "text-slate-400 transition-colors hover:text-white";
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10";
+
+  const handleBackToHome = () => {
+    setMobileMenuOpen(false);
+    onBack();
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: Add form submission logic here
     setSubmitted(true);
     setTimeout(() => {
-      setFormData({ firstName: '', lastName: '', email: '', message: '' });
+      setFormData({ firstName: "", lastName: "", email: "", message: "" });
       setSubmitted(false);
     }, 3000);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-slate-500 selection:text-white overflow-x-hidden">
-
-      {/* --- BACKGROUND BLOBS --- */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gray-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-slate-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 selection:bg-indigo-600 selection:text-white">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.14),_transparent_56%)]" />
+        <div className="absolute right-0 top-80 h-96 w-96 rounded-full bg-indigo-200/20 blur-3xl" />
       </div>
 
-      {/* --- NAV BAR --- */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm border-b border-white/20' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+      <nav
+        className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled || mobileMenuOpen ? "border-b border-slate-200/80 bg-white/92 shadow-sm backdrop-blur-md" : "bg-transparent"}`}
+      >
+        <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-6">
           <BrandLogo />
-
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-slate-900 transition-colors px-4 py-2 rounded-full hover:bg-white/50"
-            >
-              <ArrowLeft size={18} />
-              Back to Home
-            </button>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button className="md:hidden text-slate-900" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <button
+            onClick={handleBackToHome}
+            className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 md:inline-flex"
+          >
+            <ArrowLeft size={18} />
+            Back to Home
+          </button>
+          <button
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-900 md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
 
-        {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-200 p-6 flex flex-col gap-6 shadow-xl absolute w-full animate-fade-in-up">
+          <div className="absolute w-full border-b border-slate-200 bg-white p-6 shadow-xl md:hidden">
             <button
-              onClick={() => {
-                onBack();
-                setMobileMenuOpen(false);
-              }}
-              className="text-left text-sm font-bold text-slate-700 hover:text-slate-900 transition-colors"
+              onClick={handleBackToHome}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-700"
             >
+              <ArrowLeft size={16} />
               Back to Home
             </button>
           </div>
         )}
       </nav>
 
-      {/* --- HERO SECTION --- */}
-      <section className="relative pt-36 pb-20 px-6 lg:pt-48 lg:pb-32 z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="animate-fade-in-up">
-            <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mb-6 leading-[1.1]">
-              Get In Touch
-            </h1>
-            <p className="text-lg lg:text-xl text-slate-600 font-medium max-w-2xl mx-auto mb-10 leading-relaxed">
-              Have a question or ready to transform your workforce? We'd love to hear from you. Reach out to our team and let's discuss how we can help.
-            </p>
+      <section className="relative z-10 px-6 pb-14 pt-32 md:pt-40">
+        <div className="mx-auto max-w-7xl">
+          <div className="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-indigo-700">
+            Contact Shnoor
+          </div>
+          <div className="mt-6 grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
+            <div>
+              <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 md:text-6xl">
+                Let's plan the right learning experience for your team.
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+                Reach out for enterprise training, private programs,
+                certification pathways, or platform guidance. The page now
+                matches the same professional UI language as the new landing
+                page for a more consistent brand experience.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {contactHighlights.map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                >
+                  <div className="inline-flex rounded-xl bg-indigo-50 p-3 text-indigo-600">
+                    <item.icon size={18} />
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-slate-950">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
+      <section className="relative z-10 px-6 pb-20 md:pb-24">
+        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-[linear-gradient(135deg,#0F172A_0%,#1E293B_58%,#312E81_100%)] p-8 text-white shadow-2xl shadow-slate-950/10 md:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-200">
+              Contact Info
+            </p>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+              Ready to upgrade your workforce learning experience?
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-slate-300 md:text-base">
+              Speak with our team about platform access, training models, or a
+              rollout approach that fits your organization.
+            </p>
 
-      {/* --- CONTACT SECTION --- */}
-      <section className="py-24 px-6 relative z-10 bg-white/50">
-        <div className="max-w-6xl mx-auto bg-white rounded-[2rem] overflow-hidden shadow-2xl flex flex-col lg:flex-row border border-slate-100">
-
-          {/* Left Side (Dark Info) */}
-          <div className="bg-slate-900 p-12 lg:w-5/12 text-white flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-
-            <div className="relative z-10">
-              <span className="text-xs font-bold tracking-widest uppercase text-slate-400 mb-2 block">Contact Info</span>
-              <h2 className="text-3xl font-black tracking-tight mb-8">Ready to upgrade your workforce?</h2>
-
-              <div className="space-y-8">
+            <div className="mt-8 space-y-5">
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 shrink-0">
                     <Mail size={18} className="text-indigo-400" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-medium text-slate-200">info@shnoor.com <span className="text-slate-500 text-sm">(General)</span></span>
-                    <span className="font-medium text-slate-200">proc@shnoor.com <span className="text-slate-500 text-sm">(Sales)</span></span>
+                    <span className="font-medium text-slate-100">
+                      info@shnoor.com{" "}
+                      <span className="text-slate-400 text-sm">(General)</span>
+                    </span>
+                    <span className="font-medium text-slate-100">
+                      proc@shnoor.com{" "}
+                      <span className="text-slate-400 text-sm">(Sales)</span>
+                    </span>
                   </div>
                 </div>
+              </div>
 
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 shrink-0">
                     <Phone size={18} className="text-indigo-400" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-medium text-slate-200">+91-9429694298</span>
-                    <span className="font-medium text-slate-200">+91-9041914601</span>
+                    <span className="font-medium text-slate-100">
+                      +91-9429694298
+                    </span>
+                    <span className="font-medium text-slate-100">
+                      +91-9041914601
+                    </span>
                   </div>
                 </div>
+              </div>
 
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 shrink-0">
                     <MessageCircle size={18} className="text-indigo-400" />
                   </div>
                   <WhatsAppContactButton variant="light" />
                 </div>
+              </div>
 
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 shrink-0">
                     <MapPin size={18} className="text-indigo-400" />
                   </div>
-                  <span className="font-medium text-slate-200 leading-relaxed">
-                    10009 Mount Tabor Road, City,<br /> Odessa Missouri, United States
+                  <span className="font-medium leading-relaxed text-slate-100">
+                    10009 Mount Tabor Road, City,
+                    <br /> Odessa Missouri, United States
                   </span>
                 </div>
               </div>
+            </div>
 
-              {/* Social Icons */}
-              <div className="flex gap-4 mt-12 pt-8 border-t border-slate-700/50">
-                <a href="#" className="text-slate-400 hover:text-white transition-colors"><Twitter size={20} /></a>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors"><Facebook size={20} /></a>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors"><Linkedin size={20} /></a>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors"><Instagram size={20} /></a>
-              </div>
+            <div className="mt-8 flex gap-4 border-t border-white/10 pt-6">
+              <a
+                href="#"
+                className="text-slate-400 transition-colors hover:text-white"
+              >
+                <Twitter size={20} />
+              </a>
+              <a
+                href="#"
+                className="text-slate-400 transition-colors hover:text-white"
+              >
+                <Facebook size={20} />
+              </a>
+              <a
+                href="#"
+                className="text-slate-400 transition-colors hover:text-white"
+              >
+                <Linkedin size={20} />
+              </a>
+              <a
+                href="#"
+                className="text-slate-400 transition-colors hover:text-white"
+              >
+                <Instagram size={20} />
+              </a>
             </div>
           </div>
 
-          {/* Right Side (Light Form) */}
-          <div className="p-12 lg:w-7/12 bg-white flex flex-col justify-center">
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm md:p-10">
+            <div className="mb-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                Send a message
+              </p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                Tell us what you need and we'll help you move forward.
+              </h2>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">First Name</label>
+                  <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    First Name
+                  </label>
                   <input
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
-                    className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-900 font-medium"
+                    className={inputClass}
                     placeholder="John"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Last Name</label>
+                  <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    Last Name
+                  </label>
                   <input
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
                     required
-                    className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-900 font-medium"
+                    className={inputClass}
                     placeholder="Doe"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Work Email</label>
+                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Work Email
+                </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-900 font-medium"
+                  className={inputClass}
                   placeholder="john@example.com"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Message</label>
+                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Message
+                </label>
                 <textarea
                   rows="5"
                   name="message"
                   value={formData.message}
                   onChange={handleInputChange}
                   required
-                  className="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-900 font-medium resize-none"
+                  className={`${inputClass} resize-none`}
                   placeholder="Tell us about your requirements..."
-                ></textarea>
+                />
               </div>
               <button
                 type="submit"
-                className="w-full h-14 bg-indigo-600 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-600/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-lg shadow-slate-950/10 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={submitted}
               >
-                {submitted ? 'Message Sent!' : <>Send Message <Send size={18} /></>}
+                {submitted ? (
+                  "Message Sent!"
+                ) : (
+                  <>
+                    Send Message <Send size={18} />
+                  </>
+                )}
               </button>
             </form>
           </div>
         </div>
       </section>
 
-      {/* --- FOOTER --- */}
-      <footer className="bg-[#0F172A] border-t border-slate-800 pt-16 pb-8 px-6 relative z-10 font-medium text-left">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
-
-          {/* Column 1: Brand & Socials (Span 5) */}
+      <footer className="relative z-10 border-t border-slate-800 bg-[#0F172A] px-6 pb-8 pt-16 text-left font-medium">
+        <div className="mx-auto mb-16 grid max-w-7xl grid-cols-1 gap-12 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <div className="mb-6">
-              <BrandLogo titleColor="!text-white" subtitleColor="!text-[#94a3b8]" />
+              <BrandLogo />
             </div>
-            <p className="!text-[#94a3b8] text-sm leading-relaxed mb-8 max-w-sm">
-              Transform your learning process with our powerful platform. Create professional training paths, track progress, and certify skills faster with Shnoor International.
+            <p className="max-w-sm text-sm leading-relaxed text-slate-400">
+              Transform your learning process with a platform that supports
+              training paths, progress visibility, and skill validation in one
+              consistent experience.
             </p>
-            {/* Social Icons */}
-            <div className="flex gap-4">
-              <a href="#" className="text-slate-400 hover:text-white transition-colors"><Twitter size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors"><Facebook size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors"><Linkedin size={20} /></a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors"><Instagram size={20} /></a>
+            <div className="mt-8 flex gap-4">
+              <a href="#" className={footerLinkClass}>
+                <Twitter size={20} />
+              </a>
+              <a href="#" className={footerLinkClass}>
+                <Facebook size={20} />
+              </a>
+              <a href="#" className={footerLinkClass}>
+                <Linkedin size={20} />
+              </a>
+              <a href="#" className={footerLinkClass}>
+                <Instagram size={20} />
+              </a>
             </div>
           </div>
 
-          {/* Column 2: Quick Links (Span 3) */}
           <div className="lg:col-span-3">
-            <h4 className="font-bold !text-white mb-6 text-lg">Quick Links</h4>
+            <h4 className="mb-6 text-lg font-semibold text-white">
+              Quick Links
+            </h4>
             <ul className="space-y-4 text-sm">
-              <li><button onClick={onBack} className="!text-[#94a3b8] hover:!text-white transition-colors">Home</button></li>
-              <li><button onClick={onBack} className="!text-[#94a3b8] hover:!text-white transition-colors">Training</button></li>
-              <li><button className="!text-[#94a3b8] hover:!text-white transition-colors">Contact Us</button></li>
+              <li>
+                <button onClick={handleBackToHome} className={footerLinkClass}>
+                  Home
+                </button>
+              </li>
+              <li>
+                <button onClick={handleBackToHome} className={footerLinkClass}>
+                  Training
+                </button>
+              </li>
+              <li>
+                <button className={footerLinkClass}>Contact Us</button>
+              </li>
             </ul>
           </div>
 
-          {/* Column 3: Contact & Support (Span 4) */}
           <div className="lg:col-span-4">
-            <h4 className="font-bold !text-white mb-6 text-lg">Contact & Support</h4>
-            <ul className="space-y-6 text-sm !text-[#94a3b8]">
-              {/* Emails */}
+            <h4 className="mb-6 text-lg font-semibold text-white">
+              Contact & Support
+            </h4>
+            <ul className="space-y-6 text-sm text-slate-400">
               <li className="flex items-start gap-3">
-                <Mail size={18} className="shrink-0 text-indigo-400 mt-1" />
+                <Mail size={18} className="mt-1 shrink-0 text-indigo-400" />
                 <div className="flex flex-col">
                   <span>info@shnoor.com (General)</span>
                   <span>proc@shnoor.com (Sales)</span>
                 </div>
               </li>
-
-              {/* Phones */}
               <li className="flex items-start gap-3">
-                <Phone size={18} className="shrink-0 text-indigo-400 mt-1" />
+                <Phone size={18} className="mt-1 shrink-0 text-indigo-400" />
                 <div className="flex flex-col">
                   <span>+91-9429694298</span>
                   <span>+91-9041914601</span>
                 </div>
               </li>
-
-              {/* WhatsApp Button */}
               <li className="flex items-start gap-3">
-                <MessageCircle size={18} className="shrink-0 text-indigo-400 mt-1" />
+                <MessageCircle
+                  size={18}
+                  className="mt-1 shrink-0 text-indigo-400"
+                />
                 <WhatsAppContactButton variant="dark" />
               </li>
-
-              {/* Address */}
               <li className="flex items-start gap-3">
-                <MapPin size={18} className="shrink-0 text-indigo-400 mt-1" />
-                <span>10009 Mount Tabor Road<br />City, Odessa Missouri, United States</span>
+                <MapPin size={18} className="mt-1 shrink-0 text-indigo-400" />
+                <span>
+                  10009 Mount Tabor Road
+                  <br />
+                  City, Odessa Missouri, United States
+                </span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm !text-[#64748b]">
-          <div>© 2026 Shnoor International. All rights reserved.</div>
-          <div className="flex gap-6">
-            <Link to="/privacy-policy" className="hover:!text-[#cbd5e1] !text-[#64748b]">Privacy Policy</Link>
-            <Link to="/terms-and-conditions" className="hover:!text-[#cbd5e1] !text-[#64748b]">Terms & Conditions</Link>
-            <Link to="/cookie-policy" className="hover:!text-[#cbd5e1] !text-[#64748b]">Cookie Policy</Link>
-            <a href="/Company profile..pdf" download className="hover:!text-[#cbd5e1] !text-[#64748b]">Company Profile</a>
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-slate-800 pt-8 text-center text-sm text-slate-500 md:flex-row md:text-left">
+          <div>� 2026 Shnoor International. All rights reserved.</div>
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+            <Link
+              to="/privacy-policy"
+              className="whitespace-nowrap py-2 text-slate-500 transition-colors hover:text-slate-300"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              to="/terms-and-conditions"
+              className="whitespace-nowrap py-2 text-slate-500 transition-colors hover:text-slate-300"
+            >
+              Terms & Conditions
+            </Link>
+            <Link
+              to="/cookie-policy"
+              className="whitespace-nowrap py-2 text-slate-500 transition-colors hover:text-slate-300"
+            >
+              Cookie Policy
+            </Link>
+            <a
+              href="/Company profile..pdf"
+              download
+              className="whitespace-nowrap py-2 text-slate-500 transition-colors hover:text-slate-300"
+            >
+              Company Profile
+            </a>
           </div>
         </div>
       </footer>

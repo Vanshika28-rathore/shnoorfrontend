@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -7,11 +8,11 @@
   --color-slate-50: #f8fafc;
   --color-slate-900: #0f172a;
   
-  --font-family-base: 'Inter', sans-serif;
+  --font-family-base: 'Poppins', sans-serif;
   
-  --radius-xl: 0.75rem;  
-  --radius-2xl: 1rem;  
-  --radius-3xl: 1.5rem;  
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
 }
 
 :root {
@@ -72,22 +73,20 @@ a:hover {
   background: #94a3b8;
 }
 
-/* Mobile: Hide scrollbar on horizontal tab bars */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-/* Mobile: Prevent text size inflation on orientation change */
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
-/* Mobile: Smooth momentum scrolling */
 .mobile-scroll {
   -webkit-overflow-scrolling: touch;
 }
