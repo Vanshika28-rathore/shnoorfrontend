@@ -15,10 +15,35 @@ const GroupInfoDrawer = ({ chat, isOpen, onClose, onLeaveSuccess, onDeleteSucces
     const [editDesc, setEditDesc] = useState(chat.description || "");
     const [saving, setSaving] = useState(false);
 
-    const isAdminGroup = ['admin', 'admin-chat', 'admin-section'].includes(chat?.groupType) || chat?.source === 'admin';
-    const groupBaseCandidates = isAdminGroup
-        ? ['/api/admin/groups', '/api/admingroups', '/api/chats/groups']
-        : ['/api/chats/groups', '/api/admin/groups', '/api/admingroups'];
+    const isAdminChatGroup = ['admin', 'admin-chat'].includes(chat?.groupType) || ['admin', 'admin-chat'].includes(chat?.source);
+    const isAdminSectionGroup = ['admin-section', 'section'].includes(chat?.groupType) || chat?.source === 'admin-section';
+
+    const groupBaseCandidates = isAdminSectionGroup
+        ? ['/api/admin/groups', '/api/chats/groups', '/api/admingroups']
+        : isAdminChatGroup
+            ? ['/api/admingroups', '/api/chats/groups', '/api/admin/groups']
+            : ['/api/chats/groups', '/api/admin/groups', '/api/admingroups'];
+
+    const memberEndpointCandidates = isAdminSectionGroup
+        ? [
+            { base: '/api/admin/groups', membersPath: 'users' },
+            { base: '/api/admin/groups', membersPath: 'members' },
+            { base: '/api/chats/groups', membersPath: 'members' },
+            { base: '/api/admingroups', membersPath: 'members' }
+        ]
+        : isAdminChatGroup
+            ? [
+                { base: '/api/admingroups', membersPath: 'members' },
+                { base: '/api/chats/groups', membersPath: 'members' },
+                { base: '/api/admin/groups', membersPath: 'users' },
+                { base: '/api/admin/groups', membersPath: 'members' }
+            ]
+            : [
+                { base: '/api/chats/groups', membersPath: 'members' },
+                { base: '/api/admin/groups', membersPath: 'users' },
+                { base: '/api/admingroups', membersPath: 'members' },
+                { base: '/api/admin/groups', membersPath: 'members' }
+            ];
     const apiBase = resolvedBase || groupBaseCandidates[0];
     const currentUserMember = members.find(m => m.id === dbUser?.id);
     const isAdmin = currentUserMember?.group_role === 'admin';
@@ -37,18 +62,38 @@ const GroupInfoDrawer = ({ chat, isOpen, onClose, onLeaveSuccess, onDeleteSucces
         setErrorMsg(null);
         setResolvedBase(null);
 
+        const debugContext = {
+            groupId: chat.id,
+            groupType: chat?.groupType,
+            source: chat?.source,
+        };
+
         try {
-            for (const base of groupBaseCandidates) {
+            for (const candidate of memberEndpointCandidates) {
+                const { base, membersPath } = candidate;
+                const endpoint = `${base}/${chat.id}/${membersPath}`;
                 try {
-                    const res = await api.get(`${base}/${chat.id}/members`);
+                    const res = await api.get(endpoint);
                     setMembers(res.data || []);
                     setResolvedBase(base);
+                    console.info('[GroupInfoDrawer] members resolved', {
+                        ...debugContext,
+                        endpoint,
+                        memberCount: Array.isArray(res.data) ? res.data.length : 0,
+                    });
                     return;
                 } catch (err) {
                     const status = err?.response?.status;
                     const canTryNext = status === 404 || status === 403;
 
-                    if (!canTryNext || base === groupBaseCandidates[groupBaseCandidates.length - 1]) {
+                    console.warn('[GroupInfoDrawer] members endpoint failed', {
+                        ...debugContext,
+                        endpoint,
+                        status: status || 'network/error',
+                        willTryNext: canTryNext,
+                    });
+
+                    if (!canTryNext || candidate === memberEndpointCandidates[memberEndpointCandidates.length - 1]) {
                         console.error("Failed to fetch members", err);
                         setErrorMsg(err?.response?.data?.message || "Failed to load members");
                         return;
