@@ -67,7 +67,7 @@ const CertificateConfig = () => {
       formData.append("file", file);
 
       const token = await auth.currentUser.getIdToken();
-      const res = await api.post("/api/certificate/settings/upload-image", formData, {
+      const res = await api.post("/api/users/upload-profile-picture", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
