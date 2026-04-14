@@ -7,10 +7,11 @@ import AdminLayoutView from "./view.jsx";
 const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { currentUser, logout } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [adminName, setAdminName] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
 
   // Track screen size
   useEffect(() => {
@@ -35,7 +36,8 @@ const AdminLayout = () => {
     const fetchProfile = async () => {
       try {
         const res = await api.get("/api/users/me");
-        setAdminName(res.data.displayName);
+        setAdminName(res.data.displayName || res.data.full_name || res.data.name || "Admin");
+        setPhotoURL(res.data.photo_url || res.data.photoURL || "");
       } catch (err) {
         console.error("Failed to fetch admin profile");
       }
@@ -58,6 +60,7 @@ const AdminLayout = () => {
       adminName={adminName}
       handleLogout={handleLogout}
       handleNavigate={handleNavigate}
+      photoURL={currentUser?.photoURL || photoURL}
     />
   );
 };

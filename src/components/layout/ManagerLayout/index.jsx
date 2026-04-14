@@ -7,10 +7,11 @@ import ManagerLayoutView from "./view";
 const ManagerLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [managerName, setManagerName] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
+  const { currentUser, logout } = useAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -32,6 +33,7 @@ const ManagerLayout = () => {
       try {
         const res = await api.get("/api/users/me");
         setManagerName(res.data.displayName || res.data.full_name || "Manager");
+        setPhotoURL(res.data.photo_url || res.data.photoURL || "");
       } catch (err) {
         console.error("Failed to fetch manager profile");
       }
@@ -55,6 +57,7 @@ const ManagerLayout = () => {
       managerName={managerName}
       handleLogout={handleLogout}
       handleNavigate={handleNavigate}
+      photoURL={currentUser?.photoURL || photoURL}
     />
   );
 };

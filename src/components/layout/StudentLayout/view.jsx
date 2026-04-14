@@ -48,7 +48,7 @@ const StudentLayoutView = ({
   // Kiosk Mode check: Only trigger full screen when actually inside an active exam session
   // e.g., `/student/mock-exam` or `/student/exam/1234`
   // But NOT `/student/exams` or `/student/mock-test`
-  const isExamMode = /\/(mock-exam|exam\/[^/]+)\/?$/i.test(location.pathname);
+  const isExamMode = location.pathname.includes("mock-exam") || location.pathname.includes("/exam/");
 
   React.useEffect(() => {
     if (!notifOpen) return undefined;
@@ -432,7 +432,7 @@ const StudentLayoutView = ({
                   <div className="text-[11px] font-medium text-slate-500">Student</div>
                 </div>
                 <div
-                  onClick={() => navigate("settings")}
+                  onClick={() => handleNavigate("/student/settings")}
                   className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100"
                 >
                   {photoURL ? (

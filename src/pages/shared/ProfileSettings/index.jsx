@@ -43,7 +43,7 @@ const ProfileSettings = () => {
       });
 
       setUserData({
-        displayName: res.data.name || "",
+        displayName: res.data.displayName || res.data.full_name || res.data.name || "",
         email: res.data.email || auth.currentUser.email || "",
         role: res.data.role || "User",
         bio: res.data.bio || "",

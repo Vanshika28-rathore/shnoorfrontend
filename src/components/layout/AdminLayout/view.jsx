@@ -368,7 +368,7 @@ const AdminLayoutView = ({
               </div>
 
               <div
-                onClick={() => navigate("settings")}
+                onClick={() => handleNavigate("/admin/settings")}
                 style={{
                   width: "40px",
                   height: "40px",

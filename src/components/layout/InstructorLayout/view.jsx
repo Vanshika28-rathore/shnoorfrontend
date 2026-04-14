@@ -143,7 +143,10 @@ const InstructorLayoutView = ({
                 <div className="text-[11px] font-medium text-slate-500">Instructor</div>
               </div>
 
-              <div className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+              <div 
+                className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100"
+                onClick={() => handleNavigate("/instructor/settings")}
+              >
                 {photoURL ? (
                   <img
                     src={photoURL}

@@ -15,8 +15,9 @@ const StudentLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, logout } = useAuth();
-  const isExamPage = location.pathname.includes("/student/exam/");
+  const isExamPage = location.pathname.includes("/student/exam/") || location.pathname.includes("/student/mock-exam");
   const [studentName, setStudentName] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
   const [xp, setXp] = useState(0);
   const [rank, setRank] = useState("Novice");
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
@@ -118,7 +119,8 @@ const StudentLayout = () => {
     const fetchProfile = async () => {
       try {
         const res = await api.get("/api/users/me");
-        setStudentName(res.data.displayName || "Student");
+        setStudentName(res.data.displayName || res.data.full_name || res.data.name || "Student");
+        setPhotoURL(res.data.photo_url || res.data.photoURL || "");
         
         // Fetch XP and Rank from dashboard API for consistency
         try {
@@ -317,6 +319,7 @@ const StudentLayout = () => {
       onRequestPermission={requestNotifPermission}
       toasts={toasts}
       onDismissToast={handleDismissToast}
+      photoURL={currentUser?.photoURL || photoURL}
     />
           {!isExamPage && <StudentBot />}
 </>
