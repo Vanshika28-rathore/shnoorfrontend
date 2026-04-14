@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage, auth } from "../../../auth/firebase";
+import { auth } from "../../../auth/firebase";
 import api from "../../../api/axios";
 import CertificateConfigView from "./view";
 
@@ -51,18 +50,6 @@ const CertificateConfig = () => {
   };
 
   /* =========================
-     HELPER: File to Base64
-  ========================= */
-  const fileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  /* =========================
      HANDLE FILE UPLOAD
   ========================= */
   const handleFileUpload = async (file, fieldName) => {
@@ -76,22 +63,24 @@ const CertificateConfig = () => {
     setUploadingField(fieldName);
 
     try {
-      const storageRef = ref(storage, `certificates/${fieldName}_${Date.now()}`);
-      const uploadTask = await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(uploadTask.ref);
+      const formData = new FormData();
+      formData.append("file", file);
 
-      updateField(fieldName, url);
+      const token = await auth.currentUser.getIdToken();
+      const res = await api.post("/api/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      updateField(fieldName, res.data.url);
       alert(`Image uploaded successfully! Don't forget to SAVE.`);
-
     } catch (err) {
-      console.warn("Storage upload failed, switching to Base64 fallback:", err);
-      try {
-        const base64String = await fileToBase64(file);
-        updateField(fieldName, base64String);
-        alert(`Image uploaded via Backup Mode! Don't forget to SAVE.`);
-      } catch (fallbackErr) {
-        alert(`Upload failed completely. Please try a different image.`);
-      }
+      console.error("Upload failed:", err);
+      const friendlyMessage =
+        err.response?.data?.message || err.message || "Failed to upload file.";
+      alert(`Upload failed: ${friendlyMessage}`);
     } finally {
       setUploadingField(null);
     }

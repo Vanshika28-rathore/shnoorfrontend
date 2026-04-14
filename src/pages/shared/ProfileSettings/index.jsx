@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { updateProfile } from "firebase/auth";
-import { auth, storage } from "../../../auth/firebase";
+import { auth } from "../../../auth/firebase";
 import api from "../../../api/axios";
 import ProfileSettingsView from "./view";
 
@@ -72,9 +72,9 @@ const ProfileSettings = () => {
     }));
   };
 
-  /* =========================
-     IMAGE UPLOAD (FIREBASE STORAGE)
-  ========================= */
+    /* =========================
+      IMAGE UPLOAD (BACKEND S3)
+    ========================= */
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !auth.currentUser) return;

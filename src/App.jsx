@@ -72,7 +72,7 @@ const GroupUsers = React.lazy(() => import("./pages/admin/Groups/users"));
 const ChatWithStudents = React.lazy(
   () => import("./pages/admin/ChatWithStudents"),
 );
-const AdminMessages = React.lazy(() => import("./pages/admin/Messages"));
+// const AdminMessages = React.lazy(() => import("./pages/admin/Messages"));
 
 const InstructorDashboard = React.lazy(
   () => import("./pages/instructor/InstructorDashboard"),
@@ -225,7 +225,7 @@ function App() {
                 <Route path="groups/:groupId/users" element={<GroupUsers />} />
                 <Route path="settings" element={<ProfileSettings />} />
                 <Route path="group-messages" element={<ChatWithStudents />} />
-                <Route path="messages" element={<AdminMessages />} />
+                {/* <Route path="messages" element={<AdminMessages />} /> */}
                 <Route path="/admin/exam-timers" element={<AdminExamTimer />} />
                 <Route
                   path="profile-management"

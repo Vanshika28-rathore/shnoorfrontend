@@ -6,7 +6,6 @@ import {
   signOut as fbSignOut
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 
 // ✅ ONLY what you need
 const firebaseConfig = {
@@ -19,7 +18,7 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-let app, auth, googleProvider, storage, db;
+let app, auth, googleProvider, db;
 let onAuthStateChanged, signOut;
 
 if (!firebaseConfig.apiKey) {
@@ -31,7 +30,6 @@ if (!firebaseConfig.apiKey) {
     _getRecaptchaConfig: () => ({}),
   };
   db = {};
-  storage = {};
   // Guarded functions
   onAuthStateChanged = (a, callback) => {
     callback(null); // Immediately trigger "logged out" state
@@ -43,11 +41,10 @@ if (!firebaseConfig.apiKey) {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   googleProvider = new GoogleAuthProvider();
-  storage = getStorage(app);
   db = getFirestore(app);
   // Real functions
   onAuthStateChanged = fbOnAuthStateChanged;
   signOut = fbSignOut;
 }
 
-export { auth, googleProvider, storage, db, onAuthStateChanged, signOut };
+export { auth, googleProvider, db, onAuthStateChanged, signOut };

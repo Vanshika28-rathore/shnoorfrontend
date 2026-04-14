@@ -250,7 +250,7 @@ const AdminLayoutView = ({
               icon={MessageSquare}
               label="Group messages"
             />
-            <NavItem path="messages" icon={MessageSquare} label="Messages" />
+            {/* <NavItem path="messages" icon={MessageSquare} label="Messages" /> */}
             <NavItem path="certificates" icon={Award} label="Certificates" />
             <NavItem path="settings" icon={Settings} label="Settings" />
           </ul>
