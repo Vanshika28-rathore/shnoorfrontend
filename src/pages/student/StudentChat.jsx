@@ -24,6 +24,7 @@ const StudentChat = () => {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDesc, setNewGroupDesc] = useState("");
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,9 +36,139 @@ const StudentChat = () => {
     typeof window !== "undefined" ? window.innerWidth < 1024 : false,
   );
 
+  const fetchDirectMessages = async () => {
+    const chatsRes = await api.get("/api/chats");
+    const existingChats = chatsRes.data.map((c) => ({
+      id: c.chat_id,
+      name: c.recipient_name,
+      recipientId: c.recipient_id,
+      lastMessage: c.last_message || "No messages yet",
+      unread: c.unread_count,
+      exists: true,
+      type: "dm",
+    }));
+
+    const instructorsRes = await api.get("/api/chats/available-instructors");
+    const allInstructors = instructorsRes.data || [];
+
+    const mergedChats = [...existingChats];
+    allInstructors.forEach((instructor) => {
+      const alreadyExists = existingChats.some(
+        (c) => c.recipientId === instructor.user_id,
+      );
+      if (!alreadyExists) {
+        mergedChats.push({
+          id: `new_${instructor.user_id}`,
+          name: instructor.full_name,
+          recipientId: instructor.user_id,
+          lastMessage: "Start a conversation",
+          unread: 0,
+          exists: false,
+          type: "dm",
+        });
+      }
+    });
+
+    setChats(mergedChats);
+  };
+
+  const fetchStudyGroups = async () => {
+    const [collegeRes, adminChatRes, adminSectionRes] = await Promise.allSettled(
+      [
+        api.get("/api/chats/groups/my"),
+        api.get("/api/admingroups/my-groups"),
+        api.get("/api/admin/groups/my-groups"),
+      ],
+    );
+
+    const collegeGroups =
+      collegeRes.status === "fulfilled" && Array.isArray(collegeRes.value?.data)
+        ? collegeRes.value.data.map((g) => ({
+            id: g.group_id,
+            name: g.name,
+            description: g.description,
+            meeting_link: g.meeting_link,
+            creator_id: g.creator_id,
+            created_at: g.created_at,
+            member_count: g.member_count,
+            lastMessage: g.last_message || "No messages yet",
+            unread: 0,
+            exists: true,
+            type: "group",
+            groupType: "student",
+            source: "college",
+          }))
+        : [];
+
+    const adminChatGroups =
+      adminChatRes.status === "fulfilled" &&
+      Array.isArray(adminChatRes.value?.data)
+        ? adminChatRes.value.data.map((g) => ({
+            id: g.group_id,
+            name: g.name,
+            description: g.description,
+            meeting_link: g.meeting_link,
+            creator_id: g.creator_id || g.admin_id,
+            created_at: g.created_at,
+            member_count: g.member_count,
+            lastMessage: g.last_message || "No messages yet",
+            unread: 0,
+            exists: true,
+            type: "group",
+            groupType: "admin",
+            source: "admin-chat",
+          }))
+        : [];
+
+    const adminSectionGroups =
+      adminSectionRes.status === "fulfilled" &&
+      Array.isArray(adminSectionRes.value?.data)
+        ? adminSectionRes.value.data.map((g) => ({
+            id: g.group_id,
+            name: g.name || g.group_name,
+            description: g.description,
+            creator_id: g.creator_id || g.created_by || null,
+            created_at: g.created_at,
+            member_count: g.member_count,
+            lastMessage: g.last_message || "No messages yet",
+            unread: 0,
+            exists: true,
+            type: "group",
+            groupType: "section",
+            source: "admin-section",
+          }))
+        : [];
+
+    const mergedGroups = Array.from(
+      new Map(
+        [...collegeGroups, ...adminChatGroups, ...adminSectionGroups].map(
+          (group) => [`${group.source}:${group.id}`, group],
+        ),
+      ).values(),
+    ).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+    setGroups(mergedGroups);
+  };
+
   // Fetch Data
   const fetchData = async () => {
     try {
+      if (activeTab === "dm") {
+        await fetchDirectMessages();
+        return;
+      }
+
+      if (activeTab === "groups") {
+        await fetchStudyGroups();
+        return;
+      }
+
+      if (activeTab === "discover") {
+        const discoverRes = await api.get("/api/chats/groups/available");
+        setAvailableGroups(discoverRes.data);
+        return;
+      }
+
       if (activeTab === "dm") {
         const chatsRes = await api.get("/api/chats");
         console.log("📥 Fetched chats:", chatsRes.data);
@@ -267,7 +398,8 @@ const StudentChat = () => {
       markChatRead(chatId);
       socket.emit("join_chat", chatId);
     } else {
-      const isAdminGroup = nextChat.groupType === "admin" || nextChat.source === "admin";
+      const isAdminGroup =
+        chat.groupType === "admin" || chat.source === "admin-chat";
       socket.emit(
         isAdminGroup ? "join_admin_group" : "join_group",
         chatId,
@@ -277,7 +409,8 @@ const StudentChat = () => {
     setActiveChat(nextChat);
     setLoadingMessages(true);
     try {
-      const isAdminGroup = nextChat.groupType === "admin" || nextChat.source === "admin";
+      const isAdminGroup =
+        chat.groupType === "admin" || chat.source === "admin-chat";
       const url =
         nextChat.type === "dm"
           ? `/api/chats/messages/${chatId}`
@@ -458,21 +591,57 @@ const StudentChat = () => {
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
+    if (isCreatingGroup) return;
+
+    const trimmedName = newGroupName.trim();
+    const trimmedDescription = newGroupDesc.trim();
+
+    if (!trimmedName) {
+      alert("Group name is required.");
+      return;
+    }
+
+    setIsCreatingGroup(true);
     try {
       console.log("📝 Creating group:", {
         name: newGroupName,
         description: newGroupDesc,
       });
       const res = await api.post("/api/chats/groups", {
-        name: newGroupName,
-        description: newGroupDesc,
+        name: trimmedName,
+        description: trimmedDescription,
+      });
+      const createdGroup = {
+        id: res.data.group_id,
+        name: res.data.name || trimmedName,
+        description: res.data.description || trimmedDescription,
+        meeting_link: res.data.meeting_link || null,
+        creator_id: res.data.creator_id || dbUser?.id || null,
+        created_at: res.data.created_at || new Date().toISOString(),
+        member_count: res.data.member_count || 1,
+        lastMessage: res.data.last_message || "No messages yet",
+        unread: 0,
+        exists: true,
+        type: "group",
+        groupType: "student",
+        source: "college",
+      };
+
+      setGroups((prev) => {
+        const withoutDuplicate = prev.filter(
+          (group) =>
+            !(group.id === createdGroup.id && group.source === createdGroup.source),
+        );
+        return [createdGroup, ...withoutDuplicate].sort(
+          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0),
+        );
       });
       console.log("✅ Group created:", res.data);
       setShowCreateGroup(false);
       setNewGroupName("");
       setNewGroupDesc("");
       setActiveTab("groups");
-      fetchData();
+      await fetchStudyGroups();
       
       await refreshDbUser();
     } catch (err) {
@@ -485,6 +654,8 @@ const StudentChat = () => {
       alert(
         err.response?.data?.message || err.message || "Failed to create group",
       );
+    } finally {
+      setIsCreatingGroup(false);
     }
   };
 
@@ -493,7 +664,7 @@ const StudentChat = () => {
       // FIX: was broken string concatenation — use proper template literal
       await api.post(`/api/chats/groups/${groupId}/join`);
       setActiveTab("groups");
-      fetchData();
+      await fetchStudyGroups();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to join group");
     }
@@ -1044,10 +1215,10 @@ const StudentChat = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={!dbUser?.college}
+                  disabled={!dbUser?.college || isCreatingGroup}
                   className="flex-1 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create
+                  {isCreatingGroup ? "Creating..." : "Create"}
                 </button>
               </div>
             </form>

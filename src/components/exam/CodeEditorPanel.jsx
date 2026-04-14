@@ -324,7 +324,7 @@ const CodeEditorPanel = ({
             onClick={() => setActiveTab('results')}
           >
             Test Results
-            {summary && (
+            {summary && summary.total > 0 && (
               <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold ${summary.passed === summary.total
                 ? 'bg-emerald-500/20 text-emerald-300'
                 : 'bg-red-500/20 text-red-300'
@@ -368,7 +368,7 @@ const CodeEditorPanel = ({
           {activeTab === 'results' && (
             <div>
               {/* Summary bar */}
-              {summary && (
+              {summary && summary.total > 0 && (
                 <div className={`mb-3 p-3 rounded-lg border flex items-center justify-between ${summary.passed === summary.total
                   ? 'bg-emerald-900/20 border-emerald-700/50'
                   : 'bg-red-900/20 border-red-700/50'
